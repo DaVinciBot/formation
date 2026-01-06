@@ -1,1 +1,52 @@
-@import 'tailwindcss';
+@import "tailwindcss";
+
+@theme {
+  --font-almarai-light: "Almarai-Light", sans-serif;
+  --font-almarai-regular: "Almarai-Regular", sans-serif;
+  --font-almarai-bold: "Almarai-Bold", sans-serif;
+  --font-almarai-extrabold: "Almarai-ExtraBold", sans-serif;
+
+  --color-dark-blue: #010128;
+  --color-blue-gray: #575e7d;
+  --color-light-blue: #D9E0FF;
+  --color-blue-peps: #0232FF;
+  --color-dark-blue-gray: #828AB6;
+  --color-dark-light-blue: #B3C2FF;
+  --color-dark-light-blue-faded: #5A6294;
+  --color-main-blue: #0232FF;
+
+  --color-primary-50: #92B5F8;
+  --color-primary-100: #76A2F6;
+  --color-primary-200: #5B90F4;
+  --color-primary-300: #407DF3;
+  --color-primary-400: #246BF1;
+  --color-primary-500: #0958EF;
+  --color-primary-600: #084ED4;
+  --color-primary-700: #0744BA;
+  --color-primary-800: #063B9F;
+  --color-primary-900: #010128;
+}
+
+.almarai-light {
+  font-family: "Almarai", sans-serif;
+  font-weight: 300;
+  font-style: normal;
+}
+
+.almarai-regular {
+  font-family: "Almarai", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+}
+
+.almarai-bold {
+  font-family: "Almarai", sans-serif;
+  font-weight: 700;
+  font-style: normal;
+}
+
+.almarai-extrabold {
+  font-family: "Almarai", sans-serif;
+  font-weight: 800;
+  font-style: normal;
+}
