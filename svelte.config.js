@@ -7,10 +7,13 @@ const config = {
 	// for more information about preprocessors
 	preprocess: vitePreprocess(),
 
-	kit: { adapter: adapter() },
-	paths: {
-		base: '/formation'
+	kit: {
+		adapter: adapter(),
+		paths: {
+			base: '/formation'
+		},
 	},
+
 };
 
 export default config;
