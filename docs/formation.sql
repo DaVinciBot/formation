@@ -86,7 +86,7 @@ create table public.profiles (
   role public.roles null,
   username text null default ''::text,
   avatar_url text null default 'https://avatar.iran.liara.run/public/boy'::text,
-  permissions permission[] not null,
+  permissions permission[] not null default '{access_training}'::permission[],
   constraint profiles_pkey primary key (id),
   constraint profiles_id_fkey foreign KEY (id) references auth.users (id) on update CASCADE on delete CASCADE
 ) TABLESPACE pg_default;
@@ -104,3 +104,397 @@ create table public.registration (
   constraint registration_slot_id_fkey foreign KEY (slot_id) references training_slot (id) on update CASCADE on delete CASCADE,
   constraint registration_member_id_fkey foreign KEY (member_id) references profiles (id) on update CASCADE on delete RESTRICT
 ) TABLESPACE pg_default;
+
+create index if not exists training_slot_training_id_idx on public.training_slot (training_id);
+create index if not exists training_slot_start_idx on public.training_slot (start);
+create index if not exists registration_member_id_idx on public.registration (member_id);
+create index if not exists registration_slot_id_idx on public.registration (slot_id);
+
+create or replace function public.has_permission(p_permission permission)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1
+    from public.profiles
+    where id = auth.uid()
+      and p_permission = any (permissions)
+  );
+$$;
+
+create or replace function public.training_list()
+returns table (
+  training_id bigint,
+  name text,
+  description text,
+  prerequisites text,
+  category public.training_category
+)
+language sql
+stable
+as $$
+  select
+    t.id as training_id,
+    t.name,
+    t.description,
+    t.prerequisites,
+    t.category
+  from public.training t
+  order by t.category, t.name;
+$$;
+
+create or replace function public.training_slot_list(p_from timestamptz default now())
+returns table (
+  slot_id bigint,
+  training_id bigint,
+  name text,
+  description text,
+  prerequisites text,
+  category public.training_category,
+  start timestamptz,
+  duration_hours numeric,
+  on_site_seats bigint,
+  remote_seats bigint,
+  location text,
+  video_conference_link text,
+  excusable boolean,
+  status public.slot_status,
+  trainer_id uuid,
+  trainer_username text,
+  trainer_avatar_url text
+)
+language sql
+stable
+as $$
+  select
+    ts.id as slot_id,
+    ts.training_id,
+    coalesce(ts.custom_name, t.name) as name,
+    coalesce(ts.custom_description, t.description) as description,
+    coalesce(ts.custom_prerequisites, t.prerequisites) as prerequisites,
+    t.category,
+    ts.start,
+    ts.duration_hours,
+    ts.on_site_seats,
+    ts.remote_seats,
+    ts.location,
+    ts.video_conference_link,
+    ts.excusable,
+    ts.status,
+    ts.trainer_id,
+    p.username as trainer_username,
+    p.avatar_url as trainer_avatar_url
+  from public.training_slot ts
+  join public.training t on t.id = ts.training_id
+  join public.profiles p on p.id = ts.trainer_id
+  where ts.start >= p_from
+  order by ts.start;
+$$;
+
+create or replace function public.training_slot_detail(p_slot_id bigint)
+returns table (
+  slot_id bigint,
+  training_id bigint,
+  name text,
+  description text,
+  prerequisites text,
+  category public.training_category,
+  start timestamptz,
+  duration_hours numeric,
+  on_site_seats bigint,
+  remote_seats bigint,
+  location text,
+  video_conference_link text,
+  excusable boolean,
+  status public.slot_status,
+  trainer_id uuid,
+  trainer_username text,
+  trainer_avatar_url text
+)
+language sql
+stable
+as $$
+  select
+    ts.id as slot_id,
+    ts.training_id,
+    coalesce(ts.custom_name, t.name) as name,
+    coalesce(ts.custom_description, t.description) as description,
+    coalesce(ts.custom_prerequisites, t.prerequisites) as prerequisites,
+    t.category,
+    ts.start,
+    ts.duration_hours,
+    ts.on_site_seats,
+    ts.remote_seats,
+    ts.location,
+    ts.video_conference_link,
+    ts.excusable,
+    ts.status,
+    ts.trainer_id,
+    p.username as trainer_username,
+    p.avatar_url as trainer_avatar_url
+  from public.training_slot ts
+  join public.training t on t.id = ts.training_id
+  join public.profiles p on p.id = ts.trainer_id
+  where ts.id = p_slot_id
+  limit 1;
+$$;
+
+create or replace function public.registration_list(p_slot_id bigint)
+returns table (
+  slot_id bigint,
+  member_id uuid,
+  date_hour timestamptz,
+  remote boolean,
+  status public.registration_status,
+  present boolean,
+  to_excuse boolean,
+  feedback text,
+  member_username text,
+  member_avatar_url text
+)
+language sql
+stable
+as $$
+  select
+    r.slot_id,
+    r.member_id,
+    r.date_hour,
+    r.remote,
+    r.status,
+    r.present,
+    r.to_excuse,
+    r.feedback,
+    p.username as member_username,
+    p.avatar_url as member_avatar_url
+  from public.registration r
+  join public.profiles p on p.id = r.member_id
+  where r.slot_id = p_slot_id
+  order by r.date_hour;
+$$;
+
+create or replace function public.registration_target_status(p_slot_id bigint, p_remote boolean)
+returns public.registration_status
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  seat_capacity integer;
+  registered_count integer;
+begin
+  select case when p_remote then remote_seats else on_site_seats end
+  into seat_capacity
+  from public.training_slot
+  where id = p_slot_id
+  for update;
+
+  if seat_capacity is null then
+    seat_capacity := 0;
+  end if;
+
+  select count(*) into registered_count
+  from public.registration
+  where slot_id = p_slot_id
+    and remote = p_remote
+    and status = 'registered';
+
+  if registered_count < seat_capacity then
+    return 'registered';
+  end if;
+
+  return 'waitlisted';
+end;
+$$;
+
+create or replace function public.register_to_slot(
+  p_slot_id bigint,
+  p_remote boolean,
+  p_to_excuse boolean default false
+)
+returns public.registration_status
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  target_status public.registration_status;
+  user_id uuid := auth.uid();
+begin
+  if user_id is null then
+    raise exception 'Not authenticated';
+  end if;
+
+  target_status := public.registration_target_status(p_slot_id, p_remote);
+
+  insert into public.registration (slot_id, member_id, date_hour, remote, status, to_excuse)
+  values (p_slot_id, user_id, now(), p_remote, target_status, p_to_excuse)
+  on conflict (slot_id, member_id)
+  do update set
+    date_hour = excluded.date_hour,
+    remote = excluded.remote,
+    status = excluded.status,
+    to_excuse = excluded.to_excuse;
+
+  return target_status;
+end;
+$$;
+
+create or replace function public.registration_before_insert()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  new.status := public.registration_target_status(new.slot_id, new.remote);
+  if new.date_hour is null then
+    new.date_hour := now();
+  end if;
+  return new;
+end;
+$$;
+
+create or replace function public.promote_waitlist(p_slot_id bigint, p_remote boolean)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  seat_capacity integer;
+  registered_count integer;
+  candidate_member uuid;
+begin
+  select case when p_remote then remote_seats else on_site_seats end
+  into seat_capacity
+  from public.training_slot
+  where id = p_slot_id
+  for update;
+
+  if seat_capacity is null then
+    return;
+  end if;
+
+  select count(*) into registered_count
+  from public.registration
+  where slot_id = p_slot_id
+    and remote = p_remote
+    and status = 'registered';
+
+  if registered_count >= seat_capacity then
+    return;
+  end if;
+
+  select member_id
+  into candidate_member
+  from public.registration
+  where slot_id = p_slot_id
+    and remote = p_remote
+    and status = 'waitlisted'
+  order by date_hour
+  limit 1;
+
+  if candidate_member is null then
+    return;
+  end if;
+
+  update public.registration
+  set status = 'registered'
+  where slot_id = p_slot_id
+    and member_id = candidate_member;
+end;
+$$;
+
+create or replace function public.registration_after_update()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if old.status = 'registered' and new.status in ('canceled_by_user', 'canceled_by_admin') then
+    perform public.promote_waitlist(new.slot_id, new.remote);
+  end if;
+  return new;
+end;
+$$;
+
+create or replace function public.registration_after_delete()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if old.status = 'registered' then
+    perform public.promote_waitlist(old.slot_id, old.remote);
+  end if;
+  return old;
+end;
+$$;
+
+create trigger registration_before_insert_trigger
+before insert on public.registration
+for each row
+execute function public.registration_before_insert();
+
+create trigger registration_after_update_trigger
+after update on public.registration
+for each row
+execute function public.registration_after_update();
+
+create trigger registration_after_delete_trigger
+after delete on public.registration
+for each row
+execute function public.registration_after_delete();
+
+alter table public.training enable row level security;
+alter table public.training_slot enable row level security;
+alter table public.registration enable row level security;
+
+create policy training_read on public.training
+for select
+to authenticated
+using (public.has_permission('access_training') or public.has_permission('manage_training'));
+
+create policy training_write on public.training
+for all
+to authenticated
+using (public.has_permission('manage_training'))
+with check (public.has_permission('manage_training'));
+
+create policy training_slot_read on public.training_slot
+for select
+to authenticated
+using (public.has_permission('access_training') or public.has_permission('manage_training'));
+
+create policy training_slot_write on public.training_slot
+for all
+to authenticated
+using (public.has_permission('manage_training'))
+with check (public.has_permission('manage_training'));
+
+create policy registration_read on public.registration
+for select
+to authenticated
+using (member_id = auth.uid() or public.has_permission('manage_training'));
+
+create policy registration_insert on public.registration
+for insert
+to authenticated
+with check (member_id = auth.uid() and public.has_permission('access_training'));
+
+create policy registration_update on public.registration
+for update
+to authenticated
+using (member_id = auth.uid() or public.has_permission('manage_training'))
+with check (member_id = auth.uid() or public.has_permission('manage_training'));
+
+create policy registration_delete on public.registration
+for delete
+to authenticated
+using (member_id = auth.uid() or public.has_permission('manage_training'));
+
