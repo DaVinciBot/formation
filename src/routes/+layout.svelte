@@ -1,7 +1,7 @@
 <script lang="ts">
-	import './layout.css';
 	import favicon from '$lib/assets/favicon.svg';
 	import Topbar from '$lib/components/share/Topbar.svelte';
+	import './layout.css';
 
 	let { children } = $props();
 </script>
