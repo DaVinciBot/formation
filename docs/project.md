@@ -13,7 +13,7 @@ Objectif du site :
 - Fournir des **statistiques utiles aux responsables formation**
 - Réduire la charge organisationnelle (Discord / Excel / rappels manuels)
 
->Respo crée et planifie toutes les formations
+> Respo crée et planifie toutes les formations
 
 **1) Rôles**
 
@@ -21,13 +21,20 @@ Objectif du site :
 - Formateur·ice : pour simplement voir les inscriptions
 - Membre
 
+## Règles métier
+
+- Inscription possible jusqu'à 5 minutes après le début de la session.
+- Désinscription possible jusqu'à 5 minutes après le début de la session.
+- Promotion automatique de la liste d'attente lorsqu'une place se libère (par format distanciel/présentiel).
+- Le besoin d'excuse (`to_excuse`) est modifiable à tout moment.
+
 # Vues
 
 ## 1 Vue membre
 
 ### 1.1 Vue principale
 
-- Calendrier des formations
+- Calendrier des formations (vue commune à tous les rôles, fonctionnalités additionnelles selon le rôle connecté)
   - Filtrage par :
     - Catégorie
     - Distanciel / Présentiel
@@ -62,7 +69,22 @@ Objectif du site :
 - Formations suivies
 - Temps total de formation
 
+### 1.4 Parcours pas à pas (membre)
+
+1. Connexion email/password.
+2. Consultation du calendrier/liste filtrable.
+3. Ouverture d'une session pour voir détails et statut (complète/annulée/reportée).
+4. Choix distanciel/présentiel si applicable, puis inscription.
+5. Si complète : inscription en liste d'attente avec position affichée.
+6. Réception de l'email de confirmation avec un fichier `calendar.ics`.
+7. Modification possible de l'état `to_excuse` à tout moment.
+8. Désinscription possible jusqu'à 5 minutes après le début.
+9. Si une place se libère : promotion automatique de la liste d'attente et notification par email.
+10. Après la session : historique et temps cumulés mis à jour si présent.
+
 ## 2 Vue Admin / Respo fm
+
+- Calendrier des formations partagé avec actions d'édition/annulation selon permissions.
 
 ### 2.1 Onglet catalogue de formations
 
@@ -126,7 +148,21 @@ Objectif du site :
   - durée cumulées par catégorie et total
   - ...
 
+### 2.5 Parcours pas à pas (admin / respo)
+
+1. Connexion email/password.
+2. Création/édition des formations de référence (catalogue).
+3. Création d'une session : date, durée, format, places, formateur·ice, visibilité.
+4. Publication immédiate ou brouillon.
+5. Mail pour lae formateur·ice si nouvelle session publiée ou jour/heure/formateurice modifié.
+6. Suivi des inscriptions : liste, statut, export CSV.
+7. Annulation/report et communication aux inscrit·e·s.
+8. Pilotage des stats (par période, catégorie, formateur·ice, membre).
+9. Déclenchement manuel du webhook Discord pour l'annonce hebdo.
+
 ## 3 Vue Formateur·ice
+
+- Calendrier des formations partagé avec actions de gestion de session selon permissions.
 
 ### 3.1 Tableau de bord
 
@@ -190,27 +226,91 @@ liste + filtre : à venir / passées / annulées
   - changement de salle / lien
   - annulation / report
 
+### 3.4 Parcours pas à pas (formateur·ice)
+
+1. Connexion email/password.
+2. Accès à son tableau de bord (sessions à venir, historique).
+3. Ouverture d'une session pour consulter détails et inscriptions.
+4. Gestion de la liste d'attente si une place se libère.
+5. Clôture des inscriptions si nécessaire.
+6. Check-in des présences (présent/absent/excusé).
+7. Export CSV des présences.
+8. Communication ciblée (inscrits, liste d'attente).
+
 # Fonctionnalités
 
 ## Notifications
 
-- Inscription confirmée
-- Rappel J-1 / H-2
-- Annulation / report
-- Notification Discord (webhook)
-- Envoie des infos utiles à lae respo fm
+- Canal principal : email (AWS SES).
+- Adresse expéditeur : `noreply@davincibot.fr`.
+- Inscription confirmée : email + `calendar.ics`.
+- Rappel J-1 / H-2 avec détails lieu/lien.
+- Annulation / report : email dédié.
+- Mentionner la position en liste d'attente si applicable.
+- Rappel explicite de se désinscrire si absence.
+- Discord : webhook déclenchable pour annoncer les formations de la semaine.
+
+## Fonctionnalités (liste exhaustive par rôle/module)
+
+### Membre
+
+- Consulter calendrier/listes filtrables.
+- Accéder au détail d'une session (statut, places restantes, liens).
+- S'inscrire à une session (distanciel/présentiel).
+- S'inscrire en liste d'attente si complet.
+- Se désinscrire jusqu'à +5 min après le début.
+- Modifier le besoin d'excuse (`to_excuse`).
+- Consulter ses formations à venir et historiques.
+- Accéder à ses statistiques personnelles (durée cumulée, nb suivies).
+
+### Admin / Respo formation
+
+- Gérer le catalogue des formations de référence.
+- Créer/éditer des sessions (nom, description, prérequis personnalisés).
+- Planifier visibilité (publique/brouillon).
+- Gérer les inscriptions et statuts (confirmé, absent, désinscrit).
+- Annuler/report de session.
+- Export CSV des inscriptions/présences.
+- Envoyer des rappels aux inscrit·e·s.
+- Déclencher l'annonce hebdo sur Discord.
+- Consulter les statistiques par période/catégorie/formateur·ice/membre.
+
+### Formateur·ice
+
+- Voir ses sessions à venir et passées.
+- Accéder aux détails de session (lieu/lien, capacité).
+- Consulter la liste des inscrit·e·s + liste d'attente.
+- Promouvoir un inscrit depuis la liste d'attente.
+- Clôturer les inscriptions.
+- Gérer les présences (présent/absent/excusé).
+- Export CSV présents/absents.
+- Communiquer avec inscrits/liste d'attente.
+
+### Modules transverses
+
+- Auth email/password.
+- Gestion des permissions (access_training/manage_training).
+- Export CSV (inscriptions, présences, stats).
 
 ## Droits & rôles
 
-- Admin
-- Respo formation
-- Formateur·ice
-- Membre
+Gestion par permissions :
 
-## Historique
+- Voir / S'inscrire aux formations
+- Gérer les formations
 
-- Qui a créé / modifié quoi
-- Journal des actions (utile en asso)
+Le "rôle" formateur·ice est calculé automatiquement s'il existe une formation animée.
+
+## Glossaire
+
+- Formation (type) : modèle de formation réutilisable pour créer des sessions.
+- Session de formation : occurrence planifiée d'une formation (date/heure, formateur·ice, lieux).
+- Inscription : lien membre → session avec statut et format (distanciel/présentiel).
+- Liste d'attente : file d'inscrits en attente de place.
+- Excuse (`to_excuse`) : indicateur de besoin d'excuse de cours.
+- Places distancielles/présentielles : capacités séparées par format.
+- Statut session : état d'une session (draft, pending, done, postponed, canceled).
+- Statut inscription : état d'une inscription (registered, waitlisted, canceled).
 
 ## Évolutions possibles
 
