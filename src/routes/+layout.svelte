@@ -18,7 +18,7 @@
 	/>
 </svelte:head>
 
-<div class="bg-dark-blue min-h-screen min-w-screen font-['Almarai'] text-white antialiased ">
+<div class="min-h-screen min-w-screen bg-dark-blue font-['Almarai'] text-white antialiased">
 	<Topbar />
 	<div class="pt-20">
 		{@render children()}

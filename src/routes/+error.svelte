@@ -3,7 +3,7 @@
 </script>
 
 <section>
-	<div class="flex h-screen flex-col items-center justify-center">
+	<div class="flex min-h-[calc(100vh-5rem)] flex-col items-center justify-center">
 		<div class="flex flex-col items-center justify-center">
 			<img src={resolve('/') + '404.webp'} alt="404" class="w-1/2" />
 			<h1 class="text-4xl font-bold text-gray-100">Désolé, il n'y a rien ici</h1>
