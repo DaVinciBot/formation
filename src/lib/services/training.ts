@@ -2,7 +2,11 @@ import { supabase } from '$lib/supabaseClient';
 
 type TrainingCategory = 'code' | 'electronics' | 'robotic' | 'other' | 'software';
 
-type RegistrationStatus = 'waitlisted' | 'registered' | 'canceled_by_user' | 'canceled_by_admin';
+export type RegistrationStatus =
+	| 'waitlisted'
+	| 'registered'
+	| 'canceled_by_user'
+	| 'canceled_by_admin';
 
 export type SlotStatus = 'draft' | 'pending' | 'done' | 'postponed' | 'canceled';
 
@@ -14,28 +18,28 @@ export type TrainingListItem = {
 	category: TrainingCategory;
 };
 
-	export type TrainingSlotListItem = {
-		slot_id: number;
-		training_id: number;
-		name: string;
-		description: string | null;
-		prerequisites: string | null;
-		category: TrainingCategory;
-		start: string;
-		duration_hours: number;
-		on_site_seats: number | null;
-		remote_seats: number | null;
-		on_site_registered: number | null;
-		remote_registered: number | null;
-		on_site_waitlisted: number | null;
-		remote_waitlisted: number | null;
-		on_site_remaining: number | null;
-		remote_remaining: number | null;
-		location: string | null;
-		video_conference_link: string | null;
-		excusable: boolean;
-		status: SlotStatus;
-		trainer_id: string;
+export type TrainingSlotListItem = {
+	slot_id: number;
+	training_id: number;
+	name: string;
+	description: string | null;
+	prerequisites: string | null;
+	category: TrainingCategory;
+	start: string;
+	duration_hours: number;
+	on_site_seats: number | null;
+	remote_seats: number | null;
+	on_site_registered: number | null;
+	remote_registered: number | null;
+	on_site_waitlisted: number | null;
+	remote_waitlisted: number | null;
+	on_site_remaining: number | null;
+	remote_remaining: number | null;
+	location: string | null;
+	video_conference_link: string | null;
+	excusable: boolean;
+	status: SlotStatus;
+	trainer_id: string;
 	trainer_username: string | null;
 	trainer_avatar_url: string | null;
 };
@@ -51,6 +55,11 @@ export type RegistrationListItem = {
 	feedback: string | null;
 	member_username: string | null;
 	member_avatar_url: string | null;
+};
+
+export type RegistrationSummary = {
+	remote: boolean;
+	status: RegistrationStatus;
 };
 
 export type CreateTrainingPayload = {
@@ -115,6 +124,31 @@ export async function getSlotRegistrations(slotId: number): Promise<Registration
 	});
 	if (error) throw error;
 	return data;
+}
+
+export async function getMyRegistrationForSlot(
+	slotId: number
+): Promise<RegistrationSummary | null> {
+	const {
+		data: { user },
+		error: userError
+	} = await supabase.auth.getUser();
+	if (userError) throw userError;
+	if (!user) return null;
+
+	const { data, error } = await supabase
+		.from('registration')
+		.select('remote,status')
+		.eq('slot_id', slotId)
+		.eq('member_id', user.id)
+		.maybeSingle();
+	if (error) throw error;
+	if (!data) return null;
+	if (data.status !== 'registered' && data.status !== 'waitlisted') return null;
+	return {
+		remote: data.remote,
+		status: data.status
+	};
 }
 
 export async function registerToSlot(
