@@ -4,7 +4,7 @@ type TrainingCategory = 'code' | 'electronics' | 'robotic' | 'other' | 'software
 
 type RegistrationStatus = 'waitlisted' | 'registered' | 'canceled_by_user' | 'canceled_by_admin';
 
-type SlotStatus = 'draft' | 'pending' | 'done' | 'postponed' | 'canceled';
+export type SlotStatus = 'draft' | 'pending' | 'done' | 'postponed' | 'canceled';
 
 export type TrainingListItem = {
 	training_id: number;
@@ -14,22 +14,28 @@ export type TrainingListItem = {
 	category: TrainingCategory;
 };
 
-export type TrainingSlotListItem = {
-	slot_id: number;
-	training_id: number;
-	name: string;
-	description: string | null;
-	prerequisites: string | null;
-	category: TrainingCategory;
-	start: string;
-	duration_hours: number;
-	on_site_seats: number | null;
-	remote_seats: number | null;
-	location: string | null;
-	video_conference_link: string | null;
-	excusable: boolean;
-	status: SlotStatus;
-	trainer_id: string;
+	export type TrainingSlotListItem = {
+		slot_id: number;
+		training_id: number;
+		name: string;
+		description: string | null;
+		prerequisites: string | null;
+		category: TrainingCategory;
+		start: string;
+		duration_hours: number;
+		on_site_seats: number | null;
+		remote_seats: number | null;
+		on_site_registered: number | null;
+		remote_registered: number | null;
+		on_site_waitlisted: number | null;
+		remote_waitlisted: number | null;
+		on_site_remaining: number | null;
+		remote_remaining: number | null;
+		location: string | null;
+		video_conference_link: string | null;
+		excusable: boolean;
+		status: SlotStatus;
+		trainer_id: string;
 	trainer_username: string | null;
 	trainer_avatar_url: string | null;
 };

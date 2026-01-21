@@ -158,6 +158,12 @@ returns table (
   duration_hours numeric,
   on_site_seats bigint,
   remote_seats bigint,
+  on_site_registered bigint,
+  remote_registered bigint,
+  on_site_waitlisted bigint,
+  remote_waitlisted bigint,
+  on_site_remaining bigint,
+  remote_remaining bigint,
   location text,
   video_conference_link text,
   excusable boolean,
@@ -180,6 +186,18 @@ as $$
     ts.duration_hours,
     ts.on_site_seats,
     ts.remote_seats,
+    coalesce(reg.on_site_registered, 0) as on_site_registered,
+    coalesce(reg.remote_registered, 0) as remote_registered,
+    coalesce(reg.on_site_waitlisted, 0) as on_site_waitlisted,
+    coalesce(reg.remote_waitlisted, 0) as remote_waitlisted,
+    case
+      when ts.on_site_seats is null then null
+      else greatest(ts.on_site_seats - coalesce(reg.on_site_registered, 0), 0)
+    end as on_site_remaining,
+    case
+      when ts.remote_seats is null then null
+      else greatest(ts.remote_seats - coalesce(reg.remote_registered, 0), 0)
+    end as remote_remaining,
     ts.location,
     ts.video_conference_link,
     ts.excusable,
@@ -190,6 +208,15 @@ as $$
   from public.training_slot ts
   join public.training t on t.id = ts.training_id
   join public.profiles p on p.id = ts.trainer_id
+  left join lateral (
+    select
+      count(*) filter (where r.remote = false and r.status = 'registered') as on_site_registered,
+      count(*) filter (where r.remote = true and r.status = 'registered') as remote_registered,
+      count(*) filter (where r.remote = false and r.status = 'waitlisted') as on_site_waitlisted,
+      count(*) filter (where r.remote = true and r.status = 'waitlisted') as remote_waitlisted
+    from public.registration r
+    where r.slot_id = ts.id
+  ) reg on true
   where ts.start >= p_from
   order by ts.start;
 $$;
@@ -206,6 +233,12 @@ returns table (
   duration_hours numeric,
   on_site_seats bigint,
   remote_seats bigint,
+  on_site_registered bigint,
+  remote_registered bigint,
+  on_site_waitlisted bigint,
+  remote_waitlisted bigint,
+  on_site_remaining bigint,
+  remote_remaining bigint,
   location text,
   video_conference_link text,
   excusable boolean,
@@ -228,6 +261,18 @@ as $$
     ts.duration_hours,
     ts.on_site_seats,
     ts.remote_seats,
+    coalesce(reg.on_site_registered, 0) as on_site_registered,
+    coalesce(reg.remote_registered, 0) as remote_registered,
+    coalesce(reg.on_site_waitlisted, 0) as on_site_waitlisted,
+    coalesce(reg.remote_waitlisted, 0) as remote_waitlisted,
+    case
+      when ts.on_site_seats is null then null
+      else greatest(ts.on_site_seats - coalesce(reg.on_site_registered, 0), 0)
+    end as on_site_remaining,
+    case
+      when ts.remote_seats is null then null
+      else greatest(ts.remote_seats - coalesce(reg.remote_registered, 0), 0)
+    end as remote_remaining,
     ts.location,
     ts.video_conference_link,
     ts.excusable,
@@ -238,6 +283,15 @@ as $$
   from public.training_slot ts
   join public.training t on t.id = ts.training_id
   join public.profiles p on p.id = ts.trainer_id
+  left join lateral (
+    select
+      count(*) filter (where r.remote = false and r.status = 'registered') as on_site_registered,
+      count(*) filter (where r.remote = true and r.status = 'registered') as remote_registered,
+      count(*) filter (where r.remote = false and r.status = 'waitlisted') as on_site_waitlisted,
+      count(*) filter (where r.remote = true and r.status = 'waitlisted') as remote_waitlisted
+    from public.registration r
+    where r.slot_id = ts.id
+  ) reg on true
   where ts.id = p_slot_id
   limit 1;
 $$;
