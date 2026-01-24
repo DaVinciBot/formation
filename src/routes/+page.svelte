@@ -1,220 +1,45 @@
 <script lang="ts">
 	import Calendar, { type CalendarSlot } from '$lib/components/training/Calendar.svelte';
+	import { getTrainingSlots } from '$lib/services/training';
+	import { onMount } from 'svelte';
 
-	function makeDate(dayOffset: number, hour: number, minute: number = 0): Date {
-		const date = new Date();
-		date.setDate(date.getDate() + dayOffset);
-		date.setHours(hour, minute, 0, 0);
-		return date;
+	let slots: CalendarSlot[] = [];
+	let loading = false;
+	let error: string | null = null;
+
+	function getWeekStart(date: Date) {
+		const dayIndex = (date.getDay() + 6) % 7;
+		return new Date(date.getFullYear(), date.getMonth(), date.getDate() - dayIndex);
 	}
 
-	const demoSlots: CalendarSlot[] = [
-		{
-			slot_id: 1,
-			training_id: 1,
-			name: 'Formation',
-			description:
-				'Installation et <b>prise en main</b> des outils fsdqfsdqd sqjkdfhkjsqdh  qsdfjkhqsdkjh f qsdjkd fhkjlqsdhf qsdfk jksqdhfkjhqs qsdkjfh kqjsdhf  qsdkjfhqskljdfkqsjlh saut : <br/> fkjlsdqml double <br/><br/>dsfds',
-			prerequisites: null,
-			category: 'code',
-			start: makeDate(0, 9),
-			duration_hours: 2,
-			on_site_seats: 6,
-			remote_seats: 8,
-			on_site_registered: 6,
-			remote_registered: 2,
-			on_site_waitlisted: 1,
-			remote_waitlisted: 0,
-			on_site_remaining: 0,
-			remote_remaining: 6,
-			location: 'Local',
-			video_conference_link: null,
-			excusable: false,
-			status: 'pending',
-			trainer_id: 'demo',
-			trainer_username: 'Lina',
-			trainer_avatar_url: null
-		},
-		{
-			slot_id: 55,
-			training_id: 1,
-			name: 'Formation',
-			description: 'Session courte pour révisions.',
-			prerequisites: 'kjlfdsklfjdsklfjs',
-			category: 'code',
-			start: makeDate(0, 9, 30),
-			duration_hours: 1.5,
-			on_site_seats: 6,
-			remote_seats: null,
-			on_site_registered: 4,
-			remote_registered: 0,
-			on_site_waitlisted: 0,
-			remote_waitlisted: 0,
-			on_site_remaining: 2,
-			remote_remaining: null,
-			location: 'Local',
-			video_conference_link: 'https://example.com',
-			excusable: false,
-			status: 'pending',
-			trainer_id: 'demo',
-			trainer_username: 'Lina',
-			trainer_avatar_url: null
-		},
-		{
-			slot_id: 2,
-			training_id: 2,
-			name: 'Test',
-			description: 'Tests rapides.',
-			prerequisites: null,
-			category: 'electronics',
-			start: makeDate(1, 11),
-			duration_hours: 3 / 4,
-			on_site_seats: 5,
-			remote_seats: 10,
-			on_site_registered: 1,
-			remote_registered: 3,
-			on_site_waitlisted: 0,
-			remote_waitlisted: 0,
-			on_site_remaining: 4,
-			remote_remaining: 7,
-			location: 'Local',
-			video_conference_link: 'https://example.com',
-			excusable: true,
-			status: 'pending',
-			trainer_id: 'demo',
-			trainer_username: 'Sam',
-			trainer_avatar_url: null
-		},
-		{
-			slot_id: 3,
-			training_id: 3,
-			name: 'Svelte',
-			description: 'Svelte avancé.',
-			prerequisites: null,
-			category: 'software',
-			start: makeDate(3, 14),
-			duration_hours: 1.5,
-			on_site_seats: null,
-			remote_seats: 8,
-			on_site_registered: 0,
-			remote_registered: 8,
-			on_site_waitlisted: 0,
-			remote_waitlisted: 2,
-			on_site_remaining: null,
-			remote_remaining: 0,
-			location: 'En ligne',
-			video_conference_link: 'https://example.com',
-			excusable: true,
-			status: 'pending',
-			trainer_id: 'demo',
-			trainer_username: 'Jules',
-			trainer_avatar_url: null
-		},
-		{
-			slot_id: 4,
-			training_id: 4,
-			name: 'Formation',
-			description: 'Session avancée.',
-			prerequisites: null,
-			category: 'robotic',
-			start: makeDate(4, 16),
-			duration_hours: 1,
-			on_site_seats: 12,
-			remote_seats: 6,
-			on_site_registered: 8,
-			remote_registered: 3,
-			on_site_waitlisted: 0,
-			remote_waitlisted: 0,
-			on_site_remaining: 4,
-			remote_remaining: 3,
-			location: 'Local',
-			video_conference_link: 'https://example.com',
-			excusable: true,
-			status: 'pending',
-			trainer_id: 'demo',
-			trainer_username: 'Maya',
-			trainer_avatar_url: null
-		},
-		{
-			slot_id: 5,
-			training_id: 5,
-			name: 'Formation',
-			description: 'Session annulée.',
-			prerequisites: null,
-			category: 'other',
-			start: makeDate(5, 18),
-			duration_hours: 2,
-			on_site_seats: 6,
-			remote_seats: 6,
-			on_site_registered: 0,
-			remote_registered: 0,
-			on_site_waitlisted: 0,
-			remote_waitlisted: 0,
-			on_site_remaining: 6,
-			remote_remaining: 6,
-			location: 'Local',
-			video_conference_link: null,
-			excusable: false,
-			status: 'canceled',
-			trainer_id: 'demo',
-			trainer_username: 'Luc',
-			trainer_avatar_url: null
-		},
-		{
-			slot_id: 6,
-			training_id: 6,
-			name: 'Formation',
-			description: 'Focus pratique.',
-			prerequisites: null,
-			category: 'electronics',
-			start: makeDate(5, 18),
-			duration_hours: 2,
-			on_site_seats: 8,
-			remote_seats: null,
-			on_site_registered: 7,
-			remote_registered: 0,
-			on_site_waitlisted: 0,
-			remote_waitlisted: 0,
-			on_site_remaining: 1,
-			remote_remaining: null,
-			location: 'Local',
-			video_conference_link: null,
-			excusable: true,
-			status: 'pending',
-			trainer_id: 'demo',
-			trainer_username: 'Iris',
-			trainer_avatar_url: null
-		},
-		{
-			slot_id: 7,
-			training_id: 6,
-			name: 'Formation',
-			description: 'Focus pratique.',
-			prerequisites: null,
-			category: 'electronics',
-			start: makeDate(5, 18),
-			duration_hours: 2,
-			on_site_seats: 8,
-			remote_seats: 2,
-			on_site_registered: 8,
-			remote_registered: 2,
-			on_site_waitlisted: 1,
-			remote_waitlisted: 2,
-			on_site_remaining: 0,
-			remote_remaining: 0,
-			location: 'Local',
-			video_conference_link: null,
-			excusable: true,
-			status: 'pending',
-			trainer_id: 'demo',
-			trainer_username: 'Iris',
-			trainer_avatar_url: null
+	async function loadWeek(date: Date) {
+		const weekStart = getWeekStart(date);
+		loading = true;
+		error = null;
+		try {
+			slots = await getTrainingSlots(weekStart, 7);
+		} catch (err) {
+			console.error(err);
+			slots = [];
+			error = 'Impossible de charger le calendrier pour cette semaine.';
+		} finally {
+			loading = false;
 		}
-	];
+	}
+
+	onMount(() => {
+		loadWeek(new Date());
+	});
 </script>
 
-<div class="space-y-10 px-6 py-6">
+<div class="space-y-4 px-6 py-6">
+	{#if loading}
+		<p class="text-sm text-light-blue/80">Chargement du calendrier...</p>
+	{/if}
+	{#if error}
+		<p class="text-sm text-waiting">{error}</p>
+	{/if}
 	<div class="h-[calc(100vh-8rem)]">
-		<Calendar slots={demoSlots} />
+		<Calendar {slots} onWeekChange={loadWeek} />
 	</div>
 </div>

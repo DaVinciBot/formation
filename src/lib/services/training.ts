@@ -102,9 +102,16 @@ export async function getTrainingList(): Promise<TrainingListItem[]> {
 	return data;
 }
 
-export async function getTrainingSlots(fromDate = new Date()): Promise<TrainingSlotListItem[]> {
+export async function getTrainingSlots(
+	fromDate = new Date(),
+	number_of_days: number | null = null
+): Promise<TrainingSlotListItem[]> {
 	const { data, error } = await supabase.rpc('training_slot_list', {
-		p_from: fromDate.toISOString()
+		p_from: fromDate.toISOString(),
+		p_to:
+			number_of_days === null
+				? null
+				: new Date(fromDate.getTime() + number_of_days * 24 * 60 * 60 * 1000).toISOString()
 	});
 	if (error) throw error;
 	return data;

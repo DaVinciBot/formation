@@ -75,6 +75,16 @@ create table public.training_slot (
       (remote_seats is null)
       or ((remote_seats)::numeric > (0)::numeric)
     )
+  ),
+  constraint training_slot_status_check check (
+    (
+      (
+        (
+          COALESCE(on_site_seats, (0)::bigint) + COALESCE(remote_seats, (0)::bigint)
+        ) > 0
+      )
+      or (status = 'draft'::slot_status)
+    )
   )
 ) TABLESPACE pg_default;
 
@@ -146,7 +156,7 @@ as $$
   order by t.category, t.name;
 $$;
 
-create or replace function public.training_slot_list(p_from timestamptz default now())
+create or replace function public.training_slot_list(p_from timestamptz default now(), p_to timestamptz default null)
 returns table (
   slot_id bigint,
   training_id bigint,
@@ -218,6 +228,7 @@ as $$
     where r.slot_id = ts.id
   ) reg on true
   where ts.start >= p_from
+    and (p_to is null or ts.start < p_to)
   order by ts.start;
 $$;
 
