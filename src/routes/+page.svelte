@@ -15,6 +15,7 @@
 	let loading = false;
 	let error: string | null = null;
 	let currentDate = new Date();
+	let canManageTraining = false;
 
 	function getWeekStart(date: Date) {
 		const dayIndex = (date.getDay() + 6) % 7;
@@ -54,7 +55,7 @@
 				const slotIds = rawSlots.map((slot) => slot.slot_id);
 				const { data: registrationData, error: registrationError } = await supabase
 					.from('registration')
-					.select('slot_id,status')
+					.select('slot_id,status,remote')
 					.eq('member_id', user.id)
 					.in('slot_id', slotIds);
 				if (registrationError) throw registrationError;
@@ -64,7 +65,13 @@
 					}
 				}
 			}
-			slots = rawSlots.map((slot) => ({
+			const visibleSlots = rawSlots.filter((slot) => {
+				if (slot.status !== 'canceled' && slot.status !== 'postponed') return true;
+				if (canManageTraining) return true;
+				const registrationStatus = registrationStatuses.get(slot.slot_id);
+				return registrationStatus === 'registered' || registrationStatus === 'waitlisted';
+			});
+			slots = visibleSlots.map((slot) => ({
 				...slot,
 				cardStatus: resolveCardStatus(
 					slot,
@@ -90,6 +97,10 @@
 				await goto('unauthorized?redirect=/');
 				return;
 			}
+			const { data: manageData, error: manageError } = await supabase.rpc('has_permission', {
+				p_permission: 'manage_training'
+			});
+			canManageTraining = !manageError && Boolean(manageData);
 			await loadWeek(new Date());
 		} catch (err) {
 			console.error(err);
