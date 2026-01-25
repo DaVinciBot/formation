@@ -2,6 +2,7 @@
 	import { goto } from '$app/navigation';
 	import Calendar, { type CalendarSlot } from '$lib/components/training/Calendar.svelte';
 	import type { TrainingCardStatus } from '$lib/components/training/TrainingCard.svelte';
+	import CtaButton from '$lib/components/utils/CTAButton.svelte';
 	import {
 		getTrainingSlots,
 		type RegistrationStatus,
@@ -95,14 +96,47 @@
 	});
 </script>
 
-<div class="space-y-4 px-6 py-6">
-	{#if loading}
-		<p class="text-sm text-light-blue/80">Chargement du calendrier...</p>
-	{/if}
-	{#if error}
-		<p class="text-sm text-waiting">{error}</p>
-	{/if}
+<div class="px-6 py-6">
 	<div class="h-[calc(100vh-8rem)]">
-		<Calendar {slots} onWeekChange={loadWeek} />
+		{#if loading}
+			<div
+				class="flex h-full flex-col items-center justify-center gap-3 rounded-[26px] border border-light-blue/40 bg-dark-blue/90 p-6 text-light-blue/80 shadow-[0_18px_60px_rgba(2,10,60,0.45)]"
+			>
+				<div class="flex items-center gap-3 text-xs tracking-[0.28em] uppercase">
+					<span class="spinner" aria-hidden="true"></span>
+					<span>Chargement du calendrier</span>
+				</div>
+			</div>
+		{:else if error}
+			<div
+				class="flex h-full flex-col items-center justify-center rounded-[26px] border border-light-blue/40 bg-dark-blue/90 p-6 text-waiting shadow-[0_18px_60px_rgba(2,10,60,0.45)]"
+			>
+				<p class="text-sm tracking-wide">{error}</p>
+				<div class="mt-3">
+					<CtaButton type="button" variant="peps" size="sm" onclick={() => loadWeek(new Date())}>
+						Réessayer
+					</CtaButton>
+				</div>
+			</div>
+		{:else}
+			<Calendar {slots} onWeekChange={loadWeek} />
+		{/if}
 	</div>
 </div>
+
+<style>
+	.spinner {
+		width: 22px;
+		height: 22px;
+		border: 2px solid currentColor;
+		border-right-color: transparent;
+		border-radius: 9999px;
+		animation: spin 0.8s linear infinite;
+	}
+
+	@keyframes spin {
+		to {
+			transform: rotate(360deg);
+		}
+	}
+</style>
