@@ -9,12 +9,15 @@
 		type TrainingSlotListItem
 	} from '$lib/services/training';
 	import { supabase } from '$lib/supabaseClient';
-	import { onMount } from 'svelte';
+	import { onDestroy, onMount } from 'svelte';
 
 	let slots: CalendarSlot[] = [];
 	let loading = false;
 	let error: string | null = null;
 	let currentDate = new Date();
+	const WEEK_STORAGE_KEY = 'training_calendar_week_start';
+	let refreshTimeout: ReturnType<typeof setTimeout> | null = null;
+	let realtimeChannel: ReturnType<typeof supabase.channel> | null = null;
 	let canManageTraining = false;
 
 	function getWeekStart(date: Date) {
@@ -38,11 +41,38 @@
 		return isFull ? 'complete' : 'free';
 	}
 
-	async function loadWeek(date: Date) {
+	function readStoredWeekStart(): Date | null {
+		if (typeof localStorage === 'undefined') return null;
+		const raw = localStorage.getItem(WEEK_STORAGE_KEY);
+		if (!raw) return null;
+		const parsed = new Date(raw);
+		return Number.isNaN(parsed.getTime()) ? null : parsed;
+	}
+
+	function storeWeekStart(date: Date) {
+		if (typeof localStorage === 'undefined') return;
+		try {
+			localStorage.setItem(WEEK_STORAGE_KEY, date.toISOString());
+		} catch (err) {
+			// ignore storage issues
+		}
+	}
+
+	function scheduleSilentRefresh() {
+		if (refreshTimeout) clearTimeout(refreshTimeout);
+		refreshTimeout = setTimeout(() => {
+			void loadWeek(currentDate, { silent: true });
+		}, 250);
+	}
+
+	async function loadWeek(date: Date, options: { silent?: boolean } = {}) {
 		currentDate = date;
 		const weekStart = getWeekStart(date);
-		loading = true;
-		error = null;
+		if (!options.silent) {
+			loading = true;
+			error = null;
+		}
+		storeWeekStart(weekStart);
 		try {
 			const rawSlots = await getTrainingSlots(weekStart, 7);
 			const {
@@ -81,11 +111,27 @@
 			}));
 		} catch (err) {
 			console.error(err);
-			slots = [];
-			error = 'Impossible de charger le calendrier pour cette semaine.';
+			if (!options.silent) {
+				slots = [];
+				error = 'Impossible de charger le calendrier pour cette semaine.';
+			}
 		} finally {
-			loading = false;
+			if (!options.silent) {
+				loading = false;
+			}
 		}
+	}
+
+	function setupRealtime() {
+		realtimeChannel = supabase
+			.channel('training_calendar')
+			.on('postgres_changes', { event: '*', schema: 'public', table: 'registration' }, () =>
+				scheduleSilentRefresh()
+			)
+			.on('postgres_changes', { event: '*', schema: 'public', table: 'training_slot' }, () =>
+				scheduleSilentRefresh()
+			)
+			.subscribe();
 	}
 
 	onMount(async () => {
@@ -101,10 +147,20 @@
 				p_permission: 'manage_training'
 			});
 			canManageTraining = !manageError && Boolean(manageData);
-			await loadWeek(new Date());
+			const savedWeek = readStoredWeekStart();
+			await loadWeek(savedWeek ?? new Date());
+			setupRealtime();
 		} catch (err) {
 			console.error(err);
 			await goto('unauthorized?redirect=/');
+		}
+	});
+
+	onDestroy(() => {
+		if (refreshTimeout) clearTimeout(refreshTimeout);
+		if (realtimeChannel) {
+			realtimeChannel.unsubscribe();
+			realtimeChannel = null;
 		}
 	});
 </script>
