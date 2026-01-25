@@ -188,7 +188,12 @@
 				</div>
 			</div>
 		{:else}
-			<Calendar {slots} initialDate={currentDate} onWeekChange={loadWeek} />
+			<Calendar
+				{slots}
+				initialDate={currentDate}
+				onWeekChange={loadWeek}
+				onRegistrationChange={scheduleSilentRefresh}
+			/>
 		{/if}
 	</div>
 </div>
