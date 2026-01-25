@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
 	import Calendar, { type CalendarSlot } from '$lib/components/training/Calendar.svelte';
 	import type { TrainingCardStatus } from '$lib/components/training/TrainingCard.svelte';
 	import {
@@ -77,8 +78,20 @@
 		}
 	}
 
-	onMount(() => {
-		loadWeek(new Date());
+	onMount(async () => {
+		try {
+			const { data, error } = await supabase.rpc('has_permission', {
+				p_permission: 'access_training'
+			});
+			if (error || !data) {
+				await goto('unauthorized?redirect=/');
+				return;
+			}
+			await loadWeek(new Date());
+		} catch (err) {
+			console.error(err);
+			await goto('unauthorized?redirect=/');
+		}
 	});
 </script>
 
