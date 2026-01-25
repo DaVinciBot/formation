@@ -31,7 +31,8 @@
 		userId: string | null
 	): TrainingCardStatus {
 		if (userId && slot.trainer_id === userId) return 'my';
-		if (slot.status === 'canceled' || slot.status === 'postponed') return 'canceled';
+		if (slot.status === 'canceled' || slot.status === 'postponed' || slot.status === 'draft')
+			return 'hidden';
 		if (registrationStatus === 'registered') return 'registered';
 		if (slot.status === 'done') return 'complete';
 		if (registrationStatus === 'waitlisted') return 'waiting';
@@ -96,7 +97,8 @@
 				}
 			}
 			const visibleSlots = rawSlots.filter((slot) => {
-				if (slot.status !== 'canceled' && slot.status !== 'postponed') return true;
+				if (slot.status !== 'canceled' && slot.status !== 'postponed' && slot.status !== 'draft')
+					return true;
 				if (canManageTraining) return true;
 				const registrationStatus = registrationStatuses.get(slot.slot_id);
 				return registrationStatus === 'registered' || registrationStatus === 'waitlisted';
