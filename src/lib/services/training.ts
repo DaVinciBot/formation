@@ -60,6 +60,7 @@ export type RegistrationListItem = {
 export type RegistrationSummary = {
 	remote: boolean;
 	status: RegistrationStatus;
+	to_excuse: boolean | null;
 };
 
 export type CreateTrainingPayload = {
@@ -145,7 +146,7 @@ export async function getMyRegistrationForSlot(
 
 	const { data, error } = await supabase
 		.from('registration')
-		.select('remote,status')
+		.select('remote,status,to_excuse')
 		.eq('slot_id', slotId)
 		.eq('member_id', user.id)
 		.maybeSingle();
@@ -154,7 +155,8 @@ export async function getMyRegistrationForSlot(
 	if (data.status !== 'registered' && data.status !== 'waitlisted') return null;
 	return {
 		remote: data.remote,
-		status: data.status
+		status: data.status,
+		to_excuse: data.to_excuse
 	};
 }
 
@@ -177,6 +179,26 @@ export async function cancelRegistration(slotId: number): Promise<unknown> {
 		.from('registration')
 		.update({ status: 'canceled_by_user' })
 		.eq('slot_id', slotId);
+	if (error) throw error;
+	return data;
+}
+
+export async function updateMyRegistrationExcuse(
+	slotId: number,
+	toExcuse: boolean
+): Promise<unknown> {
+	const {
+		data: { user },
+		error: userError
+	} = await supabase.auth.getUser();
+	if (userError) throw userError;
+	if (!user) throw new Error('User not authenticated');
+
+	const { data, error } = await supabase
+		.from('registration')
+		.update({ to_excuse: toExcuse })
+		.eq('slot_id', slotId)
+		.eq('member_id', user.id);
 	if (error) throw error;
 	return data;
 }
