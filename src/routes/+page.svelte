@@ -14,6 +14,7 @@
 	let slots: CalendarSlot[] = [];
 	let loading = false;
 	let error: string | null = null;
+	let currentDate = new Date();
 
 	function getWeekStart(date: Date) {
 		const dayIndex = (date.getDay() + 6) % 7;
@@ -37,6 +38,7 @@
 	}
 
 	async function loadWeek(date: Date) {
+		currentDate = date;
 		const weekStart = getWeekStart(date);
 		loading = true;
 		error = null;
@@ -113,13 +115,13 @@
 			>
 				<p class="text-sm tracking-wide">{error}</p>
 				<div class="mt-3">
-					<CtaButton type="button" variant="peps" size="sm" onclick={() => loadWeek(new Date())}>
+					<CtaButton type="button" variant="peps" size="sm" onclick={() => loadWeek(currentDate)}>
 						Réessayer
 					</CtaButton>
 				</div>
 			</div>
 		{:else}
-			<Calendar {slots} onWeekChange={loadWeek} />
+			<Calendar {slots} initialDate={currentDate} onWeekChange={loadWeek} />
 		{/if}
 	</div>
 </div>
