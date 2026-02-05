@@ -24,18 +24,17 @@
 
 	const categoryOptions = [
 		{ value: 'code', text: 'Code' },
-		{ value: 'electronics', text: 'Electronique' },
+		{ value: 'electronics', text: 'Électronique' },
 		{ value: 'robotic', text: 'Robotique' },
 		{ value: 'software', text: 'Logiciel' },
-		{ value: 'other', text: 'Autre' }
+		{ value: 'other', text: 'Autre', selected: true }
 	];
 
 	const statusOptions: { value: SlotStatus; text: string }[] = [
 		{ value: 'draft', text: 'Brouillon' },
-		{ value: 'pending', text: 'Planifie' },
-		{ value: 'done', text: 'Termine' },
-		{ value: 'postponed', text: 'Reporte' },
-		{ value: 'canceled', text: 'Annule' }
+		{ value: 'pending', text: 'Planifiée' },
+		{ value: 'postponed', text: 'Reportée' },
+		{ value: 'canceled', text: 'Annulée' }
 	];
 
 	let trainings: TrainingListItem[] = [];
@@ -113,10 +112,9 @@
 	}
 
 	function buildSlotFields(slot: TrainingSlotListItem | null) {
-		const trainerLabel = slot?.trainer_username || '';
 		const trainerOptions = profiles.map((profile) => {
 			const label = profile.username || 'Membre';
-			const suffix = profile.email ? ` — ${profile.email}` : '';
+			const suffix = profile.email ? ` - ${profile.email}` : '';
 			return {
 				value: profile.id,
 				text: `${label}${suffix}`
@@ -402,16 +400,11 @@
 					</p>
 				</div>
 				<div class="flex flex-wrap gap-3">
-					<CTAButton type="button" variant="primary" size="sm" onclick={() => openSlotModal()}>
-						Nouveau slot
-					</CTAButton>
-					<CTAButton
-						type="button"
-						variant="secondary"
-						size="sm"
-						onclick={() => openTrainingModal()}
-					>
+					<CTAButton type="button" variant="primary" size="sm" onclick={() => openTrainingModal()}>
 						Nouvelle formation
+					</CTAButton>
+					<CTAButton type="button" variant="secondary" size="sm" onclick={() => openSlotModal()}>
+						Nouveau slot
 					</CTAButton>
 				</div>
 			</div>
