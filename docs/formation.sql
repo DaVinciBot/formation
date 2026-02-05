@@ -135,6 +135,29 @@ as $$
   );
 $$;
 
+create or replace function public.trainer_profile_list()
+returns table (
+  id uuid,
+  username text,
+  avatar_url text,
+  email text
+)
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select
+    p.id,
+    p.username,
+    p.avatar_url,
+    u.email
+  from public.profiles p
+  join auth.users u on u.id = p.id
+  where public.has_permission('manage_training')
+  order by p.username;
+$$;
+
 create or replace function public.training_list()
 returns table (
   training_id bigint,
