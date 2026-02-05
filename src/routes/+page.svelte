@@ -195,6 +195,7 @@
 				initialDate={currentDate}
 				onWeekChange={loadWeek}
 				onRegistrationChange={scheduleSilentRefresh}
+				{canManageTraining}
 			/>
 		{/if}
 	</div>
