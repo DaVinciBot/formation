@@ -207,6 +207,8 @@ returns table (
 )
 language sql
 stable
+security definer
+set search_path = public
 as $$
   select
     ts.id as slot_id,
@@ -252,6 +254,7 @@ as $$
   ) reg on true
   where ts.start >= p_from
     and (p_to is null or ts.start < p_to)
+    and (public.has_permission('access_training') or public.has_permission('manage_training'))
   order by ts.start;
 $$;
 
@@ -283,6 +286,8 @@ returns table (
 )
 language sql
 stable
+security definer
+set search_path = public
 as $$
   select
     ts.id as slot_id,
@@ -327,6 +332,7 @@ as $$
     where r.slot_id = ts.id
   ) reg on true
   where ts.id = p_slot_id
+    and (public.has_permission('access_training') or public.has_permission('manage_training'))
   limit 1;
 $$;
 
