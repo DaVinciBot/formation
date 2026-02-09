@@ -1,36 +1,36 @@
 CREATE TYPE "training_category" AS ENUM (
-	'code',
-	'electronics',
-	'robotic',
-	'other',
-	'software'
+  'code',
+  'electronics',
+  'robotic',
+  'other',
+  'software'
 );
 
 CREATE TYPE "roles" AS ENUM (
-	'admin',
-	'bureau',
-	'cdp',
-	'membre'
+  'admin',
+  'bureau',
+  'cdp',
+  'membre'
 );
 
 CREATE TYPE "permission" AS ENUM (
-	'manage_training',
-	'access_training'
+  'manage_training',
+  'access_training'
 );
 
 CREATE TYPE "slot_status" AS ENUM (
-	'draft',
-	'pending',
-	'done',
-	'postponed',
-	'canceled'
+  'draft',
+  'pending',
+  'done',
+  'postponed',
+  'canceled'
 );
 
 CREATE TYPE "registration_status" AS ENUM (
-	'waitlisted',
-	'registered',
-	'canceled_by_user',
-	'canceled_by_admin'
+  'waitlisted',
+  'registered',
+  'canceled_by_user',
+  'canceled_by_admin'
 );
 
 
@@ -367,6 +367,70 @@ as $$
   join public.profiles p on p.id = r.member_id
   where r.slot_id = p_slot_id
   order by r.date_hour;
+$$;
+
+create or replace function public.trainer_registration_list(p_slot_id bigint)
+returns table (
+  slot_id bigint,
+  member_id uuid,
+  date_hour timestamptz,
+  remote boolean,
+  status public.registration_status,
+  present boolean,
+  to_excuse boolean,
+  member_username text,
+  member_avatar_url text
+)
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select
+    r.slot_id,
+    r.member_id,
+    r.date_hour,
+    r.remote,
+    r.status,
+    r.present,
+    r.to_excuse,
+    p.username as member_username,
+    p.avatar_url as member_avatar_url
+  from public.registration r
+  join public.profiles p on p.id = r.member_id
+  join public.training_slot ts on ts.id = r.slot_id
+  where r.slot_id = p_slot_id
+    and r.status in ('registered', 'waitlisted')
+    and (ts.trainer_id = auth.uid() or public.has_permission('manage_training'))
+  order by r.date_hour;
+$$;
+
+create or replace function public.trainer_update_presence(
+  p_slot_id bigint,
+  p_member_id uuid,
+  p_present boolean default null
+)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if not exists (
+    select 1
+    from public.training_slot ts
+    where ts.id = p_slot_id
+      and (ts.trainer_id = auth.uid() or public.has_permission('manage_training'))
+  ) then
+    raise exception 'Not authorized';
+  end if;
+
+  update public.registration
+  set present = p_present
+  where slot_id = p_slot_id
+    and member_id = p_member_id
+    and status in ('registered', 'waitlisted');
+end;
 $$;
 
 create or replace function public.registration_target_status(p_slot_id bigint, p_remote boolean)

@@ -57,6 +57,18 @@ export type RegistrationListItem = {
 	member_avatar_url: string | null;
 };
 
+export type TrainerRegistrationListItem = {
+	slot_id: number;
+	member_id: string;
+	date_hour: string;
+	remote: boolean;
+	status: RegistrationStatus;
+	present: boolean | null;
+	to_excuse: boolean | null;
+	member_username: string | null;
+	member_avatar_url: string | null;
+};
+
 export type RegistrationSummary = {
 	remote: boolean;
 	status: RegistrationStatus;
@@ -128,6 +140,16 @@ export async function getTrainingSlotDetail(slotId: number): Promise<TrainingSlo
 
 export async function getSlotRegistrations(slotId: number): Promise<RegistrationListItem[]> {
 	const { data, error } = await supabase.rpc('registration_list', {
+		p_slot_id: slotId
+	});
+	if (error) throw error;
+	return data;
+}
+
+export async function getTrainerSlotRegistrations(
+	slotId: number
+): Promise<TrainerRegistrationListItem[]> {
+	const { data, error } = await supabase.rpc('trainer_registration_list', {
 		p_slot_id: slotId
 	});
 	if (error) throw error;
@@ -213,6 +235,20 @@ export async function updateRegistration(
 		.update(updates)
 		.eq('slot_id', slotId)
 		.eq('member_id', memberId);
+	if (error) throw error;
+	return data;
+}
+
+export async function updateTrainerPresence(
+	slotId: number,
+	memberId: string,
+	present: boolean | null
+): Promise<unknown> {
+	const { data, error } = await supabase.rpc('trainer_update_presence', {
+		p_slot_id: slotId,
+		p_member_id: memberId,
+		p_present: present
+	});
 	if (error) throw error;
 	return data;
 }
