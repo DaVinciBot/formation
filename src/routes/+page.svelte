@@ -173,9 +173,11 @@
 			<div
 				class="flex h-full flex-col items-center justify-center gap-3 rounded-[26px] border border-light-blue/40 bg-dark-blue/90 p-6 text-light-blue/80 shadow-[0_18px_60px_rgba(2,10,60,0.45)]"
 			>
-				<div class="flex items-center gap-3 text-xs tracking-[0.28em] uppercase">
+				<div
+					class="flex flex-wrap items-center justify-center gap-x-3 gap-y-2 text-center text-xs tracking-[0.28em] uppercase"
+				>
 					<span class="spinner" aria-hidden="true"></span>
-					<span>Chargement du calendrier</span>
+					<span class="text-center">Chargement du calendrier</span>
 				</div>
 			</div>
 		{:else if error}
