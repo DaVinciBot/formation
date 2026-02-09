@@ -39,7 +39,7 @@
 		const hasCapacityInfo = slot.on_site_remaining !== null || slot.remote_remaining !== null;
 		const isFull =
 			hasCapacityInfo && (slot.on_site_remaining ?? 0) <= 0 && (slot.remote_remaining ?? 0) <= 0;
-		return isFull ? 'complete' : 'free';
+		return isFull && canManageTraining ? 'complete' : 'free';
 	}
 
 	function readStoredWeekStart(): Date | null {
