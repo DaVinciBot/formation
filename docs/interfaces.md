@@ -4,14 +4,14 @@
 
 ### Calendrier partagé
 
-- [ ] Calendrier des formations (vue calendrier + liste, actions inscription)
+- [x] Calendrier des formations (vue calendrier + liste, actions inscription)
 - [x] Filtres (catégorie, format, disponibilité)
 
 ### Détail et inscription
 
-- [ ] Détail d'une session (infos, statut, places)
-- [ ] Choix distanciel/présentiel + inscription
-- [ ] Liste d'attente (vue + position)
+- [x] Détail d'une session (infos, statut, places)
+- [x] Choix distanciel/présentiel + inscription
+- [x] Liste d'attente (vue + position)
 
 ### Espace personnel
 
@@ -23,7 +23,7 @@
 
 ### Calendrier partagé détails
 
-- [ ] Actions gestion session
+- [x] Actions gestion session
 
 ### Espace personnel
 
@@ -32,27 +32,27 @@
 ### Gestion des sessions
 
 - [ ] Liste de mes sessions (filtres à venir/passées/annulées)
-- [ ] Détail de session (capacité, lieu/lien, statut)
+- [x] Détail de session (capacité, lieu/lien, statut)
 - [ ] Gestion des inscriptions (liste, attente)
-- [ ] Gestion des présences (check-in)
+- [x] Gestion des présences (check-in)
 
 ## Admin / Respo formation
 
 ### Calendrier partagé
 
-- [ ] Actions gestion session
+- [x] Actions gestion session
 
 ### Catalogue
 
-- [ ] Liste des formations de référence
-- [ ] Création/édition d'une formation de référence
+- [x] Liste des formations de référence
+- [x] Création/édition d'une formation de référence
 
 ### Sessions
 
-- [ ] Création d'une session
-- [ ] Édition d'une session
-- [ ] Liste des sessions (filtres, statuts)
-- [ ] Détail de session (inscriptions, statut)
+- [x] Création d'une session
+- [x] Édition d'une session
+- [x] Liste des sessions (filtres, statuts)
+- [x] Détail de session (inscriptions, statut)
 
 ### Communication
 

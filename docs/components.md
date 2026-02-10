@@ -80,10 +80,10 @@ Ce document liste les composants à concevoir et leurs critères de finition (fo
 
 ### PresenceForm
 
-- [ ] Objectif : check-in des présences.
-- [ ] Entrées : liste des inscrits, statut présent/absent/excusé.
+- [x] Objectif : check-in des présences.
+- [x] Entrées : liste des inscrits, statut présent/absent/excusé.
 - [ ] États UI : bulk actions (tout présent/absent).
-- [ ] Done : statuts enregistrés, actions rapides fonctionnelles.
+- [x] Done : statuts enregistrés, actions rapides fonctionnelles.
 
 ## Utilitaires & stores
 
@@ -97,6 +97,6 @@ Ce document liste les composants à concevoir et leurs critères de finition (fo
 ### SessionsStore
 
 - [x] Objectif : état global des sessions (liste + filtres).
-- [ ] Entrées : filtres, pagination.
-- [ ] États UI : chargement, erreur.
-- [ ] Done : état cohérent, cache local fonctionnel.
+- [x] Entrées : filtres, pagination.
+- [x] États UI : chargement, erreur.
+- [x] Done : état cohérent, cache local fonctionnel.
