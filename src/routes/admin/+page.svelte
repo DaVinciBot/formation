@@ -428,14 +428,10 @@
 		</header>
 
 		{#if loading}
-			<div
-				class="flex flex-col items-center justify-center gap-3 rounded-[26px] border border-light-blue/20 bg-dark-blue/80 p-10 text-light-blue/80"
-			>
-				<div class="flex items-center gap-3 text-xs tracking-[0.28em] uppercase">
-					<span class="spinner" aria-hidden="true"></span>
-					<span>Chargement des donnees</span>
-				</div>
-			</div>
+			<Spinner
+divClass="rounded-[26px] border border-light-blue/20 bg-dark-blue/80 p-10 text-light-blue/80"
+			text="Chargement des données"
+			/>
 		{:else if error}
 			<div
 				class="flex flex-col items-center justify-center gap-3 rounded-[26px] border border-light-blue/20 bg-dark-blue/80 p-10 text-waiting"

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import Spinner from '$lib/components/share/Spinner.svelte';
 	import Calendar, { type CalendarSlot } from '$lib/components/training/Calendar.svelte';
 	import type { TrainingCardStatus } from '$lib/components/training/TrainingCard.svelte';
 	import CtaButton from '$lib/components/utils/CTAButton.svelte';
@@ -170,16 +171,10 @@
 <div class="px-6 py-6">
 	<div class="h-[calc(100vh-8rem)]">
 		{#if loading}
-			<div
-				class="flex h-full flex-col items-center justify-center gap-3 rounded-[26px] border border-light-blue/40 bg-dark-blue/90 p-6 text-light-blue/80 shadow-[0_18px_60px_rgba(2,10,60,0.45)]"
-			>
-				<div
-					class="flex flex-wrap items-center justify-center gap-x-3 gap-y-2 text-center text-xs tracking-[0.28em] uppercase"
-				>
-					<span class="spinner" aria-hidden="true"></span>
-					<span class="text-center">Chargement du calendrier</span>
-				</div>
-			</div>
+			<Spinner
+				divClass="h-full rounded-[26px] border border-light-blue/40 bg-dark-blue/90 p-6 text-light-blue/80 shadow-[0_18px_60px_rgba(2,10,60,0.45)]"
+				text="Chargement du calendrier"
+			/>
 		{:else if error}
 			<div
 				class="flex h-full flex-col items-center justify-center rounded-[26px] border border-light-blue/40 bg-dark-blue/90 p-6 text-waiting shadow-[0_18px_60px_rgba(2,10,60,0.45)]"

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import Spinner from '$lib/components/share/Spinner.svelte';
 	import { supabase } from '$lib/supabaseClient';
 	import { onMount } from 'svelte';
 
@@ -27,14 +28,10 @@
 
 {#if checkingAccess}
 	<div class="px-6 py-6">
-		<div
-			class="flex h-[calc(100vh-10rem)] flex-col items-center justify-center gap-3 rounded-[26px] border border-light-blue/40 bg-dark-blue/90 p-6 text-light-blue/80 shadow-[0_18px_60px_rgba(2,10,60,0.45)]"
-		>
-			<div class="flex items-center gap-3 text-xs tracking-[0.28em] uppercase">
-				<span class="spinner" aria-hidden="true"></span>
-				<span>Chargement de l'espace admin</span>
-			</div>
-		</div>
+		<Spinner
+			divClass="h-[calc(100vh-10rem)] rounded-[26px] border border-light-blue/40 bg-dark-blue/90 p-6 text-light-blue/80 shadow-[0_18px_60px_rgba(2,10,60,0.45)]"
+			text="Chargement de l'espace admin"
+		/>
 	</div>
 {:else if accessError}
 	<div class="px-6 py-6">

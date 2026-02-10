@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import Spinner from '$lib/components/share/Spinner.svelte';
 	import CtaButton from '$lib/components/utils/CTAButton.svelte';
 	import {
 		getTrainerSlotRegistrations,
@@ -266,14 +267,18 @@
 		</header>
 
 		{#if loading}
-			<div
-				class="flex flex-col items-center justify-center gap-3 rounded-[26px] border border-light-blue/20 bg-dark-blue/80 p-10 text-light-blue/80"
-			>
-				<div class="flex items-center gap-3 text-xs tracking-[0.28em] uppercase">
+			<div class="flex h-full flex-col items-center justify-center gap-3">
+				<div
+					class="flex flex-wrap items-center justify-center gap-x-3 gap-y-2 text-center text-xs tracking-[0.28em] uppercase"
+				>
 					<span class="spinner" aria-hidden="true"></span>
-					<span>Chargement des slots</span>
+					<span class="text-center">Chargement du calendrier</span>
 				</div>
 			</div>
+			<Spinner
+				divClass="h-full rounded-[26px] border border-light-blue/20 bg-dark-blue/80 p-10 text-light-blue/80"
+				text="Chargement des slots"
+			/>
 		{:else if loadError}
 			<div
 				class="flex flex-col items-center justify-center gap-3 rounded-[26px] border border-light-blue/20 bg-dark-blue/80 p-10 text-waiting"
