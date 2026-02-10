@@ -1,5 +1,6 @@
 <script lang="ts">
 	import CrudForm from '$lib/components/modals/CrudForm.svelte';
+	import Spinner from '$lib/components/share/Spinner.svelte';
 	import CTAButton from '$lib/components/utils/CTAButton.svelte';
 	import {
 		createTraining,
@@ -386,20 +387,20 @@
 	});
 </script>
 
-<section class="px-6 py-8">
+<section class="px-4 py-6 sm:px-6 sm:py-8">
 	<div class="mx-auto flex w-full max-w-6xl flex-col gap-8">
 		<header
-			class="flex flex-col gap-6 rounded-[28px] border border-light-blue/15 bg-dark-blue/70 p-6 shadow-[0_20px_50px_rgba(1,7,32,0.35)]"
+			class="flex flex-col gap-6 rounded-[28px] border border-light-blue/15 bg-dark-blue/70 p-5 shadow-[0_20px_50px_rgba(1,7,32,0.35)] sm:p-6"
 		>
 			<div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 				<div>
 					<p class="text-xs tracking-[0.3em] text-light-blue/60 uppercase">Administration</p>
-					<h1 class="mt-2 text-3xl font-bold text-white">Pilotage des formations</h1>
+					<h1 class="mt-2 text-2xl font-bold text-white sm:text-3xl">Pilotage des formations</h1>
 					<p class="mt-2 text-sm text-light-blue/70">
 						Gérez le catalogue et les sessions planifiées en un coup d'oeil.
 					</p>
 				</div>
-				<div class="flex flex-wrap gap-3">
+				<div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
 					<CTAButton type="button" variant="primary" size="sm" onclick={() => openTrainingModal()}>
 						Nouvelle formation
 					</CTAButton>
@@ -408,7 +409,7 @@
 					</CTAButton>
 				</div>
 			</div>
-			<div class="grid gap-4 md:grid-cols-3">
+			<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
 				<div class="rounded-2xl border border-light-blue/20 bg-dark-blue/80 p-4">
 					<p class="text-xs tracking-[0.25em] text-light-blue/60 uppercase">Formations</p>
 					<p class="mt-2 text-3xl font-bold text-white">{trainings.length}</p>
@@ -429,8 +430,8 @@
 
 		{#if loading}
 			<Spinner
-divClass="rounded-[26px] border border-light-blue/20 bg-dark-blue/80 p-10 text-light-blue/80"
-			text="Chargement des données"
+				divClass="rounded-[26px] border border-light-blue/20 bg-dark-blue/80 p-10 text-light-blue/80"
+				text="Chargement des données"
 			/>
 		{:else if error}
 			<div
@@ -445,7 +446,7 @@ divClass="rounded-[26px] border border-light-blue/20 bg-dark-blue/80 p-10 text-l
 			{/if}
 
 			<div class="grid gap-8">
-				<section class="rounded-[28px] border border-light-blue/10 bg-dark-blue/80 p-6">
+				<section class="rounded-[28px] border border-light-blue/10 bg-dark-blue/80 p-5 sm:p-6">
 					<div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 						<div>
 							<h2 class="text-xl font-semibold text-white">Formations types</h2>
@@ -453,10 +454,10 @@ divClass="rounded-[26px] border border-light-blue/20 bg-dark-blue/80 p-10 text-l
 								Gérez les contenus de référence pour les sessions.
 							</p>
 						</div>
-						<div class="flex flex-wrap gap-3">
+						<div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
 							<input
 								type="text"
-								class="w-full rounded-lg border border-light-blue/20 bg-dark-blue/90 px-4 py-2 text-sm text-white placeholder-light-blue/50 md:w-64"
+								class="w-full rounded-lg border border-light-blue/20 bg-dark-blue/90 px-4 py-2 text-sm text-white placeholder-light-blue/50 sm:w-72"
 								placeholder="Rechercher une formation"
 								bind:value={trainingSearch}
 							/>
@@ -472,7 +473,7 @@ divClass="rounded-[26px] border border-light-blue/20 bg-dark-blue/80 p-10 text-l
 					</div>
 
 					<div class="mt-6 overflow-hidden rounded-2xl border border-light-blue/10">
-						<table class="w-full text-left text-sm text-light-blue/70">
+						<table class="hidden w-full text-left text-sm text-light-blue/70 md:table">
 							<thead class="bg-dark-blue text-xs tracking-[0.2em] text-light-blue/60 uppercase">
 								<tr>
 									<th class="px-4 py-3">Nom</th>
@@ -514,19 +515,49 @@ divClass="rounded-[26px] border border-light-blue/20 bg-dark-blue/80 p-10 text-l
 								{/if}
 							</tbody>
 						</table>
+						<div class="md:hidden">
+							{#if filteredTrainings.length === 0}
+								<p class="px-4 py-6 text-center text-sm text-light-blue/70">Aucune formation</p>
+							{:else}
+								<div class="grid gap-3 p-4">
+									{#each filteredTrainings as training}
+										<article class="rounded-2xl border border-light-blue/10 bg-dark-blue/90 p-4">
+											<div class="flex items-start justify-between gap-4">
+												<div>
+													<p class="text-base font-semibold text-white">{training.name}</p>
+													<p class="mt-1 text-xs tracking-[0.2em] text-light-blue/60 uppercase">
+														{categoryOptions.find((opt) => opt.value === training.category)?.text ||
+															'Autre'}
+													</p>
+												</div>
+												<button
+													class="text-xs tracking-[0.2em] text-light-blue/70 uppercase hover:text-white"
+													onclick={() => openTrainingModal(training)}
+												>
+													Editer
+												</button>
+											</div>
+											<p class="mt-3 text-sm text-light-blue/70">
+												{training.description || 'Aucune description'}
+											</p>
+										</article>
+									{/each}
+								</div>
+							{/if}
+						</div>
 					</div>
 				</section>
 
-				<section class="rounded-[28px] border border-light-blue/10 bg-dark-blue/80 p-6">
+				<section class="rounded-[28px] border border-light-blue/10 bg-dark-blue/80 p-5 sm:p-6">
 					<div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 						<div>
 							<h2 class="text-xl font-semibold text-white">Slots de formation</h2>
 							<p class="text-sm text-light-blue/70">Planifiez, suivez et ajustez les sessions.</p>
 						</div>
-						<div class="flex flex-wrap gap-3">
+						<div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
 							<input
 								type="text"
-								class="w-full rounded-lg border border-light-blue/20 bg-dark-blue/90 px-4 py-2 text-sm text-white placeholder-light-blue/50 md:w-64"
+								class="w-full rounded-lg border border-light-blue/20 bg-dark-blue/90 px-4 py-2 text-sm text-white placeholder-light-blue/50 sm:w-72"
 								placeholder="Rechercher un slot"
 								bind:value={slotSearch}
 							/>
@@ -542,7 +573,7 @@ divClass="rounded-[26px] border border-light-blue/20 bg-dark-blue/80 p-10 text-l
 					</div>
 
 					<div class="mt-6 overflow-hidden rounded-2xl border border-light-blue/10">
-						<table class="w-full text-left text-sm text-light-blue/70">
+						<table class="hidden w-full text-left text-sm text-light-blue/70 md:table">
 							<thead class="bg-dark-blue text-xs tracking-[0.2em] text-light-blue/60 uppercase">
 								<tr>
 									<th class="px-4 py-3">Debut</th>
@@ -595,6 +626,52 @@ divClass="rounded-[26px] border border-light-blue/20 bg-dark-blue/80 p-10 text-l
 								{/if}
 							</tbody>
 						</table>
+						<div class="md:hidden">
+							{#if filteredSlots.length === 0}
+								<p class="px-4 py-6 text-center text-sm text-light-blue/70">Aucun slot</p>
+							{:else}
+								<div class="grid gap-3 p-4">
+									{#each filteredSlots as slot}
+										<article class="rounded-2xl border border-light-blue/10 bg-dark-blue/90 p-4">
+											<div class="flex items-start justify-between gap-4">
+												<div>
+													<p class="text-base font-semibold text-white">{formatDate(slot.start)}</p>
+													<p class="mt-1 text-sm text-light-blue/70">
+														{findTrainingName(slot.training_id)}
+													</p>
+												</div>
+												<button
+													class="text-xs tracking-[0.2em] text-light-blue/70 uppercase hover:text-white"
+													onclick={() => openSlotModal(slot)}
+												>
+													Editer
+												</button>
+											</div>
+											<div
+												class="mt-3 flex flex-wrap items-center gap-3 text-sm text-light-blue/70"
+											>
+												<div class="flex items-center gap-2">
+													{#if slot.trainer_avatar_url}
+														<img
+															src={slot.trainer_avatar_url}
+															alt={slot.trainer_username || 'Formateur·ice'}
+															class="h-6 w-6 rounded-full"
+														/>
+													{/if}
+													<span>{slot.trainer_username || 'A definir'}</span>
+												</div>
+												<span
+													class="rounded-full border border-light-blue/20 px-3 py-1 text-xs uppercase"
+												>
+													{statusOptions.find((opt) => opt.value === slot.status)?.text ||
+														slot.status}
+												</span>
+											</div>
+										</article>
+									{/each}
+								</div>
+							{/if}
+						</div>
 					</div>
 				</section>
 			</div>
@@ -625,20 +702,3 @@ divClass="rounded-[26px] border border-light-blue/20 bg-dark-blue/80 p-10 text-l
 		onSubmit={handleSlotSubmit}
 	/>
 {/if}
-
-<style>
-	.spinner {
-		width: 22px;
-		height: 22px;
-		border: 2px solid currentColor;
-		border-right-color: transparent;
-		border-radius: 9999px;
-		animation: spin 0.8s linear infinite;
-	}
-
-	@keyframes spin {
-		to {
-			transform: rotate(360deg);
-		}
-	}
-</style>
