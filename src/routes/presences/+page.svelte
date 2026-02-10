@@ -184,20 +184,20 @@
 	});
 </script>
 
-<section class="px-6 py-8">
-	<div class="mx-auto flex w-full max-w-6xl flex-col gap-8">
+<section class="px-4 py-6 sm:px-6 sm:py-8">
+	<div class="mx-auto flex w-full max-w-6xl flex-col gap-6 sm:gap-8">
 		<header
-			class="flex flex-col gap-6 rounded-[28px] border border-light-blue/15 bg-dark-blue/70 p-6 shadow-[0_20px_50px_rgba(1,7,32,0.35)]"
+			class="flex flex-col gap-6 rounded-[28px] border border-light-blue/15 bg-dark-blue/70 p-4 shadow-[0_20px_50px_rgba(1,7,32,0.35)] sm:p-6"
 		>
 			<div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 				<div>
 					<p class="text-xs tracking-[0.3em] text-light-blue/60 uppercase">Formateur·ice·s</p>
-					<h1 class="mt-2 text-3xl font-bold text-white">Présences des formations</h1>
+					<h1 class="mt-2 text-2xl font-bold text-white sm:text-3xl">Présences des formations</h1>
 					<p class="mt-2 text-sm text-light-blue/70">
 						Indiquez les présences des membres sur vos slots de formation.
 					</p>
 				</div>
-				<div class="flex flex-wrap gap-3">
+				<div class="flex flex-wrap gap-3 sm:justify-end">
 					<CtaButton type="button" variant="primary" size="sm" onclick={loadSlots}>
 						Actualiser
 					</CtaButton>
@@ -207,7 +207,7 @@
 				</div>
 			</div>
 			{#if selectedSlot()}
-				<div class="grid gap-4 md:grid-cols-3">
+				<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
 					<div class="rounded-2xl border border-light-blue/20 bg-dark-blue/80 p-4">
 						<div class="flex items-center gap-3">
 							<div
@@ -294,7 +294,7 @@
 			</div>
 		{:else}
 			<div class="grid gap-6 lg:grid-cols-[minmax(0,0.38fr)_1fr]">
-				<section class="rounded-[26px] border border-light-blue/10 bg-dark-blue/80 p-6">
+				<section class="rounded-[26px] border border-light-blue/10 bg-dark-blue/80 p-4 sm:p-6">
 					<div class="flex items-center justify-between gap-3">
 						<div>
 							<h2 class="text-lg font-semibold text-white">Mes slots</h2>
@@ -305,7 +305,7 @@
 						{#each slots as slot}
 							<button
 								type="button"
-								class={`flex w-full flex-col gap-2 rounded-2xl border p-4 text-left transition ${
+								class={`flex w-full flex-col gap-2 rounded-2xl border p-3 text-left transition sm:p-4 ${
 									slot.slot_id === selectedSlotId
 										? 'border-blue-peps/50 bg-blue-peps/10 text-light-blue'
 										: 'border-light-blue/15 bg-dark-blue/60 text-light-blue/70 hover:border-light-blue/40'
@@ -322,7 +322,7 @@
 					</div>
 				</section>
 
-				<section class="rounded-[26px] border border-light-blue/10 bg-dark-blue/80 p-6">
+				<section class="rounded-[26px] border border-light-blue/10 bg-dark-blue/80 p-4 sm:p-6">
 					<div class="flex flex-wrap items-center justify-between gap-3">
 						<div>
 							<h2 class="text-lg font-semibold text-white">Présences</h2>
@@ -360,7 +360,7 @@
 							<p class="text-sm">Chargement des inscriptions</p>
 						</div>
 					{:else}
-						<div class="mt-5 grid gap-4 md:grid-cols-4">
+						<div class="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
 							<div class="rounded-2xl border border-light-blue/15 bg-dark-blue/70 p-4">
 								<p class="text-xs tracking-[0.25em] text-light-blue/60 uppercase">Inscrits</p>
 								<p class="mt-2 text-2xl font-semibold text-white">{registeredCount()}</p>
@@ -387,7 +387,90 @@
 								<p class="text-sm">Aucune inscription pour ce slot.</p>
 							</div>
 						{:else}
-							<div class="mt-6 overflow-x-auto rounded-2xl border border-light-blue/10">
+							<div class="mt-6 grid gap-4 lg:hidden">
+								{#each registrations as reg}
+									<div class="rounded-2xl border border-light-blue/10 bg-dark-blue/70 p-4">
+										<div class="flex items-start justify-between gap-3">
+											<div class="flex items-center gap-3">
+												{#if reg.member_avatar_url}
+													<img
+														src={reg.member_avatar_url}
+														alt={reg.member_username ?? 'Membre'}
+														class="h-8 w-8 rounded-full"
+													/>
+												{/if}
+												<div>
+													<p class="m-0 text-sm font-semibold text-white">
+														{reg.member_username ?? 'Membre'}
+													</p>
+													{#if reg.to_excuse}
+														<span
+															class="mt-1 inline-flex rounded-full border border-waiting/40 px-2 py-0.5 text-[0.6rem] tracking-[0.25em] text-waiting uppercase"
+														>
+															Excuse demandée
+														</span>
+													{/if}
+												</div>
+											</div>
+											<span
+												class={`inline-flex rounded-full border px-2.5 py-1 text-[0.6rem] tracking-[0.25em] uppercase ${
+													reg.status === 'registered'
+														? 'border-registered/40 text-registered'
+														: 'border-waiting/40 text-waiting'
+												}`}
+											>
+												{reg.status === 'registered' ? 'Inscrit·e' : "Liste d'attente"}
+											</span>
+										</div>
+										<div class="mt-3 flex items-center justify-between text-xs text-light-blue/70">
+											<span>{reg.remote ? 'Distanciel' : 'Présentiel'}</span>
+										</div>
+										{#if reg.status === 'registered'}
+											<div class="mt-4 flex flex-wrap items-center gap-2">
+												<button
+													type="button"
+													class={`flex items-center gap-1 rounded-full border px-2.5 py-1 text-[0.65rem] uppercase ${presenceButtonClass(
+														null,
+														reg.present
+													)}`}
+													disabled={reg.status !== 'registered' || isSaving(reg.member_id)}
+													onclick={() => handlePresenceChange(reg.member_id, null)}
+												>
+													<Users class="size-3" />
+													Non renseigné
+												</button>
+												<button
+													type="button"
+													class={`flex items-center gap-1 rounded-full border px-2.5 py-1 text-[0.65rem] uppercase ${presenceButtonClass(
+														true,
+														reg.present
+													)}`}
+													disabled={reg.status !== 'registered' || isSaving(reg.member_id)}
+													onclick={() => handlePresenceChange(reg.member_id, true)}
+												>
+													<CircleCheck class="size-3" />
+													Présent
+												</button>
+												<button
+													type="button"
+													class={`flex items-center gap-1 rounded-full border px-2.5 py-1 text-[0.65rem] uppercase ${presenceButtonClass(
+														false,
+														reg.present
+													)}`}
+													disabled={reg.status !== 'registered' || isSaving(reg.member_id)}
+													onclick={() => handlePresenceChange(reg.member_id, false)}
+												>
+													<CircleX class="size-3" />
+													Absent
+												</button>
+											</div>
+										{/if}
+									</div>
+								{/each}
+							</div>
+							<div
+								class="mt-6 hidden overflow-x-auto rounded-2xl border border-light-blue/10 lg:block"
+							>
 								<table class="w-full min-w-180 text-left text-sm text-light-blue/70">
 									<thead class="bg-dark-blue text-xs tracking-[0.2em] text-light-blue/60 uppercase">
 										<tr>
@@ -439,7 +522,7 @@
 												</td>
 												{#if reg.status === 'registered'}
 													<td class="px-4 py-4">
-														<div class="flex items-center justify-end gap-2">
+														<div class="flex flex-wrap items-center justify-end gap-2">
 															<button
 																type="button"
 																class={`flex items-center gap-1 rounded-full border px-2.5 py-1 text-[0.65rem] uppercase ${presenceButtonClass(
