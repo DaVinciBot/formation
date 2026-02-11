@@ -168,7 +168,7 @@
 	});
 </script>
 
-<div class="px-6 py-6">
+<div class="px-6 pt-4 pb-6">
 	<div class="h-[calc(100vh-8rem)]">
 		{#if loading}
 			<Spinner

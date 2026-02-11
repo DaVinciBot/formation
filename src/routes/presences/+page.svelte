@@ -3,9 +3,11 @@
 	import Spinner from '$lib/components/share/Spinner.svelte';
 	import CtaButton from '$lib/components/utils/CTAButton.svelte';
 	import {
+		getSlotRegistrations,
 		getTrainerSlotRegistrations,
 		getTrainingSlots,
 		updateTrainerPresence,
+		type RegistrationListItem,
 		type TrainerRegistrationListItem,
 		type TrainingSlotListItem
 	} from '$lib/services/training';
@@ -15,7 +17,8 @@
 	import { onMount } from 'svelte';
 
 	let slots = $state<TrainingSlotListItem[]>([]);
-	let registrations = $state<TrainerRegistrationListItem[]>([]);
+	type SlotRegistration = RegistrationListItem | TrainerRegistrationListItem;
+	let registrations = $state<SlotRegistration[]>([]);
 	let selectedSlotId = $state<number | null>(null);
 	let loading = $state(false);
 	let registrationsLoading = $state(false);
@@ -23,6 +26,7 @@
 	let actionError = $state<string | null>(null);
 	let savingIds = $state(new Set<string>());
 	let currentUserId: string | null = $state(null);
+	let canManageTraining = $state(false);
 
 	const slotRangeDays = 180;
 
@@ -103,7 +107,9 @@
 		loadError = null;
 		actionError = null;
 		try {
-			const data = await getTrainerSlotRegistrations(slotId);
+			const data = canManageTraining
+				? await getSlotRegistrations(slotId)
+				: await getTrainerSlotRegistrations(slotId);
 			registrations = data;
 		} catch (err) {
 			console.error(err);
@@ -149,6 +155,10 @@
 				await goto('/unauthorized?redirect=/presences');
 				return;
 			}
+			const { data: manageData, error: manageError } = await supabase.rpc('has_permission', {
+				p_permission: 'manage_training'
+			});
+			canManageTraining = !manageError && Boolean(manageData);
 			const {
 				data: { user },
 				error: userError
@@ -161,7 +171,7 @@
 
 			const rawSlots = await getTrainingSlots(new Date(), slotRangeDays);
 			slots = rawSlots
-				.filter((slot) => slot.trainer_id === user.id)
+				.filter((slot) => canManageTraining || slot.trainer_id === user.id)
 				.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
 
 			const initialSlot = pickDefaultSlot(slots);
@@ -192,7 +202,7 @@
 			<div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 				<div>
 					<p class="text-xs tracking-[0.3em] text-light-blue/60 uppercase">Formateur·ice·s</p>
-					<h1 class="mt-2 text-2xl font-bold text-white sm:text-3xl">Présences des formations</h1>
+					<h1 class="mt-2 text-2xl font-bold text-white sm:text-3xl">Présences aux formations</h1>
 					<p class="mt-2 text-sm text-light-blue/70">
 						Indiquez les présences des membres sur vos slots de formation.
 					</p>
@@ -399,13 +409,13 @@
 														class="h-8 w-8 rounded-full"
 													/>
 												{/if}
-												<div>
+												<div class="flex flex-col gap-0">
 													<p class="m-0 text-sm font-semibold text-white">
 														{reg.member_username ?? 'Membre'}
 													</p>
 													{#if reg.to_excuse}
 														<span
-															class="mt-1 inline-flex rounded-full border border-waiting/40 px-2 py-0.5 text-[0.6rem] tracking-[0.25em] text-waiting uppercase"
+															class="inline-flex text-[0.6rem] tracking-[0.25em] text-waiting uppercase"
 														>
 															Excuse demandée
 														</span>
@@ -419,7 +429,7 @@
 														: 'border-waiting/40 text-waiting'
 												}`}
 											>
-												{reg.status === 'registered' ? 'Inscrit·e' : "Liste d'attente"}
+												{reg.status === 'registered' ? 'Inscrit·e' : 'En attente'}
 											</span>
 										</div>
 										<div class="mt-3 flex items-center justify-between text-xs text-light-blue/70">
@@ -492,13 +502,13 @@
 																class="h-8 w-8 rounded-full"
 															/>
 														{/if}
-														<div>
+														<div class="flex flex-col gap-0">
 															<p class="m-0 text-sm font-semibold text-white">
 																{reg.member_username ?? 'Membre'}
 															</p>
 															{#if reg.to_excuse}
 																<span
-																	class="mt-1 inline-flex rounded-full border border-waiting/40 px-2 py-0.5 text-[0.6rem] tracking-[0.25em] text-waiting uppercase"
+																	class="inline-flex rounded-full text-[0.6rem] tracking-[0.25em] text-waiting uppercase"
 																>
 																	Excuse demandée
 																</span>
@@ -517,7 +527,7 @@
 																: 'border-waiting/40 text-waiting'
 														}`}
 													>
-														{reg.status === 'registered' ? 'Inscrit·e' : "Liste d'attente"}
+														{reg.status === 'registered' ? 'Inscrit·e' : 'En attente'}
 													</span>
 												</td>
 												{#if reg.status === 'registered'}
@@ -533,7 +543,7 @@
 																onclick={() => handlePresenceChange(reg.member_id, null)}
 															>
 																<Users class="size-3" />
-																Non renseigné
+																NSP
 															</button>
 															<button
 																type="button"
