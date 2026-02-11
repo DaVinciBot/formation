@@ -8,7 +8,6 @@
 		getTrainingSlots,
 		updateTrainerPresence,
 		type RegistrationListItem,
-		type TrainerRegistrationListItem,
 		type TrainingSlotListItem
 	} from '$lib/services/training';
 	import { supabase } from '$lib/supabaseClient';
@@ -17,7 +16,7 @@
 	import { onMount } from 'svelte';
 
 	let slots = $state<TrainingSlotListItem[]>([]);
-	type SlotRegistration = RegistrationListItem | TrainerRegistrationListItem;
+	type SlotRegistration = RegistrationListItem;
 	let registrations = $state<SlotRegistration[]>([]);
 	let selectedSlotId = $state<number | null>(null);
 	let loading = $state(false);
@@ -277,18 +276,7 @@
 		</header>
 
 		{#if loading}
-			<div class="flex h-full flex-col items-center justify-center gap-3">
-				<div
-					class="flex flex-wrap items-center justify-center gap-x-3 gap-y-2 text-center text-xs tracking-[0.28em] uppercase"
-				>
-					<span class="spinner" aria-hidden="true"></span>
-					<span class="text-center">Chargement du calendrier</span>
-				</div>
-			</div>
-			<Spinner
-				divClass="h-full rounded-[26px] border border-light-blue/20 bg-dark-blue/80 p-10 text-light-blue/80"
-				text="Chargement des slots"
-			/>
+			<Spinner divClass="h-full">Chargement des slots</Spinner>
 		{:else if loadError}
 			<div
 				class="flex flex-col items-center justify-center gap-3 rounded-[26px] border border-light-blue/20 bg-dark-blue/80 p-10 text-waiting"
@@ -363,12 +351,11 @@
 							<p class="text-sm">Sélectionnez un slot pour démarrer.</p>
 						</div>
 					{:else if registrationsLoading}
-						<div
-							class="mt-6 flex flex-col items-center justify-center gap-3 rounded-2xl border border-light-blue/15 bg-dark-blue/70 p-8 text-light-blue/70"
+						<Spinner
+							divClass="mt-6 rounded-2xl border border-light-blue/15 bg-dark-blue/70 p-8 text-light-blue/70"
 						>
-							<span class="spinner" aria-hidden="true"></span>
-							<p class="text-sm">Chargement des inscriptions</p>
-						</div>
+							Chargement des inscriptions
+						</Spinner>
 					{:else}
 						<div class="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
 							<div class="rounded-2xl border border-light-blue/15 bg-dark-blue/70 p-4">
@@ -584,20 +571,3 @@
 		{/if}
 	</div>
 </section>
-
-<style>
-	.spinner {
-		width: 22px;
-		height: 22px;
-		border: 2px solid currentColor;
-		border-right-color: transparent;
-		border-radius: 9999px;
-		animation: spin 0.8s linear infinite;
-	}
-
-	@keyframes spin {
-		to {
-			transform: rotate(360deg);
-		}
-	}
-</style>

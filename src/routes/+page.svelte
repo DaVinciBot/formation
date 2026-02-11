@@ -173,8 +173,9 @@
 		{#if loading}
 			<Spinner
 				divClass="h-full rounded-[26px] border border-light-blue/40 bg-dark-blue/90 p-6 text-light-blue/80 shadow-[0_18px_60px_rgba(2,10,60,0.45)]"
-				text="Chargement du calendrier"
-			/>
+			>
+				Chargement du calendrier
+			</Spinner>
 		{:else if error}
 			<div
 				class="flex h-full flex-col items-center justify-center rounded-[26px] border border-light-blue/40 bg-dark-blue/90 p-6 text-waiting shadow-[0_18px_60px_rgba(2,10,60,0.45)]"
@@ -197,20 +198,3 @@
 		{/if}
 	</div>
 </div>
-
-<style>
-	.spinner {
-		width: 22px;
-		height: 22px;
-		border: 2px solid currentColor;
-		border-right-color: transparent;
-		border-radius: 9999px;
-		animation: spin 0.8s linear infinite;
-	}
-
-	@keyframes spin {
-		to {
-			transform: rotate(360deg);
-		}
-	}
-</style>

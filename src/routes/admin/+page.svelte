@@ -431,8 +431,9 @@
 		{#if loading}
 			<Spinner
 				divClass="rounded-[26px] border border-light-blue/20 bg-dark-blue/80 p-10 text-light-blue/80"
-				text="Chargement des données"
-			/>
+			>
+				Chargement des données
+			</Spinner>
 		{:else if error}
 			<div
 				class="flex flex-col items-center justify-center gap-3 rounded-[26px] border border-light-blue/20 bg-dark-blue/80 p-10 text-waiting"

@@ -30,8 +30,9 @@
 	<div class="px-6 py-6">
 		<Spinner
 			divClass="h-[calc(100vh-10rem)] rounded-[26px] border border-light-blue/40 bg-dark-blue/90 p-6 text-light-blue/80 shadow-[0_18px_60px_rgba(2,10,60,0.45)]"
-			text="Chargement de l'espace admin"
-		/>
+		>
+			Chargement de l'espace admin
+		</Spinner>
 	</div>
 {:else if accessError}
 	<div class="px-6 py-6">
@@ -44,20 +45,3 @@
 {:else}
 	{@render children()}
 {/if}
-
-<style>
-	.spinner {
-		width: 22px;
-		height: 22px;
-		border: 2px solid currentColor;
-		border-right-color: transparent;
-		border-radius: 9999px;
-		animation: spin 0.8s linear infinite;
-	}
-
-	@keyframes spin {
-		to {
-			transform: rotate(360deg);
-		}
-	}
-</style>

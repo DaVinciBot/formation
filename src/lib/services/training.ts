@@ -57,18 +57,6 @@ export type RegistrationListItem = {
 	member_avatar_url: string | null;
 };
 
-export type TrainerRegistrationListItem = {
-	slot_id: number;
-	member_id: string;
-	date_hour: string;
-	remote: boolean;
-	status: RegistrationStatus;
-	present: boolean | null;
-	to_excuse: boolean | null;
-	member_username: string | null;
-	member_avatar_url: string | null;
-};
-
 export type RegistrationSummary = {
 	remote: boolean;
 	status: RegistrationStatus;
@@ -146,9 +134,7 @@ export async function getSlotRegistrations(slotId: number): Promise<Registration
 	return data;
 }
 
-export async function getTrainerSlotRegistrations(
-	slotId: number
-): Promise<TrainerRegistrationListItem[]> {
+export async function getTrainerSlotRegistrations(slotId: number): Promise<RegistrationListItem[]> {
 	const { data, error } = await supabase.rpc('trainer_registration_list', {
 		p_slot_id: slotId
 	});

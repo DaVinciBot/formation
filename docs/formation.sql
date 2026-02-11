@@ -378,6 +378,7 @@ returns table (
   status public.registration_status,
   present boolean,
   to_excuse boolean,
+  feedback text,
   member_username text,
   member_avatar_url text
 )
@@ -394,6 +395,7 @@ as $$
     r.status,
     r.present,
     r.to_excuse,
+    r.feedback,
     p.username as member_username,
     p.avatar_url as member_avatar_url
   from public.registration r
