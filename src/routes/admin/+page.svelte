@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Table from '$lib/components/admin/Table.svelte';
 	import CrudForm from '$lib/components/modals/CrudForm.svelte';
 	import Spinner from '$lib/components/share/Spinner.svelte';
 	import CTAButton from '$lib/components/utils/CTAButton.svelte';
@@ -56,6 +57,8 @@
 	let selectedTrainerId: string | null = null;
 
 	const slotRangeDays = 120;
+	const actionButtonClass =
+		'text-xs tracking-[0.2em] text-light-blue/70 uppercase hover:text-white';
 
 	const formatDate = (dateString: string) =>
 		new Intl.DateTimeFormat('fr-FR', {
@@ -381,6 +384,52 @@
 
 	$: upcomingSlots = slots.filter((slot) => new Date(slot.start) >= new Date());
 	$: draftSlots = slots.filter((slot) => slot.status === 'draft');
+	$: trainingRows = filteredTrainings.map((training) => [
+		{
+			value: training.name
+		},
+		{
+			badge: categoryOptions.find((opt) => opt.value === training.category)?.text || 'Autre',
+			badgeClass: 'rounded-full border border-light-blue/20 px-3 py-1 text-xs uppercase'
+		},
+		{
+			value: training.description || 'Aucune description'
+		},
+		{
+			className: 'text-right',
+			action: {
+				label: 'Editer',
+				onClick: () => openTrainingModal(training),
+				className: actionButtonClass,
+				wrapClass: 'flex justify-end'
+			}
+		}
+	]);
+	$: slotRows = filteredSlots.map((slot) => [
+		{
+			value: formatDate(slot.start)
+		},
+		{
+			value: findTrainingName(slot.training_id)
+		},
+		{
+			value: slot.trainer_username || 'A definir',
+			avatar: slot.trainer_avatar_url
+		},
+		{
+			badge: statusOptions.find((opt) => opt.value === slot.status)?.text || slot.status,
+			badgeClass: 'rounded-full border border-light-blue/20 px-3 py-1 text-xs uppercase'
+		},
+		{
+			className: 'text-right',
+			action: {
+				label: 'Editer',
+				onClick: () => openSlotModal(slot),
+				className: actionButtonClass,
+				wrapClass: 'flex justify-end'
+			}
+		}
+	]);
 
 	onMount(() => {
 		void loadData();
@@ -473,49 +522,16 @@
 						</div>
 					</div>
 
-					<div class="mt-6 overflow-hidden rounded-2xl border border-light-blue/10">
-						<table class="hidden w-full text-left text-sm text-light-blue/70 md:table">
-							<thead class="bg-dark-blue text-xs tracking-[0.2em] text-light-blue/60 uppercase">
-								<tr>
-									<th class="px-4 py-3">Nom</th>
-									<th class="px-4 py-3">Catégorie</th>
-									<th class="px-4 py-3">Description</th>
-									<th class="px-4 py-3 text-right">Actions</th>
-								</tr>
-							</thead>
-							<tbody>
-								{#if filteredTrainings.length === 0}
-									<tr>
-										<td class="px-4 py-6 text-center" colspan="4">Aucune formation</td>
-									</tr>
-								{:else}
-									{#each filteredTrainings as training}
-										<tr class="border-t border-light-blue/10">
-											<td class="px-4 py-4 text-white">{training.name}</td>
-											<td class="px-4 py-4">
-												<span
-													class="rounded-full border border-light-blue/20 px-3 py-1 text-xs uppercase"
-												>
-													{categoryOptions.find((opt) => opt.value === training.category)?.text ||
-														'Autre'}
-												</span>
-											</td>
-											<td class="px-4 py-4 text-light-blue/60">
-												{training.description || 'Aucune description'}
-											</td>
-											<td class="px-4 py-4 text-right">
-												<button
-													class="text-xs tracking-[0.2em] text-light-blue/70 uppercase hover:text-white"
-													onclick={() => openTrainingModal(training)}
-												>
-													Editer
-												</button>
-											</td>
-										</tr>
-									{/each}
-								{/if}
-							</tbody>
-						</table>
+					<div class="mt-6 overflow-hidden rounded-xl border border-light-blue/10">
+						<div class="hidden md:block">
+							<Table
+								headers={['Nom', 'Catégorie', 'Description', 'Actions']}
+								rows={trainingRows}
+								emptyMessage="Aucune formation"
+								can_load={false}
+								size={5}
+							/>
+						</div>
 						<div class="md:hidden">
 							{#if filteredTrainings.length === 0}
 								<p class="px-4 py-6 text-center text-sm text-light-blue/70">Aucune formation</p>
@@ -574,59 +590,15 @@
 					</div>
 
 					<div class="mt-6 overflow-hidden rounded-2xl border border-light-blue/10">
-						<table class="hidden w-full text-left text-sm text-light-blue/70 md:table">
-							<thead class="bg-dark-blue text-xs tracking-[0.2em] text-light-blue/60 uppercase">
-								<tr>
-									<th class="px-4 py-3">Debut</th>
-									<th class="px-4 py-3">Formation</th>
-									<th class="px-4 py-3">Formateur·ice</th>
-									<th class="px-4 py-3">Statut</th>
-									<th class="px-4 py-3 text-right">Actions</th>
-								</tr>
-							</thead>
-							<tbody>
-								{#if filteredSlots.length === 0}
-									<tr>
-										<td class="px-4 py-6 text-center" colspan="5">Aucun slot</td>
-									</tr>
-								{:else}
-									{#each filteredSlots as slot}
-										<tr class="border-t border-light-blue/10">
-											<td class="px-4 py-4 text-white">{formatDate(slot.start)}</td>
-											<td class="px-4 py-4">{findTrainingName(slot.training_id)}</td>
-											<td class="px-4 py-4">
-												<div class="flex items-center gap-2">
-													{#if slot.trainer_avatar_url}
-														<img
-															src={slot.trainer_avatar_url}
-															alt={slot.trainer_username || 'Formateur·ice'}
-															class="h-6 w-6 rounded-full"
-														/>
-													{/if}
-													<span>{slot.trainer_username || 'A definir'}</span>
-												</div>
-											</td>
-											<td class="px-4 py-4">
-												<span
-													class="rounded-full border border-light-blue/20 px-3 py-1 text-xs uppercase"
-												>
-													{statusOptions.find((opt) => opt.value === slot.status)?.text ||
-														slot.status}
-												</span>
-											</td>
-											<td class="px-4 py-4 text-right">
-												<button
-													class="text-xs tracking-[0.2em] text-light-blue/70 uppercase hover:text-white"
-													onclick={() => openSlotModal(slot)}
-												>
-													Editer
-												</button>
-											</td>
-										</tr>
-									{/each}
-								{/if}
-							</tbody>
-						</table>
+						<div class="hidden md:block">
+							<Table
+								headers={['Debut', 'Formation', 'Formateur·ice', 'Statut', 'Actions']}
+								rows={slotRows}
+								emptyMessage="Aucun slot"
+								can_load={false}
+								size={10}
+							/>
+						</div>
 						<div class="md:hidden">
 							{#if filteredSlots.length === 0}
 								<p class="px-4 py-6 text-center text-sm text-light-blue/70">Aucun slot</p>

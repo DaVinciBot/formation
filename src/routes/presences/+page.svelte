@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import PresenceActionsCell from '$lib/components/admin/PresenceActionsCell.svelte';
+	import Table from '$lib/components/admin/Table.svelte';
 	import Spinner from '$lib/components/share/Spinner.svelte';
 	import CtaButton from '$lib/components/utils/CTAButton.svelte';
 	import {
@@ -26,6 +28,8 @@
 	let savingIds = $state(new Set<string>());
 	let currentUserId: string | null = $state(null);
 	let canManageTraining = $state(false);
+	const statusBadgeClass =
+		'rounded-full border px-2.5 py-1 text-[0.6rem] tracking-[0.25em] uppercase';
 
 	const slotRangeDays = 180;
 
@@ -49,6 +53,39 @@
 	const unknownCount = $derived(
 		() =>
 			registrations.filter((item) => item.status === 'registered' && item.present === null).length
+	);
+	const presenceRows = $derived(() =>
+		registrations.map((reg) => [
+			{
+				value: reg.member_username ?? 'Membre',
+				avatar: reg.member_avatar_url,
+				subvalue: reg.to_excuse ? 'Excuse demandée' : '',
+				subvalueClass: 'text-[0.6rem] tracking-[0.25em] text-waiting uppercase'
+			},
+			{
+				value: reg.remote ? 'Distanciel' : 'Présentiel'
+			},
+			{
+				badge: reg.status === 'registered' ? 'Inscrit·e' : 'En attente',
+				badgeClass: `${statusBadgeClass} ${
+					reg.status === 'registered'
+						? 'border-registered/40 text-registered'
+						: 'border-waiting/40 text-waiting'
+				}`
+			},
+			{
+				className: 'text-right',
+				component: PresenceActionsCell,
+				props: {
+					memberId: reg.member_id,
+					present: reg.present,
+					status: reg.status,
+					isSaving: isSaving(reg.member_id),
+					onChange: handlePresenceChange,
+					presenceButtonClass
+				}
+			}
+		])
 	);
 
 	function formatDate(value: string) {
@@ -467,104 +504,14 @@
 									</div>
 								{/each}
 							</div>
-							<div
-								class="mt-6 hidden overflow-x-auto rounded-2xl border border-light-blue/10 min-[1040px]:block"
-							>
-								<table class="w-full min-w-180 text-left text-sm text-light-blue/70">
-									<thead class="bg-dark-blue text-xs tracking-[0.2em] text-light-blue/60 uppercase">
-										<tr>
-											<th class="px-4 py-3">Membre</th>
-											<th class="px-4 py-3">Format</th>
-											<th class="px-4 py-3">Statut</th>
-											<th class="px-4 py-3 text-right">Présence</th>
-										</tr>
-									</thead>
-									<tbody>
-										{#each registrations as reg}
-											<tr class="border-t border-light-blue/10">
-												<td class="px-4 py-4">
-													<div class="flex items-center gap-3">
-														{#if reg.member_avatar_url}
-															<img
-																src={reg.member_avatar_url}
-																alt={reg.member_username ?? 'Membre'}
-																class="h-8 w-8 rounded-full"
-															/>
-														{/if}
-														<div class="flex flex-col gap-0">
-															<p class="m-0 text-sm font-semibold text-white">
-																{reg.member_username ?? 'Membre'}
-															</p>
-															{#if reg.to_excuse}
-																<span
-																	class="inline-flex rounded-full text-[0.6rem] tracking-[0.25em] text-waiting uppercase"
-																>
-																	Excuse demandée
-																</span>
-															{/if}
-														</div>
-													</div>
-												</td>
-												<td class="px-4 py-4">
-													{reg.remote ? 'Distanciel' : 'Présentiel'}
-												</td>
-												<td class="px-4 py-4">
-													<span
-														class={`inline-flex rounded-full border px-2.5 py-1 text-[0.6rem] tracking-[0.25em] uppercase ${
-															reg.status === 'registered'
-																? 'border-registered/40 text-registered'
-																: 'border-waiting/40 text-waiting'
-														}`}
-													>
-														{reg.status === 'registered' ? 'Inscrit·e' : 'En attente'}
-													</span>
-												</td>
-												{#if reg.status === 'registered'}
-													<td class="px-4 py-4">
-														<div class="flex flex-wrap items-center justify-end gap-2">
-															<button
-																type="button"
-																class={`flex items-center gap-1 rounded-full border px-2.5 py-1 text-[0.65rem] uppercase ${presenceButtonClass(
-																	null,
-																	reg.present
-																)}`}
-																disabled={reg.status !== 'registered' || isSaving(reg.member_id)}
-																onclick={() => handlePresenceChange(reg.member_id, null)}
-															>
-																<Users class="size-3" />
-																NSP
-															</button>
-															<button
-																type="button"
-																class={`flex items-center gap-1 rounded-full border px-2.5 py-1 text-[0.65rem] uppercase ${presenceButtonClass(
-																	true,
-																	reg.present
-																)}`}
-																disabled={reg.status !== 'registered' || isSaving(reg.member_id)}
-																onclick={() => handlePresenceChange(reg.member_id, true)}
-															>
-																<CircleCheck class="size-3" />
-																Présent
-															</button>
-															<button
-																type="button"
-																class={`flex items-center gap-1 rounded-full border px-2.5 py-1 text-[0.65rem] uppercase ${presenceButtonClass(
-																	false,
-																	reg.present
-																)}`}
-																disabled={reg.status !== 'registered' || isSaving(reg.member_id)}
-																onclick={() => handlePresenceChange(reg.member_id, false)}
-															>
-																<CircleX class="size-3" />
-																Absent
-															</button>
-														</div>
-													</td>
-												{/if}
-											</tr>
-										{/each}
-									</tbody>
-								</table>
+							<div class="mt-6 hidden min-[1040px]:block">
+								<Table
+									headers={['Membre', 'Format', 'Statut', 'Présence']}
+									rows={presenceRows()}
+									emptyMessage="Aucune inscription"
+									can_load={false}
+									size={10}
+								/>
 							</div>
 						{/if}
 					{/if}
