@@ -198,7 +198,9 @@
 		<header
 			class="flex flex-col gap-6 rounded-[28px] border border-light-blue/15 bg-dark-blue/70 p-4 shadow-[0_20px_50px_rgba(1,7,32,0.35)] sm:p-6"
 		>
-			<div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+			<div
+				class="flex flex-col gap-4 min-[1040px]:flex-row min-[1040px]:items-center min-[1040px]:justify-between"
+			>
 				<div>
 					<p class="text-xs tracking-[0.3em] text-light-blue/60 uppercase">Formateur·ice·s</p>
 					<h1 class="mt-2 text-2xl font-bold text-white sm:text-3xl">Présences aux formations</h1>
@@ -216,7 +218,7 @@
 				</div>
 			</div>
 			{#if selectedSlot()}
-				<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+				<div class="grid gap-4 min-[1040px]:grid-cols-3 sm:grid-cols-2">
 					<div class="rounded-2xl border border-light-blue/20 bg-dark-blue/80 p-4">
 						<div class="flex items-center gap-3">
 							<div
@@ -291,7 +293,7 @@
 				<p class="text-center text-sm">Aucun slot ne vous est attribué pour le moment.</p>
 			</div>
 		{:else}
-			<div class="grid gap-6 lg:grid-cols-[minmax(0,0.38fr)_1fr]">
+			<div class="grid gap-6 min-[1040px]:grid-cols-[minmax(0,0.38fr)_1fr]">
 				<section class="rounded-[26px] border border-light-blue/10 bg-dark-blue/80 p-4 sm:p-6">
 					<div class="flex items-center justify-between gap-3">
 						<div>
@@ -384,7 +386,7 @@
 								<p class="text-sm">Aucune inscription pour ce slot.</p>
 							</div>
 						{:else}
-							<div class="mt-6 grid gap-4 lg:hidden">
+							<div class="mt-6 grid gap-4 min-[1040px]:hidden">
 								{#each registrations as reg}
 									<div class="rounded-2xl border border-light-blue/10 bg-dark-blue/70 p-4">
 										<div class="flex items-start justify-between gap-3">
@@ -466,7 +468,7 @@
 								{/each}
 							</div>
 							<div
-								class="mt-6 hidden overflow-x-auto rounded-2xl border border-light-blue/10 lg:block"
+								class="mt-6 hidden overflow-x-auto rounded-2xl border border-light-blue/10 min-[1040px]:block"
 							>
 								<table class="w-full min-w-180 text-left text-sm text-light-blue/70">
 									<thead class="bg-dark-blue text-xs tracking-[0.2em] text-light-blue/60 uppercase">
