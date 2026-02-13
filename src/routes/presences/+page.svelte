@@ -12,6 +12,7 @@
 		type RegistrationListItem,
 		type TrainingSlotListItem
 	} from '$lib/services/training';
+	import { triggerTableRefresh } from '$lib/store';
 	import { supabase } from '$lib/supabaseClient';
 	import { Calendar, CircleCheck, CircleX, Clock, MapPin, Users } from '@lucide/svelte';
 	import { format } from 'date-fns';
@@ -30,6 +31,24 @@
 	let canManageTraining = $state(false);
 	const statusBadgeClass =
 		'rounded-full border px-2.5 py-1 text-[0.6rem] tracking-[0.25em] uppercase';
+	const presenceTableTopic = 'presence-table';
+	const presenceDbInfo = {
+		table: 'registration',
+		key: 'slot_id,member_id,date_hour,remote,status,present,to_excuse,profiles!registration_member_id_fkey(username,avatar_url)',
+		ordering: 'date_hour:asc'
+	};
+	let presenceFilters = $state([
+		{
+			category: 'hidden',
+			value: 'slot_id',
+			options: [{ name: 'selected_slot', value: '', active: false }]
+		},
+		{
+			category: 'hidden',
+			value: 'status',
+			options: []
+		}
+	]);
 
 	const slotRangeDays = 180;
 
@@ -54,39 +73,58 @@
 		() =>
 			registrations.filter((item) => item.status === 'registered' && item.present === null).length
 	);
-	const presenceRows = $derived(() =>
-		registrations.map((reg) => [
-			{
-				value: reg.member_username ?? 'Membre',
-				avatar: reg.member_avatar_url,
-				subvalue: reg.to_excuse ? 'Excuse demandée' : '',
-				subvalueClass: 'text-[0.6rem] tracking-[0.25em] text-waiting uppercase'
-			},
-			{
-				value: reg.remote ? 'Distanciel' : 'Présentiel'
-			},
-			{
-				badge: reg.status === 'registered' ? 'Inscrit·e' : 'En attente',
-				badgeClass: `${statusBadgeClass} ${
-					reg.status === 'registered'
-						? 'border-registered/40 text-registered'
-						: 'border-waiting/40 text-waiting'
-				}`
-			},
-			{
-				className: 'text-right',
-				component: PresenceActionsCell,
-				props: {
-					memberId: reg.member_id,
-					present: reg.present,
-					status: reg.status,
-					isSaving: isSaving(reg.member_id),
-					onChange: handlePresenceChange,
-					presenceButtonClass
+	function parsePresenceItems(data: any[]) {
+		return data.map((reg) => {
+			const profile = reg.profiles || {};
+			return [
+				{
+					value: profile.username ?? 'Membre',
+					avatar: profile.avatar_url,
+					subvalue: reg.to_excuse ? 'Excuse demandée' : '',
+					subvalueClass: 'text-[0.6rem] tracking-[0.25em] text-waiting uppercase'
+				},
+				{ value: reg.remote ? 'Distanciel' : 'Présentiel' },
+				{
+					badge: reg.status === 'registered' ? 'Inscrit·e' : 'En attente',
+					badgeClass: `${statusBadgeClass} ${
+						reg.status === 'registered'
+							? 'border-registered/40 text-registered'
+							: 'border-waiting/40 text-waiting'
+					}`
+				},
+				{
+					className: 'text-right',
+					component: PresenceActionsCell,
+					props: {
+						memberId: reg.member_id,
+						present: reg.present,
+						status: reg.status,
+						isSaving: isSaving(reg.member_id),
+						onChange: handlePresenceChange,
+						presenceButtonClass
+					}
 				}
+			];
+		});
+	}
+
+	$effect(() => {
+		const slotValue = selectedSlotId ? String(selectedSlotId) : '';
+		presenceFilters = [
+			{
+				category: 'hidden',
+				value: 'slot_id',
+				options: [{ name: 'selected_slot', value: slotValue, active: Boolean(selectedSlotId) }]
+			},
+			{
+				category: 'hidden',
+				value: 'status',
+				options: canManageTraining
+					? []
+					: [{ name: 'registrations', value: 'registered","waitlisted', active: true }]
 			}
-		])
-	);
+		];
+	});
 
 	function formatDate(value: string) {
 		const date = new Date(value);
@@ -159,6 +197,7 @@
 	async function handleSlotChange(slotId: number) {
 		selectedSlotId = slotId;
 		await loadRegistrations(slotId);
+		triggerTableRefresh(presenceTableTopic);
 	}
 
 	async function handlePresenceChange(memberId: string, present: boolean | null) {
@@ -170,6 +209,7 @@
 			registrations = registrations.map((item) =>
 				item.member_id === memberId ? { ...item, present } : item
 			);
+			triggerTableRefresh(presenceTableTopic);
 		} catch (err) {
 			console.error(err);
 			actionError = 'Impossible de mettre à jour la présence.';
@@ -507,9 +547,13 @@
 							<div class="mt-6 hidden min-[1040px]:block">
 								<Table
 									headers={['Membre', 'Format', 'Statut', 'Présence']}
-									rows={presenceRows()}
+									dbInfo={presenceDbInfo}
+									parseItems={parsePresenceItems}
+									filters={presenceFilters}
+									refreshTopic={presenceTableTopic}
+									searchable="profiles.username"
 									emptyMessage="Aucune inscription"
-									can_load={false}
+									can_load={Boolean(selectedSlotId)}
 									size={10}
 								/>
 							</div>

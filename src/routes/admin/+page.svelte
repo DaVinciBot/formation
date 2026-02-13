@@ -14,6 +14,7 @@
 		type TrainingListItem,
 		type TrainingSlotListItem
 	} from '$lib/services/training';
+	import { triggerTableRefresh } from '$lib/store';
 	import { supabase } from '$lib/supabaseClient';
 	import { onMount } from 'svelte';
 
@@ -46,8 +47,6 @@
 	let error: string | null = null;
 	let formError: string | null = null;
 
-	let trainingSearch = '';
-	let slotSearch = '';
 	let showTrainingModal = false;
 	let showSlotModal = false;
 	let editingTraining: TrainingListItem | null = null;
@@ -57,8 +56,20 @@
 	let selectedTrainerId: string | null = null;
 
 	const slotRangeDays = 120;
-	const actionButtonClass =
-		'text-xs tracking-[0.2em] text-light-blue/70 uppercase hover:text-white';
+	const trainingTableTopic = 'admin-trainings';
+	const slotTableTopic = 'admin-slots';
+	const trainingDbInfo = {
+		table: 'training',
+		key: 'id,name,category,description,prerequisites',
+		ordering: 'name:asc'
+	};
+	const slotDbInfo = {
+		table: 'training_slot',
+		key: 'id,training_id,custom_name,custom_description,custom_prerequisites,start,duration_hours,on_site_seats,remote_seats,location,video_conference_link,excusable,status,trainer_id,training!slot_training_id_fkey(name,description,prerequisites,category),profiles!slot_trainer_id_fkey(username,avatar_url)',
+		ordering: 'start:asc'
+	};
+	let trainingIndex = new Map<number, TrainingListItem>();
+	let slotIndex = new Map<number, TrainingSlotListItem>();
 
 	const formatDate = (dateString: string) =>
 		new Intl.DateTimeFormat('fr-FR', {
@@ -294,6 +305,7 @@
 				});
 			}
 			await loadData();
+			triggerTableRefresh(trainingTableTopic);
 			closeTrainingModal();
 		} catch (err) {
 			console.error(err);
@@ -354,6 +366,7 @@
 				});
 			}
 			await loadData();
+			triggerTableRefresh(slotTableTopic);
 			closeSlotModal();
 		} catch (err) {
 			console.error(err);
@@ -361,75 +374,112 @@
 		}
 	}
 
-	$: filteredTrainings = trainings.filter((training) => {
-		const query = normalize(trainingSearch);
-		if (!query) return true;
-		return (
-			normalize(training.name).includes(query) ||
-			normalize(training.description).includes(query) ||
-			normalize(training.prerequisites).includes(query)
+	function parseTrainingItems(data: any[]) {
+		trainingIndex = new Map(
+			data.map((training) => [
+				training.id,
+				{
+					training_id: training.id,
+					name: training.name,
+					description: training.description,
+					prerequisites: training.prerequisites,
+					category: training.category
+				}
+			])
 		);
-	});
+		return data.map((training) => [
+			{ value: training.name, data: training.id },
+			{
+				badge: categoryOptions.find((opt) => opt.value === training.category)?.text || 'Autre',
+				badgeClass: 'rounded-full border border-light-blue/20 px-3 py-1 text-xs uppercase'
+			},
+			{ value: training.description || 'Aucune description' }
+		]);
+	}
 
-	$: filteredSlots = slots.filter((slot) => {
-		const query = normalize(slotSearch);
-		if (!query) return true;
-		return (
-			normalize(slot.name).includes(query) ||
-			normalize(slot.trainer_username).includes(query) ||
-			normalize(findTrainingName(slot.training_id)).includes(query) ||
-			normalize(slot.status).includes(query)
+	function parseSlotItems(data: any[]) {
+		slotIndex = new Map(
+			data.map((slot) => {
+				const training = slot.training || {};
+				const trainer = slot.profiles || {};
+				const name = slot.custom_name || training.name || 'Formation';
+				return [
+					slot.id,
+					{
+						slot_id: slot.id,
+						training_id: slot.training_id,
+						name,
+						description: slot.custom_description || training.description || null,
+						prerequisites: slot.custom_prerequisites || training.prerequisites || null,
+						category: training.category,
+						start: slot.start,
+						duration_hours: slot.duration_hours,
+						on_site_seats: slot.on_site_seats,
+						remote_seats: slot.remote_seats,
+						on_site_registered: null,
+						remote_registered: null,
+						on_site_waitlisted: null,
+						remote_waitlisted: null,
+						on_site_remaining: null,
+						remote_remaining: null,
+						location: slot.location,
+						video_conference_link: slot.video_conference_link,
+						excusable: slot.excusable,
+						status: slot.status,
+						trainer_id: slot.trainer_id,
+						trainer_username: trainer.username || null,
+						trainer_avatar_url: trainer.avatar_url || null
+					}
+				];
+			})
 		);
-	});
+		return data.map((slot) => {
+			const training = slot.training || {};
+			const trainer = slot.profiles || {};
+			const name = slot.custom_name || training.name || 'Formation';
+			return [
+				{ value: formatDate(slot.start), data: slot.id },
+				{ value: name },
+				{ value: trainer.username || 'A definir', avatar: trainer.avatar_url },
+				{
+					badge: statusOptions.find((opt) => opt.value === slot.status)?.text || slot.status,
+					badgeClass: 'rounded-full border border-light-blue/20 px-3 py-1 text-xs uppercase'
+				}
+			];
+		});
+	}
+
+	const trainingActions = [
+		{
+			title: 'Editer',
+			type: 'view',
+			handler: (event: Event) => {
+				const id = Number(
+					(event.target as HTMLElement | null)?.closest('tr')?.querySelector('th')?.dataset.utils
+				);
+				const training =
+					trainingIndex.get(id) ?? trainings.find((item) => item.training_id === id) ?? null;
+				if (training) openTrainingModal(training);
+			}
+		}
+	];
+
+	const slotActions = [
+		{
+			title: 'Editer',
+			type: 'view',
+			handler: (event: Event) => {
+				const id = Number(
+					(event.target as HTMLElement | null)?.closest('tr')?.querySelector('th')?.dataset.utils
+				);
+				const slot = slotIndex.get(id) ?? slots.find((item) => item.slot_id === id) ?? null;
+				if (slot) openSlotModal(slot);
+			}
+		}
+	];
 
 	$: upcomingSlots = slots.filter((slot) => new Date(slot.start) >= new Date());
 	$: draftSlots = slots.filter((slot) => slot.status === 'draft');
-	$: trainingRows = filteredTrainings.map((training) => [
-		{
-			value: training.name
-		},
-		{
-			badge: categoryOptions.find((opt) => opt.value === training.category)?.text || 'Autre',
-			badgeClass: 'rounded-full border border-light-blue/20 px-3 py-1 text-xs uppercase'
-		},
-		{
-			value: training.description || 'Aucune description'
-		},
-		{
-			className: 'text-right',
-			action: {
-				label: 'Editer',
-				onClick: () => openTrainingModal(training),
-				className: actionButtonClass,
-				wrapClass: 'flex justify-end'
-			}
-		}
-	]);
-	$: slotRows = filteredSlots.map((slot) => [
-		{
-			value: formatDate(slot.start)
-		},
-		{
-			value: findTrainingName(slot.training_id)
-		},
-		{
-			value: slot.trainer_username || 'A definir',
-			avatar: slot.trainer_avatar_url
-		},
-		{
-			badge: statusOptions.find((opt) => opt.value === slot.status)?.text || slot.status,
-			badgeClass: 'rounded-full border border-light-blue/20 px-3 py-1 text-xs uppercase'
-		},
-		{
-			className: 'text-right',
-			action: {
-				label: 'Editer',
-				onClick: () => openSlotModal(slot),
-				className: actionButtonClass,
-				wrapClass: 'flex justify-end'
-			}
-		}
-	]);
 
 	onMount(() => {
 		void loadData();
@@ -504,13 +554,7 @@
 								Gérez les contenus de référence pour les sessions.
 							</p>
 						</div>
-						<div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-							<input
-								type="text"
-								class="w-full rounded-lg border border-light-blue/20 bg-dark-blue/90 px-4 py-2 text-sm text-white placeholder-light-blue/50 sm:w-72"
-								placeholder="Rechercher une formation"
-								bind:value={trainingSearch}
-							/>
+						<div class="flex flex-col sm:w-40 sm:flex-row sm:flex-wrap">
 							<CTAButton
 								type="button"
 								variant="secondary"
@@ -526,18 +570,21 @@
 						<div class="hidden md:block">
 							<Table
 								headers={['Nom', 'Catégorie', 'Description', 'Actions']}
-								rows={trainingRows}
+								dbInfo={trainingDbInfo}
+								parseItems={parseTrainingItems}
+								actions={trainingActions}
+								refreshTopic={trainingTableTopic}
+								searchable="name"
 								emptyMessage="Aucune formation"
-								can_load={false}
 								size={5}
 							/>
 						</div>
 						<div class="md:hidden">
-							{#if filteredTrainings.length === 0}
+							{#if trainings.length === 0}
 								<p class="px-4 py-6 text-center text-sm text-light-blue/70">Aucune formation</p>
 							{:else}
 								<div class="grid gap-3 p-4">
-									{#each filteredTrainings as training}
+									{#each trainings as training}
 										<article class="rounded-2xl border border-light-blue/10 bg-dark-blue/90 p-4">
 											<div class="flex items-start justify-between gap-4">
 												<div>
@@ -571,13 +618,7 @@
 							<h2 class="text-xl font-semibold text-white">Slots de formation</h2>
 							<p class="text-sm text-light-blue/70">Planifiez, suivez et ajustez les sessions.</p>
 						</div>
-						<div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-							<input
-								type="text"
-								class="w-full rounded-lg border border-light-blue/20 bg-dark-blue/90 px-4 py-2 text-sm text-white placeholder-light-blue/50 sm:w-72"
-								placeholder="Rechercher un slot"
-								bind:value={slotSearch}
-							/>
+						<div class="flex flex-col sm:w-40 sm:flex-row sm:flex-wrap">
 							<CTAButton
 								type="button"
 								variant="secondary"
@@ -593,18 +634,21 @@
 						<div class="hidden md:block">
 							<Table
 								headers={['Debut', 'Formation', 'Formateur·ice', 'Statut', 'Actions']}
-								rows={slotRows}
+								dbInfo={slotDbInfo}
+								parseItems={parseSlotItems}
+								actions={slotActions}
+								refreshTopic={slotTableTopic}
+								searchable="training.name"
 								emptyMessage="Aucun slot"
-								can_load={false}
 								size={10}
 							/>
 						</div>
 						<div class="md:hidden">
-							{#if filteredSlots.length === 0}
+							{#if slots.length === 0}
 								<p class="px-4 py-6 text-center text-sm text-light-blue/70">Aucun slot</p>
 							{:else}
 								<div class="grid gap-3 p-4">
-									{#each filteredSlots as slot}
+									{#each slots as slot}
 										<article class="rounded-2xl border border-light-blue/10 bg-dark-blue/90 p-4">
 											<div class="flex items-start justify-between gap-4">
 												<div>
