@@ -65,8 +65,8 @@
 	};
 	const slotDbInfo = {
 		table: 'training_slot',
-		key: 'id,training_id,custom_name,custom_description,custom_prerequisites,start,duration_hours,on_site_seats,remote_seats,location,video_conference_link,excusable,status,trainer_id,training!slot_training_id_fkey(name,description,prerequisites,category),profiles!slot_trainer_id_fkey(username,avatar_url)',
-		ordering: 'start:asc'
+		key: 'id,training_id,custom_name,custom_description,custom_prerequisites,start,duration_hours,on_site_seats,remote_seats,location,video_conference_link,excusable,status,trainer_id,training!inner(name,description,prerequisites,category),profiles!slot_trainer_id_fkey(username,avatar_url)',
+		ordering: 'start:desc'
 	};
 	let trainingIndex = new Map<number, TrainingListItem>();
 	let slotIndex = new Map<number, TrainingSlotListItem>();
@@ -86,8 +86,6 @@
 		const localDate = new Date(date.getTime() - offset * 60000);
 		return localDate.toISOString().slice(0, 16);
 	};
-
-	const normalize = (value: string | null) => (value || '').toLowerCase();
 
 	const findTrainingName = (trainingId: number) =>
 		trainings.find((training) => training.training_id === trainingId)?.name || 'Formation';
@@ -160,7 +158,7 @@
 				}
 			},
 			{
-				name: 'Debut',
+				name: 'Début',
 				id: 'start',
 				type: 'datetime-local',
 				required: true,
@@ -390,8 +388,7 @@
 		return data.map((training) => [
 			{ value: training.name, data: training.id },
 			{
-				badge: categoryOptions.find((opt) => opt.value === training.category)?.text || 'Autre',
-				badgeClass: 'rounded-full border border-light-blue/20 px-3 py-1 text-xs uppercase'
+				value: categoryOptions.find((opt) => opt.value === training.category)?.text || 'Autre'
 			},
 			{ value: training.description || 'Aucune description' }
 		]);
@@ -442,8 +439,7 @@
 				{ value: name },
 				{ value: trainer.username || 'A definir', avatar: trainer.avatar_url },
 				{
-					badge: statusOptions.find((opt) => opt.value === slot.status)?.text || slot.status,
-					badgeClass: 'rounded-full border border-light-blue/20 px-3 py-1 text-xs uppercase'
+					value: statusOptions.find((opt) => opt.value === slot.status)?.text || slot.status
 				}
 			];
 		});
@@ -475,6 +471,22 @@
 				const slot = slotIndex.get(id) ?? slots.find((item) => item.slot_id === id) ?? null;
 				if (slot) openSlotModal(slot);
 			}
+		}
+	];
+
+	let trainingFilters = [
+		{
+			category: 'Catégorie',
+			value: 'category',
+			options: categoryOptions.map((opt) => ({ value: opt.value, name: opt.text }))
+		}
+	];
+
+	let slotFilters = [
+		{
+			category: 'Statut',
+			value: 'status',
+			options: statusOptions.map((opt) => ({ value: opt.value, name: opt.text }))
 		}
 	];
 
@@ -574,6 +586,7 @@
 								parseItems={parseTrainingItems}
 								actions={trainingActions}
 								refreshTopic={trainingTableTopic}
+								filters={trainingFilters}
 								searchable="name"
 								emptyMessage="Aucune formation"
 								size={5}
@@ -633,11 +646,12 @@
 					<div class="mt-6 overflow-hidden rounded-2xl border border-light-blue/10">
 						<div class="hidden md:block">
 							<Table
-								headers={['Debut', 'Formation', 'Formateur·ice', 'Statut', 'Actions']}
+								headers={['Début', 'Formation', 'Formateur·ice', 'Statut', 'Actions']}
 								dbInfo={slotDbInfo}
 								parseItems={parseSlotItems}
 								actions={slotActions}
 								refreshTopic={slotTableTopic}
+								filters={slotFilters}
 								searchable="training.name"
 								emptyMessage="Aucun slot"
 								size={10}
