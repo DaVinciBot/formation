@@ -141,7 +141,7 @@
 				p_permission: 'access_training'
 			});
 			if (error || !data) {
-				await goto('unauthorized?redirect=/');
+				await goto('unauthorized?redirect=/formation');
 				return;
 			}
 			const { data: manageData, error: manageError } = await supabase.rpc('has_permission', {
@@ -153,7 +153,7 @@
 			setupRealtime();
 		} catch (err) {
 			console.error(err);
-			await goto('unauthorized?redirect=/');
+			await goto('unauthorized?redirect=/formation');
 		}
 	});
 

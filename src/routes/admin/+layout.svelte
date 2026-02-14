@@ -14,7 +14,7 @@
 				p_permission: 'manage_training'
 			});
 			if (error || !data) {
-				await goto('/unauthorized?redirect=/admin');
+				await goto('/unauthorized?redirect=/formation/admin');
 				return;
 			}
 			checkingAccess = false;

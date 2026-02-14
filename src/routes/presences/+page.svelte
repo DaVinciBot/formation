@@ -226,7 +226,7 @@
 				p_permission: 'access_training'
 			});
 			if (accessError || !accessData) {
-				await goto('/unauthorized?redirect=/presences');
+				await goto('/unauthorized?redirect=/formation/presences');
 				return;
 			}
 			const { data: manageData, error: manageError } = await supabase.rpc('has_permission', {
@@ -238,7 +238,7 @@
 				error: userError
 			} = await supabase.auth.getUser();
 			if (userError || !user) {
-				await goto('/unauthorized?redirect=/presences');
+				await goto('/unauthorized?redirect=/formation/presences');
 				return;
 			}
 			currentUserId = user.id;
@@ -398,7 +398,7 @@
 				</section>
 
 				<section class="rounded-[26px] border border-light-blue/10 bg-dark-blue/80 p-4 sm:p-6">
-					<div class="flex flex-wrap items-center justify-between gap-3">
+					<div class="flex items-center justify-between">
 						<div>
 							<h2 class="text-lg font-semibold text-white">Présences</h2>
 							<p class="text-xs text-light-blue/70">
@@ -406,14 +406,17 @@
 							</p>
 						</div>
 						{#if selectedSlot()}
-							<CtaButton
-								type="button"
-								variant="secondary"
-								size="sm"
-								onclick={() => selectedSlotId && loadRegistrations(selectedSlotId)}
-							>
-								Rafraîchir
-							</CtaButton>
+							<div class="flex flex-wrap">
+								<CtaButton
+									variant="secondary"
+									size="sm"
+									class="w-40"
+									fullWidth={false}
+									onclick={() => selectedSlotId && loadRegistrations(selectedSlotId)}
+								>
+									Rafraîchir
+								</CtaButton>
+							</div>
 						{/if}
 					</div>
 
@@ -434,11 +437,10 @@
 							Chargement des inscriptions
 						</Spinner>
 					{:else}
-						<div class="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+						<div class="mt-5 grid grid-cols-2 gap-4 xl:grid-cols-4">
 							<div class="rounded-2xl border border-light-blue/15 bg-dark-blue/70 p-4">
 								<p class="text-xs tracking-[0.25em] text-light-blue/60 uppercase">Inscrits</p>
 								<p class="mt-2 text-2xl font-semibold text-white">{registeredCount()}</p>
-								<p class="mt-1 text-xs text-light-blue/70">{waitlistedCount()} en attente</p>
 							</div>
 							<div class="rounded-2xl border border-registered/25 bg-dark-blue/70 p-4">
 								<p class="text-xs tracking-[0.25em] text-registered uppercase">Présents</p>
