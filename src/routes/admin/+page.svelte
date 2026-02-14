@@ -1,7 +1,9 @@
 <script lang="ts">
-	import Table from '$lib/components/admin/Table.svelte';
 	import CrudForm from '$lib/components/modals/CrudForm.svelte';
 	import Spinner from '$lib/components/share/Spinner.svelte';
+	import AdminHeader from '$lib/components/training/admin/AdminHeader.svelte';
+	import AdminSlotSection from '$lib/components/training/admin/AdminSlotSection.svelte';
+	import AdminTrainingSection from '$lib/components/training/admin/AdminTrainingSection.svelte';
 	import CTAButton from '$lib/components/utils/CTAButton.svelte';
 	import {
 		buildSlotFields,
@@ -289,44 +291,14 @@
 
 <section class="px-4 py-6 sm:px-6 sm:py-8">
 	<div class="mx-auto flex w-full max-w-6xl flex-col gap-8">
-		<header
-			class="flex flex-col gap-6 rounded-[28px] border border-light-blue/15 bg-dark-blue/70 p-5 shadow-[0_20px_50px_rgba(1,7,32,0.35)] sm:p-6"
-		>
-			<div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-				<div>
-					<p class="text-xs tracking-[0.3em] text-light-blue/60 uppercase">Administration</p>
-					<h1 class="mt-2 text-2xl font-bold text-white sm:text-3xl">Pilotage des formations</h1>
-					<p class="mt-2 text-sm text-light-blue/70">
-						Gérez le catalogue et les sessions planifiées en un coup d'oeil.
-					</p>
-				</div>
-				<div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-					<CTAButton type="button" variant="primary" size="sm" onclick={() => openTrainingModal()}>
-						Nouvelle formation
-					</CTAButton>
-					<CTAButton type="button" variant="secondary" size="sm" onclick={() => openSlotModal()}>
-						Nouveau slot
-					</CTAButton>
-				</div>
-			</div>
-			<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-				<div class="rounded-2xl border border-light-blue/20 bg-dark-blue/80 p-4">
-					<p class="text-xs tracking-[0.25em] text-light-blue/60 uppercase">Formations</p>
-					<p class="mt-2 text-3xl font-bold text-white">{trainings.length}</p>
-					<p class="mt-1 text-xs text-light-blue/70">catalogue actif</p>
-				</div>
-				<div class="rounded-2xl border border-light-blue/20 bg-dark-blue/80 p-4">
-					<p class="text-xs tracking-[0.25em] text-light-blue/60 uppercase">Slots à venir</p>
-					<p class="mt-2 text-3xl font-bold text-white">{upcomingSlots.length}</p>
-					<p class="mt-1 text-xs text-light-blue/70">dans les {slotRangeDays} prochains jours</p>
-				</div>
-				<div class="rounded-2xl border border-light-blue/20 bg-dark-blue/80 p-4">
-					<p class="text-xs tracking-[0.25em] text-light-blue/60 uppercase">Brouillons</p>
-					<p class="mt-2 text-3xl font-bold text-white">{draftSlots.length}</p>
-					<p class="mt-1 text-xs text-light-blue/70">à finaliser</p>
-				</div>
-			</div>
-		</header>
+		<AdminHeader
+			trainingsCount={trainings.length}
+			upcomingCount={upcomingSlots.length}
+			draftCount={draftSlots.length}
+			{slotRangeDays}
+			onAddTraining={() => openTrainingModal()}
+			onAddSlot={() => openSlotModal()}
+		/>
 
 		{#if loading}
 			<Spinner
@@ -347,155 +319,31 @@
 			{/if}
 
 			<div class="grid gap-8">
-				<section class="rounded-[28px] border border-light-blue/10 bg-dark-blue/80 p-5 sm:p-6">
-					<div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-						<div>
-							<h2 class="text-xl font-semibold text-white">Formations types</h2>
-							<p class="text-sm text-light-blue/70">
-								Gérez les contenus de référence pour les sessions.
-							</p>
-						</div>
-						<div class="flex flex-col sm:w-40 sm:flex-row sm:flex-wrap">
-							<CTAButton
-								type="button"
-								variant="secondary"
-								size="sm"
-								onclick={() => openTrainingModal()}
-							>
-								Ajouter
-							</CTAButton>
-						</div>
-					</div>
-
-					<div class="mt-6 overflow-hidden rounded-xl border border-light-blue/10">
-						<div class="hidden md:block">
-							<Table
-								headers={['Nom', 'Catégorie', 'Description', 'Actions']}
-								dbInfo={trainingDbInfo}
-								parseItems={parseTrainingItems}
-								actions={trainingActions}
-								refreshTopic={trainingTableTopic}
-								filters={trainingFilters}
-								searchable="name"
-								emptyMessage="Aucune formation"
-								size={5}
-							/>
-						</div>
-						<div class="md:hidden">
-							{#if trainings.length === 0}
-								<p class="px-4 py-6 text-center text-sm text-light-blue/70">Aucune formation</p>
-							{:else}
-								<div class="grid gap-3 p-4">
-									{#each trainings as training}
-										<article class="rounded-2xl border border-light-blue/10 bg-dark-blue/90 p-4">
-											<div class="flex items-start justify-between gap-4">
-												<div>
-													<p class="text-base font-semibold text-white">{training.name}</p>
-													<p class="mt-1 text-xs tracking-[0.2em] text-light-blue/60 uppercase">
-														{categoryOptions.find((opt) => opt.value === training.category)?.text ||
-															'Autre'}
-													</p>
-												</div>
-												<button
-													class="text-xs tracking-[0.2em] text-light-blue/70 uppercase hover:text-white"
-													onclick={() => openTrainingModal(training)}
-												>
-													Editer
-												</button>
-											</div>
-											<p class="mt-3 text-sm text-light-blue/70">
-												{training.description || 'Aucune description'}
-											</p>
-										</article>
-									{/each}
-								</div>
-							{/if}
-						</div>
-					</div>
-				</section>
-
-				<section class="rounded-[28px] border border-light-blue/10 bg-dark-blue/80 p-5 sm:p-6">
-					<div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-						<div>
-							<h2 class="text-xl font-semibold text-white">Slots de formation</h2>
-							<p class="text-sm text-light-blue/70">Planifiez, suivez et ajustez les sessions.</p>
-						</div>
-						<div class="flex flex-col sm:w-40 sm:flex-row sm:flex-wrap">
-							<CTAButton
-								type="button"
-								variant="secondary"
-								size="sm"
-								onclick={() => openSlotModal()}
-							>
-								Ajouter
-							</CTAButton>
-						</div>
-					</div>
-
-					<div class="mt-6 overflow-hidden rounded-2xl border border-light-blue/10">
-						<div class="hidden md:block">
-							<Table
-								headers={['Début', 'Formation', 'Formateur·ice', 'Statut', 'Actions']}
-								dbInfo={slotDbInfo}
-								parseItems={parseSlotItems}
-								actions={slotActions}
-								refreshTopic={slotTableTopic}
-								filters={slotFilters}
-								searchable="training.name"
-								emptyMessage="Aucun slot"
-								size={10}
-							/>
-						</div>
-						<div class="md:hidden">
-							{#if slots.length === 0}
-								<p class="px-4 py-6 text-center text-sm text-light-blue/70">Aucun slot</p>
-							{:else}
-								<div class="grid gap-3 p-4">
-									{#each slots as slot}
-										<article class="rounded-2xl border border-light-blue/10 bg-dark-blue/90 p-4">
-											<div class="flex items-start justify-between gap-4">
-												<div>
-													<p class="text-base font-semibold text-white">
-														{formatSlotDate(slot.start)}
-													</p>
-													<p class="mt-1 text-sm text-light-blue/70">
-														{findTrainingName(slot.training_id, trainings)}
-													</p>
-												</div>
-												<button
-													class="text-xs tracking-[0.2em] text-light-blue/70 uppercase hover:text-white"
-													onclick={() => openSlotModal(slot)}
-												>
-													Editer
-												</button>
-											</div>
-											<div
-												class="mt-3 flex flex-wrap items-center gap-3 text-sm text-light-blue/70"
-											>
-												<div class="flex items-center gap-2">
-													{#if slot.trainer_avatar_url}
-														<img
-															src={slot.trainer_avatar_url}
-															alt={slot.trainer_username || 'Formateur·ice'}
-															class="h-6 w-6 rounded-full"
-														/>
-													{/if}
-													<span>{slot.trainer_username || 'A definir'}</span>
-												</div>
-												<span
-													class="rounded-full border border-light-blue/20 px-3 py-1 text-xs uppercase"
-												>
-													{statusOptions.find((opt) => opt.value === slot.status)?.text ||
-														slot.status}
-												</span>
-											</div>
-										</article>
-									{/each}
-								</div>
-							{/if}
-						</div>
-					</div>
-				</section>
+				<AdminTrainingSection
+					{trainings}
+					{categoryOptions}
+					{trainingDbInfo}
+					{trainingActions}
+					{trainingFilters}
+					{trainingTableTopic}
+					{parseTrainingItems}
+					onAddTraining={() => openTrainingModal()}
+					onEditTraining={(training) => openTrainingModal(training)}
+				/>
+				<AdminSlotSection
+					{slots}
+					{statusOptions}
+					{slotDbInfo}
+					{slotActions}
+					{slotFilters}
+					{slotTableTopic}
+					{parseSlotItems}
+					{formatSlotDate}
+					{findTrainingName}
+					{trainings}
+					onAddSlot={() => openSlotModal()}
+					onEditSlot={(slot) => openSlotModal(slot)}
+				/>
 			</div>
 		{/if}
 	</div>
