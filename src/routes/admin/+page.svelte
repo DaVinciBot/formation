@@ -2,6 +2,7 @@
 	import Table from '$lib/components/admin/Table.svelte';
 	import CrudForm from '$lib/components/modals/CrudForm.svelte';
 	import Spinner from '$lib/components/share/Spinner.svelte';
+	import Badge from '$lib/components/utils/Badge.svelte';
 	import CTAButton from '$lib/components/utils/CTAButton.svelte';
 	import {
 		createTraining,
@@ -33,11 +34,12 @@
 		{ value: 'other', text: 'Autre', selected: true }
 	];
 
-	const statusOptions: { value: SlotStatus; text: string }[] = [
-		{ value: 'draft', text: 'Brouillon' },
-		{ value: 'pending', text: 'Planifiée' },
-		{ value: 'postponed', text: 'Reportée' },
-		{ value: 'canceled', text: 'Annulée' }
+	const statusOptions: { value: SlotStatus; text: string, style: string }[] = [
+		{ value: 'draft', text: 'Brouillon', style: 'border-gray-100 text-gray-800 bg-gray-50' },
+		{ value: 'pending', text: 'Planifiée', style: 'border-blue-100 text-blue-800 bg-blue-50' },
+		{ value: 'done', text: 'Terminée', style: 'border-green-100 text-green-800 bg-green-50' },
+		{ value: 'postponed', text: 'Reportée', style: 'border-light-blue/20 text-light-blue/80 bg-light-blue/5' },
+		{ value: 'canceled', text: 'Annulée', style: 'border-light-blue/20 text-light-blue/80 bg-light-blue/5' }
 	];
 
 	let trainings: TrainingListItem[] = [];
@@ -388,7 +390,11 @@
 		return data.map((training) => [
 			{ value: training.name, data: training.id },
 			{
-				value: categoryOptions.find((opt) => opt.value === training.category)?.text || 'Autre'
+				component: Badge,
+				props: {
+					text: categoryOptions.find((opt) => opt.value === training.category)?.text || 'Autre',
+					className: 'border-light-blue/20 text-light-blue/80'
+				}
 			},
 			{ value: training.description || 'Aucune description' }
 		]);
@@ -439,7 +445,11 @@
 				{ value: name },
 				{ value: trainer.username || 'A definir', avatar: trainer.avatar_url },
 				{
-					value: statusOptions.find((opt) => opt.value === slot.status)?.text || slot.status
+					component: Badge,
+					props: {
+						text: statusOptions.find((opt) => opt.value === slot.status)?.text || slot.status,
+						className: statusOptions.find((opt) => opt.value === slot.status)?.style
+					}
 				}
 			];
 		});

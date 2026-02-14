@@ -1,8 +1,9 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import PresenceActionsCell from '$lib/components/admin/PresenceActionsCell.svelte';
 	import Table from '$lib/components/admin/Table.svelte';
 	import Spinner from '$lib/components/share/Spinner.svelte';
+	import PresenceActionsCell from '$lib/components/training/PresenceActionsCell.svelte';
+	import Badge from '$lib/components/utils/Badge.svelte';
 	import CtaButton from '$lib/components/utils/CTAButton.svelte';
 	import {
 		getSlotRegistrations,
@@ -29,12 +30,10 @@
 	let savingIds = $state(new Set<string>());
 	let currentUserId: string | null = $state(null);
 	let canManageTraining = $state(false);
-	const statusBadgeClass =
-		'rounded-full border px-2.5 py-1 text-[0.6rem] tracking-[0.25em] uppercase';
 	const presenceTableTopic = 'presence-table';
 	const presenceDbInfo = {
 		table: 'registration',
-		key: 'slot_id,member_id,date_hour,remote,status,present,to_excuse,profiles!registration_member_id_fkey(username,avatar_url)',
+		key: 'slot_id,member_id,date_hour,remote,status,present,to_excuse,profiles!inner(username,avatar_url)',
 		ordering: 'date_hour:asc'
 	};
 	let presenceFilters = $state([
@@ -79,21 +78,20 @@
 			return [
 				{
 					value: profile.username ?? 'Membre',
-					avatar: profile.avatar_url,
-					subvalue: reg.to_excuse ? 'Excuse demandée' : '',
-					subvalueClass: 'text-[0.6rem] tracking-[0.25em] text-waiting uppercase'
+					avatar: profile.avatar_url
 				},
 				{ value: reg.remote ? 'Distanciel' : 'Présentiel' },
 				{
-					badge: reg.status === 'registered' ? 'Inscrit·e' : 'En attente',
-					badgeClass: `${statusBadgeClass} ${
-						reg.status === 'registered'
-							? 'border-registered/40 text-registered'
-							: 'border-waiting/40 text-waiting'
-					}`
+					component: Badge,
+					props: {
+						text: reg.status === 'registered' ? 'Inscrit·e' : 'En attente',
+						className:
+							reg.status === 'registered'
+								? 'border-registered/40 text-registered'
+								: 'border-waiting/40 text-waiting'
+					}
 				},
 				{
-					className: 'text-right',
 					component: PresenceActionsCell,
 					props: {
 						memberId: reg.member_id,
