@@ -1,9 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import Spinner from '$lib/components/share/Spinner.svelte';
 	import Calendar, { type CalendarSlot } from '$lib/components/training/Calendar.svelte';
 	import type { TrainingCardStatus } from '$lib/components/training/TrainingCard.svelte';
-	import CtaButton from '$lib/components/utils/CTAButton.svelte';
 	import {
 		getTrainingSlots,
 		type RegistrationStatus,
@@ -170,31 +168,15 @@
 
 <div class="px-6 pt-4 pb-6">
 	<div class="h-[calc(100vh-8rem)]">
-		{#if loading}
-			<Spinner
-				divClass="h-full rounded-[26px] border border-light-blue/40 bg-dark-blue/90 p-6 text-light-blue/80 shadow-[0_18px_60px_rgba(2,10,60,0.45)]"
-			>
-				Chargement du calendrier
-			</Spinner>
-		{:else if error}
-			<div
-				class="flex h-full flex-col items-center justify-center rounded-[26px] border border-light-blue/40 bg-dark-blue/90 p-6 text-waiting shadow-[0_18px_60px_rgba(2,10,60,0.45)]"
-			>
-				<p class="text-sm tracking-wide">{error}</p>
-				<div class="mt-3">
-					<CtaButton type="button" variant="peps" size="sm" onclick={() => loadWeek(currentDate)}>
-						Réessayer
-					</CtaButton>
-				</div>
-			</div>
-		{:else}
-			<Calendar
-				{slots}
-				initialDate={currentDate}
-				onWeekChange={loadWeek}
-				onRegistrationChange={scheduleSilentRefresh}
-				{canManageTraining}
-			/>
-		{/if}
+		<Calendar
+			{slots}
+			initialDate={currentDate}
+			onWeekChange={loadWeek}
+			onRegistrationChange={scheduleSilentRefresh}
+			{canManageTraining}
+			isLoading={loading}
+			errorMessage={error}
+			onRetry={() => loadWeek(currentDate)}
+		/>
 	</div>
 </div>
