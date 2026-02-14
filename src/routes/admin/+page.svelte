@@ -2,8 +2,19 @@
 	import Table from '$lib/components/admin/Table.svelte';
 	import CrudForm from '$lib/components/modals/CrudForm.svelte';
 	import Spinner from '$lib/components/share/Spinner.svelte';
-	import Badge from '$lib/components/utils/Badge.svelte';
 	import CTAButton from '$lib/components/utils/CTAButton.svelte';
+	import {
+		buildSlotFields,
+		buildTrainingFields,
+		type ProfileOption
+	} from '$lib/helpers/adminForms';
+	import { categoryOptions, statusOptions } from '$lib/helpers/adminOptions';
+	import {
+		createSlotTableItems,
+		createTrainingTableItems,
+		findTrainingName,
+		formatSlotDate
+	} from '$lib/helpers/adminTables';
 	import {
 		createTraining,
 		createTrainingSlot,
@@ -18,29 +29,6 @@
 	import { triggerTableRefresh } from '$lib/store';
 	import { supabase } from '$lib/supabaseClient';
 	import { onMount } from 'svelte';
-
-	type ProfileOption = {
-		id: string;
-		username: string | null;
-		avatar_url: string | null;
-		email: string | null;
-	};
-
-	const categoryOptions = [
-		{ value: 'code', text: 'Code' },
-		{ value: 'electronics', text: 'Électronique' },
-		{ value: 'robotic', text: 'Robotique' },
-		{ value: 'software', text: 'Logiciel' },
-		{ value: 'other', text: 'Autre', selected: true }
-	];
-
-	const statusOptions: { value: SlotStatus; text: string, style: string }[] = [
-		{ value: 'draft', text: 'Brouillon', style: 'border-gray-100 text-gray-800 bg-gray-50' },
-		{ value: 'pending', text: 'Planifiée', style: 'border-blue-100 text-blue-800 bg-blue-50' },
-		{ value: 'done', text: 'Terminée', style: 'border-green-100 text-green-800 bg-green-50' },
-		{ value: 'postponed', text: 'Reportée', style: 'border-light-blue/20 text-light-blue/80 bg-light-blue/5' },
-		{ value: 'canceled', text: 'Annulée', style: 'border-light-blue/20 text-light-blue/80 bg-light-blue/5' }
-	];
 
 	let trainings: TrainingListItem[] = [];
 	let slots: TrainingSlotListItem[] = [];
@@ -72,153 +60,6 @@
 	};
 	let trainingIndex = new Map<number, TrainingListItem>();
 	let slotIndex = new Map<number, TrainingSlotListItem>();
-
-	const formatDate = (dateString: string) =>
-		new Intl.DateTimeFormat('fr-FR', {
-			weekday: 'short',
-			day: '2-digit',
-			month: 'short',
-			hour: '2-digit',
-			minute: '2-digit'
-		}).format(new Date(dateString));
-
-	const toDatetimeLocal = (dateString: string) => {
-		const date = new Date(dateString);
-		const offset = date.getTimezoneOffset();
-		const localDate = new Date(date.getTime() - offset * 60000);
-		return localDate.toISOString().slice(0, 16);
-	};
-
-	const findTrainingName = (trainingId: number) =>
-		trainings.find((training) => training.training_id === trainingId)?.name || 'Formation';
-
-	function buildTrainingFields(training: TrainingListItem | null) {
-		return [
-			{
-				name: 'Nom',
-				id: 'name',
-				type: 'text',
-				required: true,
-				value: training?.name || ''
-			},
-			{
-				name: 'Catégorie',
-				id: 'category',
-				type: 'select',
-				required: true,
-				options: categoryOptions,
-				value: training?.category || ''
-			},
-			{
-				name: 'Description',
-				id: 'description',
-				type: 'textarea',
-				wide: true,
-				value: training?.description || ''
-			},
-			{
-				name: 'Prérequis',
-				id: 'prerequisites',
-				type: 'textarea',
-				wide: true,
-				value: training?.prerequisites || ''
-			}
-		];
-	}
-
-	function buildSlotFields(slot: TrainingSlotListItem | null) {
-		const trainerOptions = profiles.map((profile) => {
-			const label = profile.username || 'Membre';
-			const suffix = profile.email ? ` - ${profile.email}` : '';
-			return {
-				value: profile.id,
-				text: `${label}${suffix}`
-			};
-		});
-		return [
-			{
-				name: 'Formation',
-				id: 'training_id',
-				type: 'select',
-				required: true,
-				options: trainings.map((training) => ({
-					value: training.training_id,
-					text: training.name
-				})),
-				value: slot?.training_id ?? ''
-			},
-			{
-				name: 'Formateur·ice',
-				id: 'trainer_id',
-				type: 'select',
-				required: true,
-				options: trainerOptions,
-				value: slot?.trainer_id || '',
-				onChange: (event: Event) => {
-					const target = event.target as HTMLSelectElement;
-					selectedTrainerId = target.value || null;
-				}
-			},
-			{
-				name: 'Début',
-				id: 'start',
-				type: 'datetime-local',
-				required: true,
-				value: slot ? toDatetimeLocal(slot.start) : ''
-			},
-			{
-				name: 'Durée (h)',
-				id: 'duration_hours',
-				type: 'number',
-				required: true,
-				min: 0.5,
-				step: 0.5,
-				value: slot?.duration_hours ?? 2
-			},
-			{
-				name: 'Places sur site',
-				id: 'on_site_seats',
-				type: 'number',
-				min: 0,
-				value: slot?.on_site_seats ?? ''
-			},
-			{
-				name: 'Places distanciel',
-				id: 'remote_seats',
-				type: 'number',
-				min: 0,
-				value: slot?.remote_seats ?? ''
-			},
-			{
-				name: 'Lieu',
-				id: 'location',
-				type: 'text',
-				wide: true,
-				value: slot?.location || ''
-			},
-			{
-				name: 'Lien visio',
-				id: 'video_conference_link',
-				type: 'text',
-				wide: true,
-				value: slot?.video_conference_link || ''
-			},
-			{
-				name: 'Excusable',
-				id: 'excusable',
-				type: 'checkbox',
-				checked: slot?.excusable ?? true
-			},
-			{
-				name: 'Statut',
-				id: 'status',
-				type: 'select',
-				required: true,
-				options: statusOptions,
-				value: slot?.status || 'draft'
-			}
-		];
-	}
 
 	async function loadProfiles() {
 		const { data, error: profilesError } = await supabase.rpc('trainer_profile_list');
@@ -256,7 +97,14 @@
 		formError = null;
 		editingSlot = slot;
 		selectedTrainerId = slot?.trainer_id ?? null;
-		slotFields = buildSlotFields(slot);
+		slotFields = buildSlotFields({
+			slot,
+			trainings,
+			profiles,
+			onTrainerChange: (nextId) => {
+				selectedTrainerId = nextId;
+			}
+		});
 		showSlotModal = true;
 	}
 
@@ -375,84 +223,15 @@
 	}
 
 	function parseTrainingItems(data: any[]) {
-		trainingIndex = new Map(
-			data.map((training) => [
-				training.id,
-				{
-					training_id: training.id,
-					name: training.name,
-					description: training.description,
-					prerequisites: training.prerequisites,
-					category: training.category
-				}
-			])
-		);
-		return data.map((training) => [
-			{ value: training.name, data: training.id },
-			{
-				component: Badge,
-				props: {
-					text: categoryOptions.find((opt) => opt.value === training.category)?.text || 'Autre',
-					className: 'border-light-blue/20 text-light-blue/80'
-				}
-			},
-			{ value: training.description || 'Aucune description' }
-		]);
+		const { index, rows } = createTrainingTableItems(data);
+		trainingIndex = index;
+		return rows;
 	}
 
 	function parseSlotItems(data: any[]) {
-		slotIndex = new Map(
-			data.map((slot) => {
-				const training = slot.training || {};
-				const trainer = slot.profiles || {};
-				const name = slot.custom_name || training.name || 'Formation';
-				return [
-					slot.id,
-					{
-						slot_id: slot.id,
-						training_id: slot.training_id,
-						name,
-						description: slot.custom_description || training.description || null,
-						prerequisites: slot.custom_prerequisites || training.prerequisites || null,
-						category: training.category,
-						start: slot.start,
-						duration_hours: slot.duration_hours,
-						on_site_seats: slot.on_site_seats,
-						remote_seats: slot.remote_seats,
-						on_site_registered: null,
-						remote_registered: null,
-						on_site_waitlisted: null,
-						remote_waitlisted: null,
-						on_site_remaining: null,
-						remote_remaining: null,
-						location: slot.location,
-						video_conference_link: slot.video_conference_link,
-						excusable: slot.excusable,
-						status: slot.status,
-						trainer_id: slot.trainer_id,
-						trainer_username: trainer.username || null,
-						trainer_avatar_url: trainer.avatar_url || null
-					}
-				];
-			})
-		);
-		return data.map((slot) => {
-			const training = slot.training || {};
-			const trainer = slot.profiles || {};
-			const name = slot.custom_name || training.name || 'Formation';
-			return [
-				{ value: formatDate(slot.start), data: slot.id },
-				{ value: name },
-				{ value: trainer.username || 'A definir', avatar: trainer.avatar_url },
-				{
-					component: Badge,
-					props: {
-						text: statusOptions.find((opt) => opt.value === slot.status)?.text || slot.status,
-						className: statusOptions.find((opt) => opt.value === slot.status)?.style
-					}
-				}
-			];
-		});
+		const { index, rows } = createSlotTableItems(data);
+		slotIndex = index;
+		return rows;
 	}
 
 	const trainingActions = [
@@ -676,9 +455,11 @@
 										<article class="rounded-2xl border border-light-blue/10 bg-dark-blue/90 p-4">
 											<div class="flex items-start justify-between gap-4">
 												<div>
-													<p class="text-base font-semibold text-white">{formatDate(slot.start)}</p>
+													<p class="text-base font-semibold text-white">
+														{formatSlotDate(slot.start)}
+													</p>
 													<p class="mt-1 text-sm text-light-blue/70">
-														{findTrainingName(slot.training_id)}
+														{findTrainingName(slot.training_id, trainings)}
 													</p>
 												</div>
 												<button

@@ -33,7 +33,6 @@
 		if (slot.status === 'canceled' || slot.status === 'postponed' || slot.status === 'draft')
 			return 'hidden';
 		if (registrationStatus === 'registered') return 'registered';
-		if (slot.status === 'done') return 'complete';
 		if (registrationStatus === 'waitlisted') return 'waiting';
 		const hasCapacityInfo = slot.on_site_remaining !== null || slot.remote_remaining !== null;
 		const isFull =
