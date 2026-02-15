@@ -2,6 +2,7 @@
 	import { goto } from '$app/navigation';
 	import Calendar, { type CalendarSlot } from '$lib/components/training/Calendar.svelte';
 	import type { TrainingCardStatus } from '$lib/components/training/TrainingCard.svelte';
+	import { getWeekStart } from '$lib/components/training/helpers/calendar';
 	import {
 		getTrainingSlots,
 		type RegistrationStatus,
@@ -18,11 +19,6 @@
 	let refreshTimeout: ReturnType<typeof setTimeout> | null = null;
 	let realtimeChannel: ReturnType<typeof supabase.channel> | null = null;
 	let canManageTraining = false;
-
-	function getWeekStart(date: Date) {
-		const dayIndex = (date.getDay() + 6) % 7;
-		return new Date(date.getFullYear(), date.getMonth(), date.getDate() - dayIndex);
-	}
 
 	function resolveCardStatus(
 		slot: TrainingSlotListItem,

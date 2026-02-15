@@ -17,6 +17,7 @@
 		findTrainingName,
 		formatSlotDate
 	} from '$lib/helpers/adminTables';
+	import { parseParisDatetimeLocal } from '$lib/helpers/parisTime';
 	import {
 		createTraining,
 		createTrainingSlot,
@@ -253,7 +254,7 @@
 		const location = (formData.get('location') || '').toString().trim() || null;
 		const videoLink = (formData.get('video_conference_link') || '').toString().trim() || null;
 		const excusable = formData.has('excusable');
-		const startIso = startInput ? new Date(startInput).toISOString() : '';
+		const startIso = startInput ? parseParisDatetimeLocal(startInput) : '';
 		const onSiteSeats = onSiteSeatsRaw === '' ? null : Number(onSiteSeatsRaw);
 		const remoteSeats = remoteSeatsRaw === '' ? null : Number(remoteSeatsRaw);
 		const trainerId = selectedTrainerId ?? '';

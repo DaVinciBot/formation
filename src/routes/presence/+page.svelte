@@ -9,6 +9,7 @@
 	import PresenceActionsCell from '$lib/components/training/PresenceActionsCell.svelte';
 	import Badge from '$lib/components/utils/Badge.svelte';
 	import CtaButton from '$lib/components/utils/CTAButton.svelte';
+	import { formatParisDate, formatParisTimeRange } from '$lib/helpers/parisTime';
 	import {
 		getSlotRegistrations,
 		getTrainerSlotRegistrations,
@@ -19,7 +20,6 @@
 	} from '$lib/services/training';
 	import { triggerTableRefresh } from '$lib/store';
 	import { supabase } from '$lib/supabaseClient';
-	import { format } from 'date-fns';
 	import { onMount } from 'svelte';
 
 	let slots = $state<TrainingSlotListItem[]>([]);
@@ -128,25 +128,11 @@
 	});
 
 	function formatDate(value: string) {
-		const date = new Date(value);
-		if (Number.isNaN(date.getTime())) return '--/--/----';
-		return format(date, 'dd/MM/yyyy');
-	}
-
-	function formatTime(value: string) {
-		const date = new Date(value);
-		if (Number.isNaN(date.getTime())) return '--h--';
-		const hours = String(date.getHours()).padStart(2, '0');
-		const minutes = String(date.getMinutes()).padStart(2, '0');
-		return `${hours}h${minutes}`;
+		return formatParisDate(value);
 	}
 
 	function formatTimeRange(startValue: string, durationHours: number) {
-		const start = new Date(startValue);
-		if (Number.isNaN(start.getTime())) return '--h-- - --h--';
-		const safeDuration = Number.isFinite(durationHours) ? Math.max(0.25, durationHours) : 1;
-		const end = new Date(start.getTime() + safeDuration * 60 * 60 * 1000);
-		return `${formatTime(startValue)} - ${formatTime(end.toISOString())}`;
+		return formatParisTimeRange(startValue, durationHours);
 	}
 
 	function pickDefaultSlot(list: TrainingSlotListItem[]) {

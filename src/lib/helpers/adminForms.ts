@@ -1,4 +1,5 @@
 import { categoryOptions, statusOptions } from '$lib/helpers/adminOptions';
+import { formatParisDatetimeLocal } from '$lib/helpers/parisTime';
 import type { TrainingListItem, TrainingSlotListItem } from '$lib/services/training';
 import { supabase } from '$lib/supabaseClient';
 
@@ -10,10 +11,7 @@ export type ProfileOption = {
 };
 
 export function toDatetimeLocal(dateString: string) {
-	const date = new Date(dateString);
-	const offset = date.getTimezoneOffset();
-	const localDate = new Date(date.getTime() - offset * 60000);
-	return localDate.toISOString().slice(0, 16);
+	return formatParisDatetimeLocal(dateString);
 }
 
 export function buildTrainingFields(training: TrainingListItem | null) {

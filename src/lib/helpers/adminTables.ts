@@ -1,15 +1,10 @@
 import Badge from '$lib/components/utils/Badge.svelte';
 import { categoryOptions, statusOptions } from '$lib/helpers/adminOptions';
+import { formatParisDateTimeShort } from '$lib/helpers/parisTime';
 import type { TrainingListItem, TrainingSlotListItem } from '$lib/services/training';
 
 export function formatSlotDate(dateString: string) {
-	return new Intl.DateTimeFormat('fr-FR', {
-		weekday: 'short',
-		day: '2-digit',
-		month: 'short',
-		hour: '2-digit',
-		minute: '2-digit'
-	}).format(new Date(dateString));
+	return formatParisDateTimeShort(dateString);
 }
 
 export function findTrainingName(trainingId: number, trainings: TrainingListItem[]) {

@@ -104,7 +104,7 @@ create table public.profiles (
 create table public.registration (
   slot_id bigint not null,
   member_id uuid not null,
-  date_hour timestamp with time zone not null default (now() AT TIME ZONE 'utc+2'::text),
+  date_hour timestamp with time zone not null default now(),
   remote boolean not null,
   status public.registration_status not null,
   present boolean null,
