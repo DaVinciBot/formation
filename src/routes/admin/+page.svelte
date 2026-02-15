@@ -64,9 +64,15 @@
 	let slotIndex = new Map<number, TrainingSlotListItem>();
 
 	async function loadProfiles() {
-		const { data, error: profilesError } = await supabase.rpc('trainer_profile_list');
+		const { data, error: profilesError } = await supabase
+			.from('profiles')
+			.select('id, username, avatar_url')
+			.order('username');
 		if (profilesError) throw profilesError;
-		profiles = data ?? [];
+		profiles = (data ?? []).map((profile) => ({
+			...profile,
+			email: null
+		}));
 	}
 
 	async function loadData() {
@@ -180,7 +186,7 @@
 		const startIso = startInput ? new Date(startInput).toISOString() : '';
 		const onSiteSeats = onSiteSeatsRaw === '' ? null : Number(onSiteSeatsRaw);
 		const remoteSeats = remoteSeatsRaw === '' ? null : Number(remoteSeatsRaw);
-		const trainerId = (formData.get('trainer_id') || '').toString();
+		const trainerId = selectedTrainerId ?? '';
 
 		if (!trainingId || !startIso || !duration || !trainerId) {
 			formError = 'Formation, formateur·ice, date et durée sont obligatoires.';

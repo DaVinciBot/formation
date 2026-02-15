@@ -62,12 +62,17 @@ export function buildSlotFields({
 }) {
 	const trainerOptions = profiles.map((profile) => {
 		const label = profile.username || 'Membre';
-		const suffix = profile.email ? ` - ${profile.email}` : '';
 		return {
 			value: profile.id,
-			text: `${label}${suffix}`
+			text: label,
+			image: profile.avatar_url || undefined,
+			subtext: profile.email || undefined
 		};
 	});
+
+	const selectedTrainer = slot?.trainer_id
+		? profiles.find((profile) => profile.id === slot.trainer_id)
+		: null;
 
 	return [
 		{
@@ -84,13 +89,27 @@ export function buildSlotFields({
 		{
 			name: 'Formateur·ice',
 			id: 'trainer_id',
-			type: 'select',
+			type: 'autocomplete',
+			wide: true,
 			required: true,
-			options: trainerOptions,
-			value: slot?.trainer_id || '',
+			value: selectedTrainer?.username || slot?.trainer_username || '',
+			image: selectedTrainer?.avatar_url || slot?.trainer_avatar_url || null,
+			data: selectedTrainer?.id || slot?.trainer_id || '',
 			onChange: (event: Event) => {
-				const target = event.target as HTMLSelectElement;
-				onTrainerChange?.(target.value || null);
+				const target = event.target as HTMLInputElement | null;
+				onTrainerChange?.(null);
+				const search = target?.value?.toLowerCase().trim() || '';
+				if (!search) return trainerOptions.slice(0, 5);
+				return trainerOptions
+					.filter((option) => {
+						const textMatch = option.text.toLowerCase().includes(search);
+						const subtextMatch = option.subtext?.toLowerCase().includes(search) ?? false;
+						return textMatch || subtextMatch;
+					})
+					.slice(0, 5);
+			},
+			onSelect: (nextId: string) => {
+				onTrainerChange?.(nextId);
 			}
 		},
 		{

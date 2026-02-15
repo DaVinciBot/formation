@@ -614,6 +614,7 @@ execute function public.registration_after_delete();
 alter table public.training enable row level security;
 alter table public.training_slot enable row level security;
 alter table public.registration enable row level security;
+alter table public.profiles enable row level security;
 
 create policy training_read on public.training
 for select
@@ -657,4 +658,9 @@ create policy registration_delete on public.registration
 for delete
 to authenticated
 using (member_id = auth.uid() or public.has_permission('manage_training'));
+
+create policy profiles_read_for_training on public.profiles
+for select
+to authenticated
+using (public.has_permission('manage_training'));
 
