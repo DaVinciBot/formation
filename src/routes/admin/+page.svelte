@@ -46,6 +46,7 @@
 	let trainingFields: any[] = [];
 	let slotFields: any[] = [];
 	let selectedTrainerId: string | null = null;
+	let selectedTrainingId: number | null = null;
 
 	const slotRangeDays = 120;
 	const trainingTableTopic = 'admin-trainings';
@@ -105,12 +106,80 @@
 		formError = null;
 		editingSlot = slot;
 		selectedTrainerId = slot?.trainer_id ?? null;
+		selectedTrainingId = slot?.training_id ?? null;
+		const getBaseTraining = (trainingId: number | null) => {
+			if (!trainingId) return null;
+			return trainings.find((training) => training.training_id === trainingId) ?? null;
+		};
+		const rebuildSlotFields = (nextTrainingId: number | null) => {
+			const previousFields = slotFields;
+			const previousTraining = getBaseTraining(selectedTrainingId);
+			const nextTraining = getBaseTraining(nextTrainingId);
+			const nextFields = buildSlotFields({
+				slot,
+				trainings,
+				profiles,
+				selectedTrainingId: nextTrainingId,
+				onTrainerChange: (nextId) => {
+					selectedTrainerId = nextId;
+				},
+				onTrainingChange: (nextId) => {
+					selectedTrainingId = nextId;
+					rebuildSlotFields(nextId);
+				}
+			});
+
+			const previousById = new Map(
+				previousFields.filter((field) => field?.id).map((field) => [field.id, field])
+			);
+
+			const previousBase = {
+				custom_name: previousTraining?.name || '',
+				custom_description: previousTraining?.description || '',
+				custom_prerequisites: previousTraining?.prerequisites || ''
+			};
+			const nextBase = {
+				custom_name: nextTraining?.name || '',
+				custom_description: nextTraining?.description || '',
+				custom_prerequisites: nextTraining?.prerequisites || ''
+			};
+
+			slotFields = nextFields.map((field) => {
+				const previous = field.id ? previousById.get(field.id) : null;
+				if (!previous || field.id === 'training_id') return field;
+				if (
+					field.id === 'custom_name' ||
+					field.id === 'custom_description' ||
+					field.id === 'custom_prerequisites'
+				) {
+					const previousValue = previous.value ?? '';
+					const previousBaseValue = previousBase[field.id as keyof typeof previousBase] || '';
+					if (previousValue === '' || previousValue === previousBaseValue) {
+						field.value = nextBase[field.id as keyof typeof nextBase] || '';
+					} else if (previous.value !== undefined) {
+						field.value = previous.value;
+					}
+				} else if (previous.value !== undefined) {
+					field.value = previous.value;
+				}
+				if (previous.checked !== undefined) field.checked = previous.checked;
+				if (previous.data !== undefined) field.data = previous.data;
+				if (previous.image !== undefined) field.image = previous.image;
+				return field;
+			});
+			selectedTrainingId = nextTrainingId;
+		};
 		slotFields = buildSlotFields({
 			slot,
 			trainings,
 			profiles,
+			selectedTrainingId,
 			onTrainerChange: (nextId) => {
 				selectedTrainerId = nextId;
+			},
+			onTrainingChange: (nextId) => {
+				selectedTrainingId = nextId;
+				rebuildSlotFields(nextId);
 			}
 		});
 		showSlotModal = true;
@@ -126,6 +195,7 @@
 		showSlotModal = false;
 		editingSlot = null;
 		selectedTrainerId = null;
+		selectedTrainingId = null;
 		slotFields = [];
 	}
 
@@ -187,6 +257,14 @@
 		const onSiteSeats = onSiteSeatsRaw === '' ? null : Number(onSiteSeatsRaw);
 		const remoteSeats = remoteSeatsRaw === '' ? null : Number(remoteSeatsRaw);
 		const trainerId = selectedTrainerId ?? '';
+		const customName = (formData.get('custom_name') || '').toString().trim() || null;
+		const customDescription = (formData.get('custom_description') || '').toString().trim() || null;
+		const customPrerequisites =
+			(formData.get('custom_prerequisites') || '').toString().trim() || null;
+		const baseTraining = trainings.find((training) => training.training_id === trainingId) ?? null;
+		const baseName = baseTraining?.name || null;
+		const baseDescription = baseTraining?.description || null;
+		const basePrerequisites = baseTraining?.prerequisites || null;
 
 		if (!trainingId || !startIso || !duration || !trainerId) {
 			formError = 'Formation, formateur·ice, date et durée sont obligatoires.';
@@ -195,7 +273,7 @@
 
 		try {
 			if (editingSlot) {
-				await updateTrainingSlot(editingSlot.slot_id, {
+				const updates: any = {
 					training_id: trainingId,
 					trainer_id: trainerId,
 					start: startIso,
@@ -206,10 +284,26 @@
 					video_conference_link: videoLink,
 					excusable,
 					status
+				};
+				if (customName && customName !== baseName) updates.custom_name = customName;
+				if (customDescription && customDescription !== baseDescription)
+					updates.custom_description = customDescription;
+				if (customPrerequisites && customPrerequisites !== basePrerequisites)
+					updates.custom_prerequisites = customPrerequisites;
+
+				await updateTrainingSlot(editingSlot.slot_id, {
+					...updates
 				});
 			} else {
 				await createTrainingSlot({
 					training_id: trainingId,
+					custom_name: customName && customName !== baseName ? customName : null,
+					custom_description:
+						customDescription && customDescription !== baseDescription ? customDescription : null,
+					custom_prerequisites:
+						customPrerequisites && customPrerequisites !== basePrerequisites
+							? customPrerequisites
+							: null,
 					trainer_id: trainerId,
 					start: startIso,
 					duration_hours: duration,

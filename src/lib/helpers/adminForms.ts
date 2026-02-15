@@ -53,12 +53,16 @@ export function buildSlotFields({
 	slot,
 	trainings,
 	profiles,
-	onTrainerChange
+	selectedTrainingId,
+	onTrainerChange,
+	onTrainingChange
 }: {
 	slot: TrainingSlotListItem | null;
 	trainings: TrainingListItem[];
 	profiles: ProfileOption[];
+	selectedTrainingId?: number | null;
 	onTrainerChange?: (nextId: string | null) => void;
+	onTrainingChange?: (nextId: number | null) => void;
 }) {
 	const trainerOptions = profiles.map((profile) => {
 		const label = profile.username || 'Membre';
@@ -69,6 +73,11 @@ export function buildSlotFields({
 			subtext: profile.email || undefined
 		};
 	});
+
+	const baseTrainingId = slot?.training_id ?? selectedTrainingId ?? null;
+	const baseTraining = baseTrainingId
+		? (trainings.find((training) => training.training_id === baseTrainingId) ?? null)
+		: null;
 
 	const selectedTrainer = slot?.trainer_id
 		? profiles.find((profile) => profile.id === slot.trainer_id)
@@ -84,13 +93,38 @@ export function buildSlotFields({
 				value: training.training_id,
 				text: training.name
 			})),
-			value: slot?.training_id ?? ''
+			value: slot?.training_id ?? selectedTrainingId ?? '',
+			onChange: (event: Event) => {
+				const target = event.target as HTMLSelectElement | null;
+				const nextId = target?.value ? Number(target.value) : null;
+				onTrainingChange?.(Number.isNaN(nextId as number) ? null : nextId);
+			}
+		},
+		{
+			name: 'Nom',
+			id: 'custom_name',
+			type: 'text',
+			placeholder: baseTraining?.name || '',
+			value: slot ? (slot.name ?? '') : baseTraining?.name || ''
+		},
+		{
+			name: 'Description',
+			id: 'custom_description',
+			type: 'textarea',
+			placeholder: baseTraining?.description || '',
+			value: slot ? (slot.description ?? '') : baseTraining?.description || ''
+		},
+		{
+			name: 'Prérequis',
+			id: 'custom_prerequisites',
+			type: 'textarea',
+			placeholder: baseTraining?.prerequisites || '',
+			value: slot ? (slot.prerequisites ?? '') : baseTraining?.prerequisites || ''
 		},
 		{
 			name: 'Formateur·ice',
 			id: 'trainer_id',
 			type: 'autocomplete',
-			wide: true,
 			required: true,
 			value: selectedTrainer?.username || slot?.trainer_username || '',
 			image: selectedTrainer?.avatar_url || slot?.trainer_avatar_url || null,
@@ -129,6 +163,12 @@ export function buildSlotFields({
 			value: slot?.duration_hours ?? 2
 		},
 		{
+			name: 'Lieu',
+			id: 'location',
+			type: 'text',
+			value: slot?.location || ''
+		},
+		{
 			name: 'Places sur site',
 			id: 'on_site_seats',
 			type: 'number',
@@ -141,13 +181,6 @@ export function buildSlotFields({
 			type: 'number',
 			min: 0,
 			value: slot?.remote_seats ?? ''
-		},
-		{
-			name: 'Lieu',
-			id: 'location',
-			type: 'text',
-			wide: true,
-			value: slot?.location || ''
 		},
 		{
 			name: 'Lien visio',

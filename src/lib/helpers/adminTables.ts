@@ -60,13 +60,12 @@ export function createSlotTableItems(data: any[]) {
 		data.map((slot) => {
 			const training = slot.training || {};
 			const trainer = slot.profiles || {};
-			const name = slot.custom_name || training.name || 'Formation';
 			return [
 				slot.id,
 				{
 					slot_id: slot.id,
 					training_id: slot.training_id,
-					name,
+					name: slot.custom_name || training.name,
 					description: slot.custom_description || training.description || null,
 					prerequisites: slot.custom_prerequisites || training.prerequisites || null,
 					category: training.category,
@@ -95,7 +94,7 @@ export function createSlotTableItems(data: any[]) {
 	const rows = data.map((slot) => {
 		const training = slot.training || {};
 		const trainer = slot.profiles || {};
-		const name = slot.custom_name || training.name || 'Formation';
+		const name = slot.custom_name || training.name;
 		const statusOption = getStatusOption(slot.status);
 		return [
 			{ value: formatSlotDate(slot.start), data: slot.id },
