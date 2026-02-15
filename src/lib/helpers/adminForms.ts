@@ -1,5 +1,6 @@
 import { categoryOptions, statusOptions } from '$lib/helpers/adminOptions';
 import type { TrainingListItem, TrainingSlotListItem } from '$lib/services/training';
+import { supabase } from '$lib/supabaseClient';
 
 export type ProfileOption = {
 	id: string;
@@ -64,16 +65,6 @@ export function buildSlotFields({
 	onTrainerChange?: (nextId: string | null) => void;
 	onTrainingChange?: (nextId: number | null) => void;
 }) {
-	const trainerOptions = profiles.map((profile) => {
-		const label = profile.username || 'Membre';
-		return {
-			value: profile.id,
-			text: label,
-			image: profile.avatar_url || undefined,
-			subtext: profile.email || undefined
-		};
-	});
-
 	const baseTrainingId = slot?.training_id ?? selectedTrainingId ?? null;
 	const baseTraining = baseTrainingId
 		? (trainings.find((training) => training.training_id === baseTrainingId) ?? null)
@@ -129,18 +120,22 @@ export function buildSlotFields({
 			value: selectedTrainer?.username || slot?.trainer_username || '',
 			image: selectedTrainer?.avatar_url || slot?.trainer_avatar_url || null,
 			data: selectedTrainer?.id || slot?.trainer_id || '',
-			onChange: (event: Event) => {
+			onChange: async (event: Event) => {
 				const target = event.target as HTMLInputElement | null;
 				onTrainerChange?.(null);
 				const search = target?.value?.toLowerCase().trim() || '';
-				if (!search) return trainerOptions.slice(0, 5);
-				return trainerOptions
-					.filter((option) => {
-						const textMatch = option.text.toLowerCase().includes(search);
-						const subtextMatch = option.subtext?.toLowerCase().includes(search) ?? false;
-						return textMatch || subtextMatch;
-					})
-					.slice(0, 5);
+				if (!search) return [];
+				const { data, error } = await supabase
+					.from('profiles')
+					.select('id, username, avatar_url')
+					.ilike('username', `%${search}%`)
+					.range(0, 4);
+				if (error) return [];
+				return (data ?? []).map((profile) => ({
+					value: profile.id,
+					text: profile.username || 'Membre',
+					image: profile.avatar_url || undefined
+				}));
 			},
 			onSelect: (nextId: string) => {
 				onTrainerChange?.(nextId);
