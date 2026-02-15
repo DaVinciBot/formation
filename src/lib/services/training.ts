@@ -135,9 +135,13 @@ export async function getSlotRegistrations(slotId: number): Promise<Registration
 }
 
 export async function getTrainerSlotRegistrations(slotId: number): Promise<RegistrationListItem[]> {
-	const { data, error } = await supabase.rpc('trainer_registration_list', {
-		p_slot_id: slotId
-	});
+	const { data, error } = await supabase
+		.from('trainer_registration_view')
+		.select(
+			'slot_id,member_id,date_hour,remote,status,present,to_excuse,feedback,member_username,member_avatar_url'
+		)
+		.eq('slot_id', slotId)
+		.order('date_hour', { ascending: true });
 	if (error) throw error;
 	return data;
 }

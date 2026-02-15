@@ -25,9 +25,9 @@
 		registrationStatus: RegistrationStatus | undefined,
 		userId: string | null
 	): TrainingCardStatus {
-		if (userId && slot.trainer_id === userId) return 'my';
 		if (slot.status === 'canceled' || slot.status === 'postponed' || slot.status === 'draft')
 			return 'hidden';
+		if (userId && slot.trainer_id === userId) return 'my';
 		if (registrationStatus === 'registered') return 'registered';
 		if (registrationStatus === 'waitlisted') return 'waiting';
 		const hasCapacityInfo = slot.on_site_remaining !== null || slot.remote_remaining !== null;

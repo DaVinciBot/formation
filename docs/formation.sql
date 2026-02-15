@@ -135,28 +135,6 @@ as $$
   );
 $$;
 
-create or replace function public.trainer_profile_list()
-returns table (
-  id uuid,
-  username text,
-  avatar_url text,
-  email text
-)
-language sql
-stable
-security definer
-set search_path = public
-as $$
-  select
-    p.id,
-    p.username,
-    p.avatar_url,
-    u.email
-  from public.profiles p
-  join auth.users u on u.id = p.id
-  where public.has_permission('manage_training')
-  order by p.username;
-$$;
 
 create or replace function public.training_list()
 returns table (
@@ -369,24 +347,8 @@ as $$
   order by r.date_hour;
 $$;
 
-create or replace function public.trainer_registration_list(p_slot_id bigint)
-returns table (
-  slot_id bigint,
-  member_id uuid,
-  date_hour timestamptz,
-  remote boolean,
-  status public.registration_status,
-  present boolean,
-  to_excuse boolean,
-  feedback text,
-  member_username text,
-  member_avatar_url text
-)
-language sql
-stable
-security definer
-set search_path = public
-as $$
+create or replace view public.trainer_registration_view
+with (security_invoker = true) as
   select
     r.slot_id,
     r.member_id,
@@ -397,15 +359,11 @@ as $$
     r.to_excuse,
     r.feedback,
     p.username as member_username,
-    p.avatar_url as member_avatar_url
+    p.avatar_url as member_avatar_url,
+    ts.trainer_id
   from public.registration r
   join public.profiles p on p.id = r.member_id
-  join public.training_slot ts on ts.id = r.slot_id
-  where r.slot_id = p_slot_id
-    and r.status in ('registered', 'waitlisted')
-    and (ts.trainer_id = auth.uid() or public.has_permission('manage_training'))
-  order by r.date_hour;
-$$;
+  join public.training_slot ts on ts.id = r.slot_id;
 
 create or replace function public.trainer_update_presence(
   p_slot_id bigint,
@@ -643,6 +601,18 @@ for select
 to authenticated
 using (member_id = auth.uid() or public.has_permission('manage_training'));
 
+create policy registration_read_for_trainer on public.registration
+for select
+to authenticated
+using (
+  exists (
+    select 1
+    from public.training_slot ts
+    where ts.id = registration.slot_id
+      and ts.trainer_id = auth.uid()
+  )
+);
+
 create policy registration_insert on public.registration
 for insert
 to authenticated
@@ -663,4 +633,17 @@ create policy profiles_read_for_training on public.profiles
 for select
 to authenticated
 using (public.has_permission('manage_training'));
+
+create policy profiles_read_for_trainer on public.profiles
+for select
+to authenticated
+using (
+  exists (
+    select 1
+    from public.registration r
+    join public.training_slot ts on ts.id = r.slot_id
+    where r.member_id = profiles.id
+      and ts.trainer_id = auth.uid()
+  )
+);
 

@@ -35,8 +35,8 @@
 	let canManageTraining = $state(false);
 	const presenceTableTopic = 'presence-table';
 	const presenceDbInfo = {
-		table: 'registration',
-		key: 'slot_id,member_id,date_hour,remote,status,present,to_excuse,profiles!inner(username,avatar_url)',
+		table: 'trainer_registration_view',
+		key: 'slot_id,member_id,date_hour,remote,status,present,to_excuse,member_username,member_avatar_url',
 		ordering: 'date_hour:asc'
 	};
 	let presenceFilters = $state([
@@ -60,9 +60,6 @@
 	const registeredCount = $derived(
 		() => registrations.filter((item) => item.status === 'registered').length
 	);
-	const waitlistedCount = $derived(
-		() => registrations.filter((item) => item.status === 'waitlisted').length
-	);
 	const presentCount = $derived(
 		() =>
 			registrations.filter((item) => item.status === 'registered' && item.present === true).length
@@ -77,11 +74,10 @@
 	);
 	function parsePresenceItems(data: any[]) {
 		return data.map((reg) => {
-			const profile = reg.profiles || {};
 			return [
 				{
-					value: profile.username ?? 'Membre',
-					avatar: profile.avatar_url
+					value: reg.member_username ?? 'Membre',
+					avatar: reg.member_avatar_url
 				},
 				{ value: reg.remote ? 'Distanciel' : 'Présentiel' },
 				{
@@ -352,14 +348,16 @@
 								onPresenceChange={handlePresenceChange}
 								{presenceButtonClass}
 							/>
-							<div class="mt-6 hidden min-[1040px]:block">
+							<div
+								class="mt-6 hidden overflow-hidden rounded-2xl border border-light-blue/10 min-[1040px]:block"
+							>
 								<Table
 									headers={['Membre', 'Format', 'Statut', 'Présence']}
 									dbInfo={presenceDbInfo}
 									parseItems={parsePresenceItems}
 									filters={presenceFilters}
 									refreshTopic={presenceTableTopic}
-									searchable="profiles.username"
+									searchable="member_username"
 									emptyMessage="Aucune inscription"
 									can_load={Boolean(selectedSlotId)}
 									size={10}
