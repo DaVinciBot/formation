@@ -420,17 +420,6 @@
 			{/if}
 
 			<div class="grid gap-8">
-				<AdminTrainingSection
-					{trainings}
-					{categoryOptions}
-					{trainingDbInfo}
-					{trainingActions}
-					{trainingFilters}
-					{trainingTableTopic}
-					{parseTrainingItems}
-					onAddTraining={() => openTrainingModal()}
-					onEditTraining={(training) => openTrainingModal(training)}
-				/>
 				<AdminSlotSection
 					{slots}
 					{statusOptions}
@@ -445,22 +434,21 @@
 					onAddSlot={() => openSlotModal()}
 					onEditSlot={(slot) => openSlotModal(slot)}
 				/>
+				<AdminTrainingSection
+					{trainings}
+					{categoryOptions}
+					{trainingDbInfo}
+					{trainingActions}
+					{trainingFilters}
+					{trainingTableTopic}
+					{parseTrainingItems}
+					onAddTraining={() => openTrainingModal()}
+					onEditTraining={(training) => openTrainingModal(training)}
+				/>
 			</div>
 		{/if}
 	</div>
 </section>
-
-{#if showTrainingModal}
-	<CrudForm
-		id="TrainingModal"
-		type="formation"
-		type_accord="une"
-		action={editingTraining ? 'Modifier' : 'Ajouter'}
-		fields={trainingFields}
-		onClose={closeTrainingModal}
-		onSubmit={handleTrainingSubmit}
-	/>
-{/if}
 
 {#if showSlotModal}
 	<CrudForm
@@ -471,5 +459,17 @@
 		fields={slotFields}
 		onClose={closeSlotModal}
 		onSubmit={handleSlotSubmit}
+	/>
+{/if}
+
+{#if showTrainingModal}
+	<CrudForm
+		id="TrainingModal"
+		type="formation"
+		type_accord="une"
+		action={editingTraining ? 'Modifier' : 'Ajouter'}
+		fields={trainingFields}
+		onClose={closeTrainingModal}
+		onSubmit={handleTrainingSubmit}
 	/>
 {/if}
