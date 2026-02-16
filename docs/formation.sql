@@ -156,6 +156,20 @@ as $$
   order by t.category, t.name;
 $$;
 
+create or replace function public.sync_training_slot_statuses()
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  update public.training_slot
+  set status = 'done'::slot_status
+  where status = 'pending'::slot_status
+    and (start + (duration_hours || ' hours')::interval) <= clock_timestamp();
+end;
+$$;
+
 create or replace function public.training_slot_list(p_from timestamptz default now(), p_to timestamptz default null)
 returns table (
   slot_id bigint,
@@ -182,11 +196,14 @@ returns table (
   trainer_username text,
   trainer_avatar_url text
 )
-language sql
-stable
+language plpgsql
+volatile
 security definer
 set search_path = public
 as $$
+begin
+  perform public.sync_training_slot_statuses();
+  return query
   select
     ts.id as slot_id,
     ts.training_id,
@@ -233,6 +250,7 @@ as $$
     and (p_to is null or ts.start < p_to)
     and (public.has_permission('access_training') or public.has_permission('manage_training'))
   order by ts.start;
+end;
 $$;
 
 create or replace function public.training_slot_detail(p_slot_id bigint)
@@ -261,11 +279,14 @@ returns table (
   trainer_username text,
   trainer_avatar_url text
 )
-language sql
-stable
+language plpgsql
+volatile
 security definer
 set search_path = public
 as $$
+begin
+  perform public.sync_training_slot_statuses();
+  return query
   select
     ts.id as slot_id,
     ts.training_id,
@@ -311,6 +332,7 @@ as $$
   where ts.id = p_slot_id
     and (public.has_permission('access_training') or public.has_permission('manage_training'))
   limit 1;
+end;
 $$;
 
 create or replace function public.registration_list(p_slot_id bigint)

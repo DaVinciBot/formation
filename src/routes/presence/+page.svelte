@@ -242,7 +242,7 @@
 			}
 		} catch (err) {
 			console.error(err);
-			loadError = 'Impossible de charger vos slots de formation.';
+			loadError = 'Impossible de charger vos créneaux de formation.';
 		} finally {
 			loading = false;
 		}
