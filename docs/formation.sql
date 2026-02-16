@@ -118,7 +118,6 @@ create table public.registration (
 create index if not exists training_slot_training_id_idx on public.training_slot (training_id);
 create index if not exists training_slot_start_idx on public.training_slot (start);
 create index if not exists registration_member_id_idx on public.registration (member_id);
-create index if not exists registration_slot_id_idx on public.registration (slot_id);
 
 create or replace function public.has_permission(p_permission permission)
 returns boolean
@@ -440,9 +439,27 @@ as $$
 declare
   target_status public.registration_status;
   user_id uuid := auth.uid();
+  slot_status public.slot_status;
 begin
   if user_id is null then
     raise exception 'Not authenticated';
+  end if;
+
+  if not (public.has_permission('access_training') or public.has_permission('manage_training')) then
+    raise exception 'Not authorized';
+  end if;
+
+  select status
+  into slot_status
+  from public.training_slot
+  where id = p_slot_id;
+
+  if slot_status is null then
+    raise exception 'Slot not found';
+  end if;
+
+  if slot_status != 'pending' then
+    raise exception 'Slot not open for registration';
   end if;
 
   target_status := public.registration_target_status(p_slot_id, p_remote);
