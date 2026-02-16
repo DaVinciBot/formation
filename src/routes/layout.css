@@ -31,6 +31,10 @@
 	--color-waiting: #f3b16d;
 }
 
+html,
+body {
+	background-color: var(--color-dark-blue);
+}
 .almarai-light {
 	font-family: 'Almarai', sans-serif;
 	font-weight: 300;
