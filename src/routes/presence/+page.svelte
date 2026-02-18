@@ -3,6 +3,7 @@
 	import Table from '$lib/components/admin/Table.svelte';
 	import AttendanceHeader from '$lib/components/attendance/AttendanceHeader.svelte';
 	import AttendanceStats from '$lib/components/attendance/AttendanceStats.svelte';
+	import AttendanceMainInfo from '$lib/components/attendance/AttendanceMainInfo.svelte';
 	import RegistrationMobileList from '$lib/components/attendance/RegistrationMobileList.svelte';
 	import SlotList from '$lib/components/attendance/SlotList.svelte';
 	import Spinner from '$lib/components/share/Spinner.svelte';
@@ -21,6 +22,7 @@
 	import { triggerTableRefresh } from '$lib/store';
 	import { supabase } from '$lib/supabaseClient';
 	import { onMount } from 'svelte';
+	import { RefreshCw } from '@lucide/svelte';
 
 	let slots = $state<TrainingSlotListItem[]>([]);
 	type SlotRegistration = RegistrationListItem;
@@ -254,7 +256,7 @@
 </script>
 
 <section class="px-4 py-6 sm:px-6 sm:py-8">
-	<div class="mx-auto flex w-full max-w-6xl flex-col gap-6 sm:gap-8">
+	<div class="mx-auto flex w-full max-w-6xl flex-col gap-6">
 		<AttendanceHeader
 			selectedSlot={selectedSlot()}
 			onRefresh={loadSlots}
@@ -288,7 +290,7 @@
 					{formatTimeRange}
 				/>
 
-				<section class="rounded-[26px] border border-light-blue/10 bg-dark-blue/80 p-4 sm:p-6">
+				<section class="rounded-[26px] border border-light-blue/10 bg-blue-gray/15 p-4 sm:p-6">
 					<div class="flex items-center justify-between">
 						<div>
 							<h2 class="text-lg font-semibold text-white">Présences</h2>
@@ -301,15 +303,16 @@
 								<CtaButton
 									variant="secondary"
 									size="sm"
-									class="w-40"
 									fullWidth={false}
 									onclick={() => selectedSlotId && loadRegistrations(selectedSlotId)}
 								>
-									Rafraîchir
+									<RefreshCw strokeWidth={3} class="str size-5" />
 								</CtaButton>
 							</div>
 						{/if}
 					</div>
+
+					<AttendanceMainInfo selectedSlot={selectedSlot()} {formatDate} {formatTimeRange} />
 
 					{#if actionError}
 						<p class="mt-3 text-sm text-waiting">{actionError}</p>
@@ -317,13 +320,13 @@
 
 					{#if !selectedSlot()}
 						<div
-							class="mt-6 flex flex-col items-center justify-center gap-3 rounded-2xl border border-light-blue/15 bg-dark-blue/70 p-8 text-light-blue/70"
+							class="mt-6 flex flex-col items-center justify-center gap-3 rounded-2xl border border-light-blue/15 bg-blue-gray/15 p-8 text-light-blue/70"
 						>
 							<p class="text-sm">Sélectionnez un slot pour démarrer.</p>
 						</div>
 					{:else if registrationsLoading}
 						<Spinner
-							divClass="mt-6 rounded-2xl border border-light-blue/15 bg-dark-blue/70 p-8 text-light-blue/70"
+							divClass="mt-6 rounded-2xl border border-light-blue/15 bg-blue-gray/15 p-8 text-light-blue/70"
 						>
 							Chargement des inscriptions
 						</Spinner>
@@ -337,7 +340,7 @@
 
 						{#if registrations.length === 0}
 							<div
-								class="mt-6 flex flex-col items-center justify-center gap-3 rounded-2xl border border-light-blue/15 bg-dark-blue/70 p-8 text-light-blue/70"
+								class="mt-6 flex flex-col items-center justify-center gap-3 rounded-2xl border border-light-blue/15 bg-blue-gray/15 p-8 text-light-blue/70"
 							>
 								<p class="text-sm">Aucune inscription pour ce slot.</p>
 							</div>
@@ -349,13 +352,14 @@
 								{presenceButtonClass}
 							/>
 							<div
-								class="mt-6 hidden overflow-hidden rounded-2xl border border-light-blue/10 min-[1040px]:block"
+								class="presence-table-container mt-6 hidden overflow-hidden rounded-2xl border border-light-blue/15 bg-blue-gray/15 min-[1040px]:block"
 							>
 								<Table
 									headers={['Membre', 'Format', 'Statut', 'Présence']}
 									dbInfo={presenceDbInfo}
 									parseItems={parsePresenceItems}
 									filters={presenceFilters}
+									showToolbar={false}
 									refreshTopic={presenceTableTopic}
 									searchable="member_username"
 									emptyMessage="Aucune inscription"
@@ -370,3 +374,23 @@
 		{/if}
 	</div>
 </section>
+
+<style>
+	:global(thead) {
+		background-color: color-mix(in oklab, var(--color-blue-gray) 15%, transparent) !important;
+		border-bottom: 1px solid color-mix(in oklab, var(--color-blue-gray) 50%, transparent) !important;
+	}
+	:global(thead th) {
+		letter-spacing: 0.32em;
+		font-size: 0.625rem;
+		font-weight: 400;
+		color: var(--color-dark-light-blue);
+		text-transform: uppercase;
+	}
+
+	:global(.presence-table-container li button) {
+		background-color: color-mix(in oklab, var(--color-blue-gray) 25%, transparent) !important;
+		border-color: color-mix(in oklab, var(--color-blue-gray) 40%, transparent) !important;
+		color: var(--color-dark-light-blue);
+	}
+</style>
