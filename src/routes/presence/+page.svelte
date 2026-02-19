@@ -2,8 +2,8 @@
 	import { goto } from '$app/navigation';
 	import Table from '$lib/components/admin/Table.svelte';
 	import AttendanceHeader from '$lib/components/attendance/AttendanceHeader.svelte';
-	import AttendanceStats from '$lib/components/attendance/AttendanceStats.svelte';
 	import AttendanceMainInfo from '$lib/components/attendance/AttendanceMainInfo.svelte';
+	import AttendanceStats from '$lib/components/attendance/AttendanceStats.svelte';
 	import RegistrationMobileList from '$lib/components/attendance/RegistrationMobileList.svelte';
 	import SlotList from '$lib/components/attendance/SlotList.svelte';
 	import Spinner from '$lib/components/share/Spinner.svelte';
@@ -21,8 +21,8 @@
 	} from '$lib/services/training';
 	import { triggerTableRefresh } from '$lib/store';
 	import { supabase } from '$lib/supabaseClient';
-	import { onMount } from 'svelte';
 	import { RefreshCw } from '@lucide/svelte';
+	import { onMount } from 'svelte';
 
 	let slots = $state<TrainingSlotListItem[]>([]);
 	type SlotRegistration = RegistrationListItem;
@@ -257,13 +257,7 @@
 
 <section class="px-4 py-6 sm:px-6 sm:py-8">
 	<div class="mx-auto flex w-full max-w-6xl flex-col gap-6">
-		<AttendanceHeader
-			selectedSlot={selectedSlot()}
-			onRefresh={loadSlots}
-			{currentUserId}
-			{formatDate}
-			{formatTimeRange}
-		/>
+		<AttendanceHeader onRefresh={loadSlots} {currentUserId} />
 
 		{#if loading}
 			<Spinner divClass="h-full">Chargement des slots</Spinner>
