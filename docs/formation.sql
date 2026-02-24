@@ -614,10 +614,10 @@ create or replace function public.send_training_email(
   p_slot_id bigint,
   p_member_id uuid default null
 )
-returns void
+returns int
 language plpgsql
 security definer
-set search_path = public, net, vault
+set search_path = public, extensions, vault
 as $$
 declare
   hook_secret text;
@@ -651,7 +651,7 @@ begin
 
   get diagnostics insert_count = row_count;
   if insert_count = 0 then
-    return;
+    return 0;
   end if;
 
   payload := jsonb_build_object(
@@ -663,7 +663,7 @@ begin
     payload := payload || jsonb_build_object('member_id', p_member_id);
   end if;
 
-  perform net.http_post(
+  perform extensions.http_post(
     url := function_url,
     body := payload,
     headers := jsonb_build_object(
@@ -672,6 +672,7 @@ begin
     ),
     timeout_milliseconds := 5000
   );
+  return 1;
 end;
 $$;
 
@@ -696,9 +697,15 @@ security definer
 set search_path = public
 as $$
 begin
-  if old.status = 'waitlisted' and new.status = 'registered' then
-    perform public.send_training_email('waitlist_promoted', new.slot_id, new.member_id);
+  if new.status != 'registered' then
+    return new;
   end if;
+  case old.status
+    when 'waitlisted' then
+      perform public.send_training_email('waitlist_promoted', new.slot_id, new.member_id);
+    when 'canceled_by_user', 'canceled_by_admin' then
+      perform public.send_training_email('registration_confirmed', new.slot_id, new.member_id);
+  end case;
   return new;
 end;
 $$;
