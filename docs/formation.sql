@@ -6,13 +6,6 @@ CREATE TYPE "training_category" AS ENUM (
   'software'
 );
 
-CREATE TYPE "roles" AS ENUM (
-  'admin',
-  'bureau',
-  'cdp',
-  'membre'
-);
-
 CREATE TYPE "permission" AS ENUM (
   'manage_training',
   'access_training'
@@ -97,7 +90,6 @@ create table public.training_slot (
 
 create table public.profiles (
   id uuid not null,
-  role public.roles null,
   username text null default ''::text,
   avatar_url text null default 'https://avatar.iran.liara.run/public/boy'::text,
   permissions permission[] not null default '{access_training}'::permission[],

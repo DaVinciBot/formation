@@ -17,7 +17,7 @@
 		findTrainingName,
 		formatSlotDate
 	} from '$lib/helpers/adminTables';
-	import { parseParisDatetimeLocal } from '$lib/helpers/parisTime';
+	import { getParisDateKey, parseParisDatetimeLocal } from '$lib/helpers/parisTime';
 	import {
 		createTraining,
 		createTrainingSlot,
@@ -48,6 +48,11 @@
 	let slotFields: any[] = [];
 	let selectedTrainerId: string | null = null;
 	let selectedTrainingId: number | null = null;
+	let summaryFrom = '';
+	let summaryTo = '';
+	let summarySending = false;
+	let summaryError: string | null = null;
+	let summarySuccess: string | null = null;
 
 	const slotRangeDays = 120;
 	const trainingTableTopic = 'admin-trainings';
@@ -337,6 +342,38 @@
 		return rows;
 	}
 
+	async function sendDiscordSummary() {
+		summaryError = null;
+		summarySuccess = null;
+		if (!summaryFrom || !summaryTo) {
+			summaryError = 'Sélectionnez une date de début et une date de fin.';
+			return;
+		}
+		if (summaryFrom > summaryTo) {
+			summaryError = 'La date de début doit être avant la date de fin.';
+			return;
+		}
+		summarySending = true;
+		try {
+			const { data, error: invokeError } = await supabase.functions.invoke('discord-summary', {
+				body: {
+					from: summaryFrom,
+					to: summaryTo
+				}
+			});
+			if (invokeError) {
+				summaryError = invokeError.message || 'Impossible de déclencher le webhook.';
+				return;
+			}
+			summarySuccess = `Webhook envoyé (${data?.count ?? 0} slots).`;
+		} catch (err) {
+			console.error(err);
+			summaryError = 'Impossible de déclencher le webhook.';
+		} finally {
+			summarySending = false;
+		}
+	}
+
 	const trainingActions = [
 		{
 			title: 'Editer',
@@ -386,6 +423,8 @@
 	$: draftSlots = slots.filter((slot) => slot.status === 'draft');
 
 	onMount(() => {
+		if (!summaryFrom) summaryFrom = getParisDateKey(new Date());
+		if (!summaryTo) summaryTo = getParisDateKey(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000));
 		void loadData();
 	});
 </script>
@@ -400,6 +439,55 @@
 			onAddTraining={() => openTrainingModal()}
 			onAddSlot={() => openSlotModal()}
 		/>
+
+		<section class="rounded-[28px] border border-light-blue/10 bg-dark-blue/80 p-5 sm:p-6">
+			<div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+				<div>
+					<h2 class="text-xl font-semibold text-white">Synthèse Discord</h2>
+					<p class="text-sm text-light-blue/70">
+						Envoyez un récap des formations entre deux dates.
+					</p>
+				</div>
+				<div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+					<CTAButton
+						type="button"
+						variant={summarySending ? 'disabled' : 'primary'}
+						size="sm"
+						fullWidth={false}
+						disabled={summarySending}
+						onclick={sendDiscordSummary}
+					>
+						{summarySending ? 'Envoi...' : 'Envoyer'}
+					</CTAButton>
+				</div>
+			</div>
+			<div class="mt-4 grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
+				<label class="flex flex-col gap-2 text-xs tracking-[0.2em] text-light-blue/60 uppercase">
+					Date de début
+					<input
+						type="date"
+						class="rounded-xl border border-light-blue/20 bg-dark-blue/70 px-3 py-2 text-sm text-white outline-none focus:border-light-blue"
+						bind:value={summaryFrom}
+					/>
+				</label>
+				<label class="flex flex-col gap-2 text-xs tracking-[0.2em] text-light-blue/60 uppercase">
+					Date de fin
+					<input
+						type="date"
+						class="rounded-xl border border-light-blue/20 bg-dark-blue/70 px-3 py-2 text-sm text-white outline-none focus:border-light-blue"
+						bind:value={summaryTo}
+					/>
+				</label>
+				<div class="flex items-end">
+					<p class="text-xs text-light-blue/50">Le message est envoyé sur Discord.</p>
+				</div>
+			</div>
+			{#if summaryError}
+				<p class="mt-3 text-sm text-waiting">{summaryError}</p>
+			{:else if summarySuccess}
+				<p class="mt-3 text-sm text-light-blue/80">{summarySuccess}</p>
+			{/if}
+		</section>
 
 		{#if loading}
 			<Spinner
