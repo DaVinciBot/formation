@@ -617,7 +617,7 @@ create or replace function public.send_training_email(
 returns int
 language plpgsql
 security definer
-set search_path = public, extensions, vault
+set search_path = public, vault, net
 as $$
 declare
   hook_secret text;
@@ -663,7 +663,7 @@ begin
     payload := payload || jsonb_build_object('member_id', p_member_id);
   end if;
 
-  perform extensions.http_post(
+  perform net.http_post(
     url := function_url,
     body := payload,
     headers := jsonb_build_object(
