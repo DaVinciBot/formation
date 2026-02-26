@@ -294,6 +294,9 @@ security definer
 set search_path = public
 as $$
 begin
+  if coalesce(auth.role(), '') <> 'service_role' and not public.has_permission('access_training') and not public.has_permission('manage_training') then
+    raise exception 'Not authorized';
+  end if;
   perform public.sync_training_slot_statuses();
   return query
   select
@@ -339,7 +342,6 @@ begin
     where r.slot_id = ts.id
   ) reg on true
   where ts.id = p_slot_id
-    and (public.has_permission('access_training') or public.has_permission('manage_training'))
   limit 1;
 end;
 $$;
@@ -375,6 +377,27 @@ as $$
   join public.profiles p on p.id = r.member_id
   where r.slot_id = p_slot_id
   order by r.date_hour;
+end;
+$$;
+
+create or replace function public.training_manager_ids()
+returns table (
+  id uuid
+)
+language plpgsql
+stable
+security definer
+set search_path = public
+as $$
+begin
+  if coalesce(auth.role(), '') <> 'service_role' then
+    raise exception 'Not authorized';
+  end if;
+  return query
+  select p.id
+  from public.profiles p
+  where 'manage_training'::permission = any (p.permissions);
+end;
 $$;
 
 create or replace view public.trainer_registration_view
