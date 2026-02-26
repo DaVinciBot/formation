@@ -9,17 +9,25 @@ export const categoryOptions = [
 ];
 
 export const statusOptions: { value: SlotStatus; text: string; style: string }[] = [
-	{ value: 'draft', text: 'Brouillon', style: 'border-gray-100 text-gray-800 bg-gray-50' },
-	{ value: 'pending', text: 'Planifiée', style: 'border-blue-100 text-blue-800 bg-blue-50' },
-	{ value: 'done', text: 'Terminée', style: 'border-green-100 text-green-800 bg-green-50' },
+	{ value: 'draft', text: 'Brouillon', style: 'border-gray-100/40 bg-gray-100/15 text-gray-100' },
+	{
+		value: 'pending',
+		text: 'Planifiée',
+		style: 'border-primary-200/40 bg-primary-200/15 text-primary-200'
+	},
+	{
+		value: 'done',
+		text: 'Terminée',
+		style: 'border-registered/40 bg-registered/15 text-registered'
+	},
 	{
 		value: 'postponed',
 		text: 'Reportée',
-		style: 'border-light-blue/20 text-light-blue/80 bg-light-blue/5'
+		style: 'border-dark-blue-gray/40 bg-dark-blue-gray/15 text-dark-blue-gray'
 	},
 	{
 		value: 'canceled',
 		text: 'Annulée',
-		style: 'border-light-blue/20 text-light-blue/80 bg-light-blue/5'
+		style: 'border-dark-blue-gray/40 bg-dark-blue-gray/15 text-dark-blue-gray'
 	}
 ];
