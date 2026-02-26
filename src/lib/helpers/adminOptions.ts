@@ -8,26 +8,26 @@ export const categoryOptions = [
 	{ value: 'other', text: 'Autre', selected: true }
 ];
 
-export const statusOptions: { value: SlotStatus; text: string; style: string }[] = [
-	{ value: 'draft', text: 'Brouillon', style: 'border-gray-100/40 bg-gray-100/15 text-gray-100' },
+export const statusOptions: { value: SlotStatus; text: string; color: string }[] = [
+	{ value: 'draft', text: 'Brouillon', color: 'gray-100' },
 	{
 		value: 'pending',
 		text: 'Planifiée',
-		style: 'border-primary-200/40 bg-primary-200/15 text-primary-200'
+		color: 'primary-200'
 	},
 	{
 		value: 'done',
 		text: 'Terminée',
-		style: 'border-registered/40 bg-registered/15 text-registered'
+		color: 'registered'
 	},
 	{
 		value: 'postponed',
 		text: 'Reportée',
-		style: 'border-dark-blue-gray/40 bg-dark-blue-gray/15 text-dark-blue-gray'
+		color: 'dark-blue-gray'
 	},
 	{
 		value: 'canceled',
 		text: 'Annulée',
-		style: 'border-dark-blue-gray/40 bg-dark-blue-gray/15 text-dark-blue-gray'
+		color: 'dark-blue-gray'
 	}
 ];
