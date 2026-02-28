@@ -6,13 +6,6 @@ CREATE TYPE "training_category" AS ENUM (
   'software'
 );
 
-CREATE TYPE "roles" AS ENUM (
-  'admin',
-  'bureau',
-  'cdp',
-  'membre'
-);
-
 CREATE TYPE "permission" AS ENUM (
   'manage_training',
   'access_training'
@@ -97,7 +90,6 @@ create table public.training_slot (
 
 create table public.profiles (
   id uuid not null,
-  role public.roles null,
   username text null default ''::text,
   avatar_url text null default 'https://avatar.iran.liara.run/public/boy'::text,
   permissions permission[] not null default '{access_training}'::permission[],
@@ -124,6 +116,7 @@ create table public.training_email_log (
   template text not null,
   slot_id bigint not null,
   member_id uuid not null default '00000000-0000-0000-0000-000000000000'::uuid,
+  request_id bigint null,
   created_at timestamptz not null default now(),
   constraint training_email_log_pkey primary key (id),
   constraint training_email_log_slot_id_fkey foreign KEY (slot_id) references training_slot (id) on update CASCADE on delete CASCADE
@@ -301,6 +294,9 @@ security definer
 set search_path = public
 as $$
 begin
+  if coalesce(auth.role(), '') <> 'service_role' and not public.has_permission('access_training') and not public.has_permission('manage_training') then
+    raise exception 'Not authorized';
+  end if;
   perform public.sync_training_slot_statuses();
   return query
   select
@@ -346,7 +342,6 @@ begin
     where r.slot_id = ts.id
   ) reg on true
   where ts.id = p_slot_id
-    and (public.has_permission('access_training') or public.has_permission('manage_training'))
   limit 1;
 end;
 $$;
@@ -382,6 +377,27 @@ as $$
   join public.profiles p on p.id = r.member_id
   where r.slot_id = p_slot_id
   order by r.date_hour;
+end;
+$$;
+
+create or replace function public.training_manager_ids()
+returns table (
+  id uuid
+)
+language plpgsql
+stable
+security definer
+set search_path = public
+as $$
+begin
+  if coalesce(auth.role(), '') <> 'service_role' then
+    raise exception 'Not authorized';
+  end if;
+  return query
+  select p.id
+  from public.profiles p
+  where 'manage_training'::permission = any (p.permissions);
+end;
 $$;
 
 create or replace view public.trainer_registration_view
@@ -614,16 +630,18 @@ create or replace function public.send_training_email(
   p_slot_id bigint,
   p_member_id uuid default null
 )
-returns int
+returns bigint
 language plpgsql
 security definer
-set search_path = public, extensions, vault
+set search_path = public, vault, net
 as $$
 declare
   hook_secret text;
   function_url text;
+  auth_token text;
   insert_count integer;
   payload jsonb;
+  request_id_value bigint;
   normalized_member_id uuid := coalesce(
     p_member_id,
     '00000000-0000-0000-0000-000000000000'::uuid
@@ -641,7 +659,13 @@ begin
   where name = 'training_email_function_url'
   limit 1;
 
-  if hook_secret is null or function_url is null then
+  select decrypted_secret
+  into auth_token
+  from vault.decrypted_secrets
+  where name = 'service_key'
+  limit 1;
+
+  if hook_secret is null or function_url is null or auth_token is null then
     raise exception 'Email function secrets are missing';
   end if;
 
@@ -663,16 +687,23 @@ begin
     payload := payload || jsonb_build_object('member_id', p_member_id);
   end if;
 
-  perform extensions.http_post(
+  request_id_value := net.http_post(
     url := function_url,
     body := payload,
     headers := jsonb_build_object(
       'Content-Type', 'application/json',
+      'Authorization', 'Bearer ' || auth_token,
+      'apikey', auth_token,
       'x-hook-secret', hook_secret
     ),
     timeout_milliseconds := 5000
   );
-  return 1;
+  update public.training_email_log
+  set request_id = request_id_value
+  where template = p_template
+    and slot_id = p_slot_id
+    and member_id = normalized_member_id;
+  return request_id_value;
 end;
 $$;
 

@@ -86,10 +86,7 @@
 					component: Badge,
 					props: {
 						text: reg.status === 'registered' ? 'Inscrit·e' : 'En attente',
-						className:
-							reg.status === 'registered'
-								? 'border-registered/40 text-registered'
-								: 'border-waiting/40 text-waiting'
+						color: reg.status === 'registered' ? 'registered' : 'waiting'
 					}
 				},
 				{

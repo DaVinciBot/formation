@@ -40,7 +40,7 @@ export function createTrainingTableItems(data: any[]) {
 			component: Badge,
 			props: {
 				text: getCategoryLabel(training.category),
-				className: 'border-light-blue/20 text-light-blue/80'
+				color: 'light-blue'
 			}
 		},
 		{ value: training.description || 'Aucune description' }
@@ -99,7 +99,7 @@ export function createSlotTableItems(data: any[]) {
 				component: Badge,
 				props: {
 					text: statusOption?.text || slot.status,
-					className: statusOption?.style
+					color: statusOption?.color
 				}
 			}
 		];
