@@ -25,3 +25,13 @@ export function getSupabaseBrowserClient() {
 
 	return browserClient;
 }
+
+export const supabase = new Proxy(
+	{},
+	{
+		get(_, property) {
+			const client = getSupabaseBrowserClient();
+			return client[property];
+		}
+	}
+);
