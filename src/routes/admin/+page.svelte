@@ -30,10 +30,8 @@
 		type TrainingSlotListItem
 	} from '$lib/services/training';
 	import { triggerTableRefresh } from '$lib/store';
-	import { getSupabaseBrowserClient } from '$lib/supabaseClient';
+	import { supabase } from '$lib/supabaseClient';
 	import { onMount } from 'svelte';
-
-	const supabase = getSupabaseBrowserClient();
 
 	let trainings: TrainingListItem[] = [];
 	let slots: TrainingSlotListItem[] = [];

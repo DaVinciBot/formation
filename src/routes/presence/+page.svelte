@@ -19,12 +19,11 @@
 		type TrainingSlotListItem
 	} from '$lib/services/training';
 	import { triggerTableRefresh } from '$lib/store';
-	import { getSupabaseBrowserClient } from '$lib/supabaseClient';
+	import { supabase } from '$lib/supabaseClient';
 	import { RefreshCw } from '@lucide/svelte';
 	import { onMount } from 'svelte';
 
 	let { data } = $props();
-	const supabase = getSupabaseBrowserClient();
 
 	let slots = $state<TrainingSlotListItem[]>([]);
 	type SlotRegistration = RegistrationListItem;

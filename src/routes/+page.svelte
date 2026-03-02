@@ -7,11 +7,10 @@
 		type RegistrationStatus,
 		type TrainingSlotListItem
 	} from '$lib/services/training';
-	import { getSupabaseBrowserClient } from '$lib/supabaseClient';
+	import { supabase } from '$lib/supabaseClient';
 	import { onDestroy, onMount } from 'svelte';
 
 	let { data } = $props();
-	const supabase = getSupabaseBrowserClient();
 	const currentUserId: string | null = data.userId ?? null;
 	let canManageTraining = Boolean(data.canManageTraining);
 
