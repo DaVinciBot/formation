@@ -1,4 +1,4 @@
-import { supabase } from '$lib/supabaseClient';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 type TrainingCategory = 'code' | 'electronics' | 'robotic' | 'other' | 'software';
 
@@ -97,13 +97,16 @@ export type UpdateRegistrationPayload = {
 	feedback?: string | null;
 };
 
-export async function getTrainingList(): Promise<TrainingListItem[]> {
+export type TrainingSupabaseClient = SupabaseClient;
+
+export async function getTrainingList(supabase: TrainingSupabaseClient): Promise<TrainingListItem[]> {
 	const { data, error } = await supabase.rpc('training_list');
 	if (error) throw error;
 	return data;
 }
 
 export async function getTrainingSlots(
+	supabase: TrainingSupabaseClient,
 	fromDate = new Date(),
 	number_of_days: number | null = null
 ): Promise<TrainingSlotListItem[]> {
@@ -118,7 +121,10 @@ export async function getTrainingSlots(
 	return data;
 }
 
-export async function getTrainingSlotDetail(slotId: number): Promise<TrainingSlotListItem | null> {
+export async function getTrainingSlotDetail(
+	supabase: TrainingSupabaseClient,
+	slotId: number
+): Promise<TrainingSlotListItem | null> {
 	const { data, error } = await supabase.rpc('training_slot_detail', {
 		p_slot_id: slotId
 	});
@@ -126,7 +132,10 @@ export async function getTrainingSlotDetail(slotId: number): Promise<TrainingSlo
 	return data?.[0] ?? null;
 }
 
-export async function getSlotRegistrations(slotId: number): Promise<RegistrationListItem[]> {
+export async function getSlotRegistrations(
+	supabase: TrainingSupabaseClient,
+	slotId: number
+): Promise<RegistrationListItem[]> {
 	const { data, error } = await supabase.rpc('registration_list', {
 		p_slot_id: slotId
 	});
@@ -134,7 +143,10 @@ export async function getSlotRegistrations(slotId: number): Promise<Registration
 	return data;
 }
 
-export async function getTrainerSlotRegistrations(slotId: number): Promise<RegistrationListItem[]> {
+export async function getTrainerSlotRegistrations(
+	supabase: TrainingSupabaseClient,
+	slotId: number
+): Promise<RegistrationListItem[]> {
 	const { data, error } = await supabase
 		.from('trainer_registration_view')
 		.select(
@@ -147,20 +159,17 @@ export async function getTrainerSlotRegistrations(slotId: number): Promise<Regis
 }
 
 export async function getMyRegistrationForSlot(
-	slotId: number
+	supabase: TrainingSupabaseClient,
+	slotId: number,
+	userId: string | null
 ): Promise<RegistrationSummary | null> {
-	const {
-		data: { user },
-		error: userError
-	} = await supabase.auth.getUser();
-	if (userError) throw userError;
-	if (!user) return null;
+	if (!userId) return null;
 
 	const { data, error } = await supabase
 		.from('registration')
 		.select('remote,status,to_excuse')
 		.eq('slot_id', slotId)
-		.eq('member_id', user.id)
+		.eq('member_id', userId)
 		.maybeSingle();
 	if (error) throw error;
 	if (!data) return null;
@@ -173,6 +182,7 @@ export async function getMyRegistrationForSlot(
 }
 
 export async function registerToSlot(
+	supabase: TrainingSupabaseClient,
 	slotId: number,
 	remote: boolean,
 	toExcuse = false
@@ -186,7 +196,10 @@ export async function registerToSlot(
 	return data;
 }
 
-export async function cancelRegistration(slotId: number): Promise<unknown> {
+export async function cancelRegistration(
+	supabase: TrainingSupabaseClient,
+	slotId: number
+): Promise<unknown> {
 	const { data, error } = await supabase
 		.from('registration')
 		.update({ status: 'canceled_by_user' })
@@ -196,26 +209,24 @@ export async function cancelRegistration(slotId: number): Promise<unknown> {
 }
 
 export async function updateMyRegistrationExcuse(
+	supabase: TrainingSupabaseClient,
 	slotId: number,
-	toExcuse: boolean
+	toExcuse: boolean,
+	userId: string | null
 ): Promise<unknown> {
-	const {
-		data: { user },
-		error: userError
-	} = await supabase.auth.getUser();
-	if (userError) throw userError;
-	if (!user) throw new Error('User not authenticated');
+	if (!userId) throw new Error('User not authenticated');
 
 	const { data, error } = await supabase
 		.from('registration')
 		.update({ to_excuse: toExcuse })
 		.eq('slot_id', slotId)
-		.eq('member_id', user.id);
+		.eq('member_id', userId);
 	if (error) throw error;
 	return data;
 }
 
 export async function updateRegistration(
+	supabase: TrainingSupabaseClient,
 	slotId: number,
 	memberId: string,
 	updates: UpdateRegistrationPayload
@@ -230,6 +241,7 @@ export async function updateRegistration(
 }
 
 export async function updateTrainerPresence(
+	supabase: TrainingSupabaseClient,
 	slotId: number,
 	memberId: string,
 	present: boolean | null
@@ -243,13 +255,17 @@ export async function updateTrainerPresence(
 	return data;
 }
 
-export async function createTraining(payload: CreateTrainingPayload): Promise<unknown> {
+export async function createTraining(
+	supabase: TrainingSupabaseClient,
+	payload: CreateTrainingPayload
+): Promise<unknown> {
 	const { data, error } = await supabase.from('training').insert(payload).select().single();
 	if (error) throw error;
 	return data;
 }
 
 export async function updateTraining(
+	supabase: TrainingSupabaseClient,
 	trainingId: number,
 	updates: UpdateTrainingPayload
 ): Promise<unknown> {
@@ -263,13 +279,17 @@ export async function updateTraining(
 	return data;
 }
 
-export async function createTrainingSlot(payload: CreateTrainingSlotPayload): Promise<unknown> {
+export async function createTrainingSlot(
+	supabase: TrainingSupabaseClient,
+	payload: CreateTrainingSlotPayload
+): Promise<unknown> {
 	const { data, error } = await supabase.from('training_slot').insert(payload).select().single();
 	if (error) throw error;
 	return data;
 }
 
 export async function updateTrainingSlot(
+	supabase: TrainingSupabaseClient,
 	slotId: number,
 	updates: UpdateTrainingSlotPayload
 ): Promise<unknown> {

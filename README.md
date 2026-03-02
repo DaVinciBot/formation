@@ -18,6 +18,13 @@ npx sv create my-app
 
 Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
 
+Create a `.env` file with Supabase public variables:
+
+```sh
+PUBLIC_SUPABASE_URL=https://supabase-url.co
+PUBLIC_SUPABASE_PUBLISHABLE_KEY=PUBKEY
+```
+
 ```sh
 npm run dev
 

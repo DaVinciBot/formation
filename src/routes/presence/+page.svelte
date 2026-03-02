@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
 	import Table from '$lib/components/admin/Table.svelte';
 	import AttendanceHeader from '$lib/components/attendance/AttendanceHeader.svelte';
 	import AttendanceMainInfo from '$lib/components/attendance/AttendanceMainInfo.svelte';
@@ -20,9 +19,12 @@
 		type TrainingSlotListItem
 	} from '$lib/services/training';
 	import { triggerTableRefresh } from '$lib/store';
-	import { supabase } from '$lib/supabaseClient';
+	import { getSupabaseBrowserClient } from '$lib/supabaseClient';
 	import { RefreshCw } from '@lucide/svelte';
 	import { onMount } from 'svelte';
+
+	let { data } = $props();
+	const supabase = getSupabaseBrowserClient();
 
 	let slots = $state<TrainingSlotListItem[]>([]);
 	type SlotRegistration = RegistrationListItem;
@@ -33,8 +35,8 @@
 	let loadError = $state<string | null>(null);
 	let actionError = $state<string | null>(null);
 	let savingIds = $state(new Set<string>());
-	let currentUserId: string | null = $state(null);
-	let canManageTraining = $state(false);
+	let currentUserId: string | null = $state(data.currentUserId ?? null);
+	let canManageTraining = $state(Boolean(data.canManageTraining));
 	const presenceTableTopic = 'presence-table';
 	const presenceDbInfo = {
 		table: 'trainer_registration_view',
@@ -164,8 +166,8 @@
 		actionError = null;
 		try {
 			const data = canManageTraining
-				? await getSlotRegistrations(slotId)
-				: await getTrainerSlotRegistrations(slotId);
+				? await getSlotRegistrations(supabase, slotId)
+				: await getTrainerSlotRegistrations(supabase, slotId);
 			registrations = data;
 		} catch (err) {
 			console.error(err);
@@ -187,7 +189,7 @@
 		actionError = null;
 		savingIds = new Set(savingIds).add(memberId);
 		try {
-			await updateTrainerPresence(selectedSlotId, memberId, present);
+			await updateTrainerPresence(supabase, selectedSlotId, memberId, present);
 			registrations = registrations.map((item) =>
 				item.member_id === memberId ? { ...item, present } : item
 			);
@@ -206,30 +208,9 @@
 		loading = true;
 		loadError = null;
 		try {
-			const { data: accessData, error: accessError } = await supabase.rpc('has_permission', {
-				p_permission: 'access_training'
-			});
-			if (accessError || !accessData) {
-				await goto('/unauthorized?redirect=/formation/presence');
-				return;
-			}
-			const { data: manageData, error: manageError } = await supabase.rpc('has_permission', {
-				p_permission: 'manage_training'
-			});
-			canManageTraining = !manageError && Boolean(manageData);
-			const {
-				data: { user },
-				error: userError
-			} = await supabase.auth.getUser();
-			if (userError || !user) {
-				await goto('/unauthorized?redirect=/formation/presence');
-				return;
-			}
-			currentUserId = user.id;
-
-			const rawSlots = await getTrainingSlots(new Date(), slotRangeDays);
+			const rawSlots = await getTrainingSlots(supabase, new Date(), slotRangeDays);
 			slots = rawSlots
-				.filter((slot) => canManageTraining || slot.trainer_id === user.id)
+				.filter((slot) => canManageTraining || slot.trainer_id === currentUserId)
 				.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
 
 			const initialSlot = pickDefaultSlot(slots);

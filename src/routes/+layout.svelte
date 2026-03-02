@@ -2,9 +2,14 @@
 	import favicon from '$lib/assets/favicon.svg';
 	import Topbar from '$lib/components/share/Topbar.svelte';
 	import DevAuthSwitcher from '$lib/components/utils/DevAuthSwitcher.svelte';
+	import { loadUserdata } from '$lib/utils';
 	import './layout.css';
 
-	let { children } = $props();
+	let { data, children } = $props();
+
+	$effect(() => {
+		void loadUserdata(data.userProfile);
+	});
 </script>
 
 <svelte:head>

@@ -1,15 +1,16 @@
 import { userdata } from '$lib/store';
-import { supabase } from '$lib/supabaseClient';
-import md5 from 'crypto-js/md5';
 
-export async function loadUserdata() {
-	let user = {};
+/**
+ * @param {Record<string, unknown> | null} userFromServer
+ */
+export async function loadUserdata(userFromServer = null) {
 	const CACHE_KEY = 'userdata_cache';
 	const CACHE_DURATION = 60 * 60 * 1000; // 1 hour in ms
 
 	// Try to load from cache
 	try {
-		const cached = JSON.parse(localStorage.getItem(CACHE_KEY));
+		const raw = localStorage.getItem(CACHE_KEY);
+		const cached = raw ? JSON.parse(raw) : null;
 		if (
 			cached &&
 			cached.timestamp &&
@@ -24,64 +25,13 @@ export async function loadUserdata() {
 		// Ignore cache errors
 	}
 
-	const {
-		data: { session },
-		error
-	} = await supabase.auth.getSession();
-	if (error) {
-		console.error(error);
-		return;
-	}
-	if (session) {
-		// fetch user data
-		const { data, error } = await supabase
-			.from('profiles')
-			.select('username,avatar_url,role,permissions, member_of(project(id, name, debut))')
-			.eq('id', session.user.id)
-			.single();
-		if (error) {
-			console.error(error);
-			return;
-		}
-		if (data.avatar_url == '') {
-			data.avatar_url = 'https://gravatar.com/avatar/' + md5(session.user.email) + '?d=identicon';
-		}
-		user.email = session.user.email || user.email;
-		user.name = data.username || user.email.split('@')[0];
-		user.avatar = data.avatar_url || user.avatar;
-		user.id = session.user.id;
-		user.projects = [];
-		data.member_of.forEach((p) => {
-			user.projects.push({
-				id: p.project.id,
-				name: p.project.name,
-				debut: p.project.debut || '0000-00-00'
-			});
-		});
-		user.role = data.role || user.role;
-		user.permissions = data.permissions || [];
-		if (user.role === 'bureau' || user.role === 'admin') {
-			user.projects.push({
-				id: 0,
-				name: 'Association',
-				debut: '2014-09-01'
-			});
-			const { data: projects, error: projectsError } = await supabase
-				.from('projects')
-				.select('id, name, debut');
-			if (projectsError) {
-				console.error(projectsError);
-			} else {
-				user.allProjects = projects.map((p) => ({ value: p.id, name: p.name, debut: p.debut }));
-			}
-		}
-		userdata.set(user);
-		// Save to cache
-		try {
-			localStorage.setItem(CACHE_KEY, JSON.stringify({ user, timestamp: Date.now() }));
-		} catch (e) {
-			// Ignore cache errors
-		}
+	if (!userFromServer) return;
+
+	userdata.set(userFromServer);
+	try {
+		localStorage.setItem(CACHE_KEY, JSON.stringify({ user: userFromServer, timestamp: Date.now() }));
+	} catch (e) {
+		// Ignore cache errors
 	}
 }
 
@@ -115,10 +65,14 @@ export const updateText = {
 	'order-completed': 'Commande complétée'
 };
 
+/**
+ * @param {string} key
+ */
 export function loadSettings(key) {
 	let settings_;
 	try {
-		settings_ = JSON.parse(window.localStorage.getItem(`settings_${key}`)) || [];
+		const raw = window.localStorage.getItem(`settings_${key}`);
+		settings_ = raw ? JSON.parse(raw) : [];
 	} catch (e) {
 		console.error(
 			'echec lors de la récupération des données, la fonction est problement executé depuis le serveur'
@@ -128,6 +82,10 @@ export function loadSettings(key) {
 	return settings_;
 }
 
+/**
+ * @param {string} key
+ * @param {unknown} settings
+ */
 export function saveSettings(key, settings) {
 	try {
 		localStorage.setItem(`settings_${key}`, JSON.stringify(settings));
@@ -139,6 +97,9 @@ export function saveSettings(key, settings) {
 	}
 }
 
+/**
+ * @param {unknown} obj
+ */
 export function hashCode(obj) {
 	let str = JSON.stringify(obj);
 	let hash = 0;
@@ -150,6 +111,11 @@ export function hashCode(obj) {
 	return hash;
 }
 
+/**
+ * @param {HTMLElement} element
+ * @param {(el: HTMLElement) => void} [destroyHandler]
+ * @param {boolean} [permanent]
+ */
 export function hideOnClickOutside(
 	element,
 	destroyHandler = (el) => {
@@ -157,8 +123,11 @@ export function hideOnClickOutside(
 	},
 	permanent = false
 ) {
+	/** @param {MouseEvent} event */
 	const outsideClickListener = (event) => {
-		if (!element.contains(event.target) && isVisible(element)) {
+		const target = event.target;
+		if (!(target instanceof Node)) return;
+		if (!element.contains(target) && isVisible(element)) {
 			// or use: event.target.closest(selector) === null
 			destroyHandler(element);
 			if (!permanent) removeClickListener();
@@ -171,5 +140,6 @@ export function hideOnClickOutside(
 
 	document.addEventListener('click', outsideClickListener);
 }
+/** @param {HTMLElement | null | undefined} elem */
 const isVisible = (elem) =>
 	!!elem && !!(elem.offsetWidth || elem.offsetHeight || elem.getClientRects().length); // source (2018-03-11): https://github.com/jquery/jquery/blob/master/src/css/hiddenVisibleSelectors.js

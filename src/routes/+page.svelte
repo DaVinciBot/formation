@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
 	import Calendar, { type CalendarSlot } from '$lib/components/training/Calendar.svelte';
 	import type { TrainingCardStatus } from '$lib/components/training/TrainingCard.svelte';
 	import { getWeekStart } from '$lib/components/training/helpers/calendar';
@@ -8,8 +7,13 @@
 		type RegistrationStatus,
 		type TrainingSlotListItem
 	} from '$lib/services/training';
-	import { supabase } from '$lib/supabaseClient';
+	import { getSupabaseBrowserClient } from '$lib/supabaseClient';
 	import { onDestroy, onMount } from 'svelte';
+
+	let { data } = $props();
+	const supabase = getSupabaseBrowserClient();
+	const currentUserId: string | null = data.userId ?? null;
+	let canManageTraining = Boolean(data.canManageTraining);
 
 	let slots: CalendarSlot[] = [];
 	let loading = false;
@@ -18,7 +22,6 @@
 	const WEEK_STORAGE_KEY = 'training_calendar_week_start';
 	let refreshTimeout: ReturnType<typeof setTimeout> | null = null;
 	let realtimeChannel: ReturnType<typeof supabase.channel> | null = null;
-	let canManageTraining = false;
 
 	function resolveCardStatus(
 		slot: TrainingSlotListItem,
@@ -69,19 +72,14 @@
 		}
 		storeWeekStart(weekStart);
 		try {
-			const rawSlots = await getTrainingSlots(weekStart, 7);
-			const {
-				data: { user },
-				error: userError
-			} = await supabase.auth.getUser();
-			if (userError) throw userError;
+			const rawSlots = await getTrainingSlots(supabase, weekStart, 7);
 			const registrationStatuses = new Map<number, RegistrationStatus>();
-			if (user && rawSlots.length > 0) {
+			if (currentUserId && rawSlots.length > 0) {
 				const slotIds = rawSlots.map((slot) => slot.slot_id);
 				const { data: registrationData, error: registrationError } = await supabase
 					.from('registration')
 					.select('slot_id,status,remote')
-					.eq('member_id', user.id)
+					.eq('member_id', currentUserId)
 					.in('slot_id', slotIds);
 				if (registrationError) throw registrationError;
 				for (const registration of registrationData ?? []) {
@@ -102,7 +100,7 @@
 				cardStatus: resolveCardStatus(
 					slot,
 					registrationStatuses.get(slot.slot_id),
-					user?.id ?? null
+					currentUserId
 				)
 			}));
 		} catch (err) {
@@ -131,25 +129,9 @@
 	}
 
 	onMount(async () => {
-		try {
-			const { data, error } = await supabase.rpc('has_permission', {
-				p_permission: 'access_training'
-			});
-			if (error || !data) {
-				await goto('unauthorized?redirect=/formation');
-				return;
-			}
-			const { data: manageData, error: manageError } = await supabase.rpc('has_permission', {
-				p_permission: 'manage_training'
-			});
-			canManageTraining = !manageError && Boolean(manageData);
-			const savedWeek = readStoredWeekStart();
-			await loadWeek(savedWeek ?? new Date());
-			setupRealtime();
-		} catch (err) {
-			console.error(err);
-			await goto('unauthorized?redirect=/formation');
-		}
+		const savedWeek = readStoredWeekStart();
+		void loadWeek(savedWeek ?? new Date());
+		setupRealtime();
 	});
 
 	onDestroy(() => {

@@ -30,8 +30,10 @@
 		type TrainingSlotListItem
 	} from '$lib/services/training';
 	import { triggerTableRefresh } from '$lib/store';
-	import { supabase } from '$lib/supabaseClient';
+	import { getSupabaseBrowserClient } from '$lib/supabaseClient';
 	import { onMount } from 'svelte';
+
+	const supabase = getSupabaseBrowserClient();
 
 	let trainings: TrainingListItem[] = [];
 	let slots: TrainingSlotListItem[] = [];
@@ -70,13 +72,29 @@
 	let trainingIndex = new Map<number, TrainingListItem>();
 	let slotIndex = new Map<number, TrainingSlotListItem>();
 
+	async function searchProfiles(search: string) {
+		const { data, error } = await supabase
+			.from('profiles')
+			.select('id, username, avatar_url')
+			.ilike('username', `%${search}%`)
+			.range(0, 4);
+
+		if (error) return [];
+
+		return (data ?? []).map((profile: { id: string; username: string | null; avatar_url: string | null }) => ({
+			value: profile.id,
+			text: profile.username || 'Membre',
+			image: profile.avatar_url || undefined
+		}));
+	}
+
 	async function loadProfiles() {
 		const { data, error: profilesError } = await supabase
 			.from('profiles')
 			.select('id, username, avatar_url')
 			.order('username');
 		if (profilesError) throw profilesError;
-		profiles = (data ?? []).map((profile) => ({
+		profiles = (data ?? []).map((profile: { id: string; username: string | null; avatar_url: string | null }) => ({
 			...profile,
 			email: null
 		}));
@@ -87,8 +105,8 @@
 		error = null;
 		try {
 			const [trainingList, slotList] = await Promise.all([
-				getTrainingList(),
-				getTrainingSlots(new Date(), slotRangeDays)
+				getTrainingList(supabase),
+				getTrainingSlots(supabase, new Date(), slotRangeDays)
 			]);
 			trainings = trainingList;
 			slots = slotList;
@@ -125,6 +143,7 @@
 				slot,
 				trainings,
 				profiles,
+				searchProfiles,
 				selectedTrainingId: nextTrainingId,
 				onTrainerChange: (nextId) => {
 					selectedTrainerId = nextId;
@@ -179,6 +198,7 @@
 			slot,
 			trainings,
 			profiles,
+			searchProfiles,
 			selectedTrainingId,
 			onTrainerChange: (nextId) => {
 				selectedTrainerId = nextId;
@@ -222,14 +242,14 @@
 
 		try {
 			if (editingTraining) {
-				await updateTraining(editingTraining.training_id, {
+				await updateTraining(supabase, editingTraining.training_id, {
 					name,
 					category: category as any,
 					description,
 					prerequisites
 				});
 			} else {
-				await createTraining({
+				await createTraining(supabase, {
 					name,
 					category: category as any,
 					description,
@@ -297,11 +317,11 @@
 				if (customPrerequisites && customPrerequisites !== basePrerequisites)
 					updates.custom_prerequisites = customPrerequisites;
 
-				await updateTrainingSlot(editingSlot.slot_id, {
+				await updateTrainingSlot(supabase, editingSlot.slot_id, {
 					...updates
 				});
 			} else {
-				await createTrainingSlot({
+				await createTrainingSlot(supabase, {
 					training_id: trainingId,
 					custom_name: customName && customName !== baseName ? customName : null,
 					custom_description:
@@ -520,7 +540,7 @@
 					{findTrainingName}
 					{trainings}
 					onAddSlot={() => openSlotModal()}
-					onEditSlot={(slot) => openSlotModal(slot)}
+					onEditSlot={(slot: TrainingSlotListItem) => openSlotModal(slot)}
 				/>
 				<AdminTrainingSection
 					{trainings}
@@ -531,7 +551,7 @@
 					{trainingTableTopic}
 					{parseTrainingItems}
 					onAddTraining={() => openTrainingModal()}
-					onEditTraining={(training) => openTrainingModal(training)}
+					onEditTraining={(training: TrainingListItem) => openTrainingModal(training)}
 				/>
 			</div>
 		{/if}

@@ -1,7 +1,6 @@
 import { categoryOptions, statusOptions } from '$lib/helpers/adminOptions';
 import { formatParisDatetimeLocal } from '$lib/helpers/parisTime';
 import type { TrainingListItem, TrainingSlotListItem } from '$lib/services/training';
-import { supabase } from '$lib/supabaseClient';
 
 export type ProfileOption = {
 	id: string;
@@ -53,6 +52,7 @@ export function buildSlotFields({
 	trainings,
 	profiles,
 	selectedTrainingId,
+	searchProfiles,
 	onTrainerChange,
 	onTrainingChange
 }: {
@@ -60,6 +60,7 @@ export function buildSlotFields({
 	trainings: TrainingListItem[];
 	profiles: ProfileOption[];
 	selectedTrainingId?: number | null;
+	searchProfiles: (search: string) => Promise<{ value: string; text: string; image?: string }[]>;
 	onTrainerChange?: (nextId: string | null) => void;
 	onTrainingChange?: (nextId: number | null) => void;
 }) {
@@ -123,17 +124,7 @@ export function buildSlotFields({
 				onTrainerChange?.(null);
 				const search = target?.value?.toLowerCase().trim() || '';
 				if (!search) return [];
-				const { data, error } = await supabase
-					.from('profiles')
-					.select('id, username, avatar_url')
-					.ilike('username', `%${search}%`)
-					.range(0, 4);
-				if (error) return [];
-				return (data ?? []).map((profile) => ({
-					value: profile.id,
-					text: profile.username || 'Membre',
-					image: profile.avatar_url || undefined
-				}));
+				return searchProfiles(search);
 			},
 			onSelect: (nextId: string) => {
 				onTrainerChange?.(nextId);

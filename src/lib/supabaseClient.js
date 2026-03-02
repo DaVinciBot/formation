@@ -1,6 +1,27 @@
-import { createClient } from '@supabase/supabase-js';
+import { env } from '$env/dynamic/public';
+import { createBrowserClient } from '@supabase/ssr';
+import { browser } from '$app/environment';
 
-export const supabaseUrl = `https://lxilsopqfrtwsitzalkm.supabase.co/`;
-export const supabaseKey = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx4aWxzb3BxZnJ0d3NpdHphbGttIiwicm9sZSI6ImFub24iLCJpYXQiOjE2Njk0NzUyNDUsImV4cCI6MTk4NTA1MTI0NX0.8TLXDbdJDIrDONJlqE639jvExH-kdBUIkJhtBFwhMCo`;
+/** @type {import('@supabase/supabase-js').SupabaseClient | null} */
+let browserClient = null;
 
-export const supabase = createClient(supabaseUrl, supabaseKey);
+export function getSupabaseBrowserClient() {
+	if (!browser) {
+		throw new Error('Supabase browser client can only be used in the browser.');
+	}
+
+	const supabaseUrl = env.PUBLIC_SUPABASE_URL;
+	const supabasePublishableKey = env.PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+
+	if (!supabaseUrl || !supabasePublishableKey) {
+		throw new Error(
+			'Missing PUBLIC_SUPABASE_URL or PUBLIC_SUPABASE_PUBLISHABLE_KEY environment variables.'
+		);
+	}
+
+	if (!browserClient) {
+		browserClient = createBrowserClient(supabaseUrl, supabasePublishableKey);
+	}
+
+	return browserClient;
+}
