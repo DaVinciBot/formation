@@ -64,7 +64,7 @@ export function buildSlotFields({
 	onTrainerChange?: (nextId: string | null) => void;
 	onTrainingChange?: (nextId: number | null) => void;
 }) {
-	const baseTrainingId = slot?.training_id ?? selectedTrainingId ?? null;
+	const baseTrainingId = selectedTrainingId ?? slot?.training_id ?? null;
 	const baseTraining = baseTrainingId
 		? (trainings.find((training) => training.training_id === baseTrainingId) ?? null)
 		: null;
@@ -95,21 +95,21 @@ export function buildSlotFields({
 			id: 'custom_name',
 			type: 'text',
 			placeholder: baseTraining?.name || '',
-			value: slot ? (slot.name ?? '') : baseTraining?.name || ''
+			value: slot ? (slot.name ?? '') : ''
 		},
 		{
 			name: 'Description',
 			id: 'custom_description',
 			type: 'textarea',
 			placeholder: baseTraining?.description || '',
-			value: slot ? (slot.description ?? '') : baseTraining?.description || ''
+			value: slot ? (slot.description ?? '') : ''
 		},
 		{
 			name: 'Prérequis',
 			id: 'custom_prerequisites',
 			type: 'textarea',
 			placeholder: baseTraining?.prerequisites || '',
-			value: slot ? (slot.prerequisites ?? '') : baseTraining?.prerequisites || ''
+			value: slot ? (slot.prerequisites ?? '') : ''
 		},
 		{
 			name: 'Formateur·ice',

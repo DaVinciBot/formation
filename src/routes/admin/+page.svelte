@@ -135,15 +135,14 @@
 		formError = null;
 		editingSlot = slot;
 		selectedTrainerId = slot?.trainer_id ?? null;
-		selectedTrainingId = slot?.training_id ?? null;
+		const fallbackTrainingId = trainings[0]?.training_id ?? null;
+		selectedTrainingId = slot?.training_id ?? selectedTrainingId ?? fallbackTrainingId;
 		const getBaseTraining = (trainingId: number | null) => {
 			if (!trainingId) return null;
 			return trainings.find((training) => training.training_id === trainingId) ?? null;
 		};
 		const rebuildSlotFields = (nextTrainingId: number | null) => {
 			const previousFields = slotFields;
-			const previousTraining = getBaseTraining(selectedTrainingId);
-			const nextTraining = getBaseTraining(nextTrainingId);
 			const nextFields = buildSlotFields({
 				slot,
 				trainings,
@@ -163,33 +162,10 @@
 				previousFields.filter((field) => field?.id).map((field) => [field.id, field])
 			);
 
-			const previousBase = {
-				custom_name: previousTraining?.name || '',
-				custom_description: previousTraining?.description || '',
-				custom_prerequisites: previousTraining?.prerequisites || ''
-			};
-			const nextBase = {
-				custom_name: nextTraining?.name || '',
-				custom_description: nextTraining?.description || '',
-				custom_prerequisites: nextTraining?.prerequisites || ''
-			};
-
 			slotFields = nextFields.map((field) => {
 				const previous = field.id ? previousById.get(field.id) : null;
 				if (!previous || field.id === 'training_id') return field;
-				if (
-					field.id === 'custom_name' ||
-					field.id === 'custom_description' ||
-					field.id === 'custom_prerequisites'
-				) {
-					const previousValue = previous.value ?? '';
-					const previousBaseValue = previousBase[field.id as keyof typeof previousBase] || '';
-					if (previousValue === '' || previousValue === previousBaseValue) {
-						field.value = nextBase[field.id as keyof typeof nextBase] || '';
-					} else if (previous.value !== undefined) {
-						field.value = previous.value;
-					}
-				} else if (previous.value !== undefined) {
+				if (previous.value !== undefined) {
 					field.value = previous.value;
 				}
 				if (previous.checked !== undefined) field.checked = previous.checked;
