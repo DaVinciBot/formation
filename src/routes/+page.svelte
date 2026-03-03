@@ -8,19 +8,22 @@
 		type TrainingSlotListItem
 	} from '$lib/services/training';
 	import { supabase } from '$lib/supabaseClient';
+	import type { RealtimeChannel, SupabaseClient } from '@supabase/supabase-js';
 	import { onDestroy, onMount } from 'svelte';
 
 	let { data } = $props();
-	const currentUserId: string | null = data.userId ?? null;
-	let canManageTraining = Boolean(data.canManageTraining);
+	const currentUserId: string | null = $derived(data.userId ?? null);
+	let canManageTraining = $derived(Boolean(data.canManageTraining));
 
-	let slots: CalendarSlot[] = [];
-	let loading = false;
-	let error: string | null = null;
-	let currentDate = new Date();
+	let slots: CalendarSlot[] = $state([]);
+	let loading = $state(false);
+	let error: string | null = $state(null);
+	let currentDate = $state(new Date());
 	const WEEK_STORAGE_KEY = 'training_calendar_week_start';
 	let refreshTimeout: ReturnType<typeof setTimeout> | null = null;
-	let realtimeChannel: ReturnType<typeof supabase.channel> | null = null;
+	let realtimeChannel: RealtimeChannel | null = null;
+
+	const supabaseClient: SupabaseClient = supabase as SupabaseClient;
 
 	function resolveCardStatus(
 		slot: TrainingSlotListItem,
@@ -71,11 +74,11 @@
 		}
 		storeWeekStart(weekStart);
 		try {
-			const rawSlots = await getTrainingSlots(supabase, weekStart, 7);
+			const rawSlots = await getTrainingSlots(supabaseClient, weekStart, 7);
 			const registrationStatuses = new Map<number, RegistrationStatus>();
 			if (currentUserId && rawSlots.length > 0) {
 				const slotIds = rawSlots.map((slot) => slot.slot_id);
-				const { data: registrationData, error: registrationError } = await supabase
+				const { data: registrationData, error: registrationError } = await supabaseClient
 					.from('registration')
 					.select('slot_id,status,remote')
 					.eq('member_id', currentUserId)
@@ -96,11 +99,7 @@
 			});
 			slots = visibleSlots.map((slot) => ({
 				...slot,
-				cardStatus: resolveCardStatus(
-					slot,
-					registrationStatuses.get(slot.slot_id),
-					currentUserId
-				)
+				cardStatus: resolveCardStatus(slot, registrationStatuses.get(slot.slot_id), currentUserId)
 			}));
 		} catch (err) {
 			console.error(err);
@@ -116,7 +115,7 @@
 	}
 
 	function setupRealtime() {
-		realtimeChannel = supabase
+		realtimeChannel = supabaseClient
 			.channel('training_calendar')
 			.on('postgres_changes', { event: '*', schema: 'public', table: 'registration' }, () =>
 				scheduleSilentRefresh()

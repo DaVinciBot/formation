@@ -21,6 +21,7 @@
 	import { triggerTableRefresh } from '$lib/store';
 	import { supabase } from '$lib/supabaseClient';
 	import { RefreshCw } from '@lucide/svelte';
+	import type { SupabaseClient } from '@supabase/supabase-js';
 	import { onMount } from 'svelte';
 
 	let { data } = $props();
@@ -34,8 +35,10 @@
 	let loadError = $state<string | null>(null);
 	let actionError = $state<string | null>(null);
 	let savingIds = $state(new Set<string>());
-	let currentUserId: string | null = $state(data.currentUserId ?? null);
-	let canManageTraining = $state(Boolean(data.canManageTraining));
+	let currentUserId: string | null = $derived(data.currentUserId ?? null);
+	let canManageTraining = $derived(Boolean(data.canManageTraining));
+
+	const supabaseClient = supabase as SupabaseClient;
 	const presenceTableTopic = 'presence-table';
 	const presenceDbInfo = {
 		table: 'trainer_registration_view',
@@ -165,8 +168,8 @@
 		actionError = null;
 		try {
 			const data = canManageTraining
-				? await getSlotRegistrations(supabase, slotId)
-				: await getTrainerSlotRegistrations(supabase, slotId);
+				? await getSlotRegistrations(supabaseClient, slotId)
+				: await getTrainerSlotRegistrations(supabaseClient, slotId);
 			registrations = data;
 		} catch (err) {
 			console.error(err);
@@ -188,7 +191,7 @@
 		actionError = null;
 		savingIds = new Set(savingIds).add(memberId);
 		try {
-			await updateTrainerPresence(supabase, selectedSlotId, memberId, present);
+			await updateTrainerPresence(supabaseClient, selectedSlotId, memberId, present);
 			registrations = registrations.map((item) =>
 				item.member_id === memberId ? { ...item, present } : item
 			);
@@ -207,7 +210,7 @@
 		loading = true;
 		loadError = null;
 		try {
-			const rawSlots = await getTrainingSlots(supabase, new Date(), slotRangeDays);
+			const rawSlots = await getTrainingSlots(supabaseClient, new Date(), slotRangeDays);
 			slots = rawSlots
 				.filter((slot) => canManageTraining || slot.trainer_id === currentUserId)
 				.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());

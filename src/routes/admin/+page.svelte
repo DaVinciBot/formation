@@ -31,6 +31,7 @@
 	} from '$lib/services/training';
 	import { triggerTableRefresh } from '$lib/store';
 	import { supabase } from '$lib/supabaseClient';
+	import type { SupabaseClient } from '@supabase/supabase-js';
 	import { onMount } from 'svelte';
 
 	let trainings: TrainingListItem[] = [];
@@ -54,6 +55,8 @@
 	let summaryError: string | null = null;
 	let summarySuccess: string | null = null;
 
+	const supabaseClient = supabase as SupabaseClient;
+
 	const slotRangeDays = 120;
 	const trainingTableTopic = 'admin-trainings';
 	const slotTableTopic = 'admin-slots';
@@ -71,7 +74,7 @@
 	let slotIndex = new Map<number, TrainingSlotListItem>();
 
 	async function searchProfiles(search: string) {
-		const { data, error } = await supabase
+		const { data, error } = await supabaseClient
 			.from('profiles')
 			.select('id, username, avatar_url')
 			.ilike('username', `%${search}%`)
@@ -79,23 +82,27 @@
 
 		if (error) return [];
 
-		return (data ?? []).map((profile: { id: string; username: string | null; avatar_url: string | null }) => ({
-			value: profile.id,
-			text: profile.username || 'Membre',
-			image: profile.avatar_url || undefined
-		}));
+		return (data ?? []).map(
+			(profile: { id: string; username: string | null; avatar_url: string | null }) => ({
+				value: profile.id,
+				text: profile.username || 'Membre',
+				image: profile.avatar_url || undefined
+			})
+		);
 	}
 
 	async function loadProfiles() {
-		const { data, error: profilesError } = await supabase
+		const { data, error: profilesError } = await supabaseClient
 			.from('profiles')
 			.select('id, username, avatar_url')
 			.order('username');
 		if (profilesError) throw profilesError;
-		profiles = (data ?? []).map((profile: { id: string; username: string | null; avatar_url: string | null }) => ({
-			...profile,
-			email: null
-		}));
+		profiles = (data ?? []).map(
+			(profile: { id: string; username: string | null; avatar_url: string | null }) => ({
+				...profile,
+				email: null
+			})
+		);
 	}
 
 	async function loadData() {
@@ -103,8 +110,8 @@
 		error = null;
 		try {
 			const [trainingList, slotList] = await Promise.all([
-				getTrainingList(supabase),
-				getTrainingSlots(supabase, new Date(), slotRangeDays)
+				getTrainingList(supabaseClient),
+				getTrainingSlots(supabaseClient, new Date(), slotRangeDays)
 			]);
 			trainings = trainingList;
 			slots = slotList;
@@ -240,14 +247,14 @@
 
 		try {
 			if (editingTraining) {
-				await updateTraining(supabase, editingTraining.training_id, {
+				await updateTraining(supabaseClient, editingTraining.training_id, {
 					name,
 					category: category as any,
 					description,
 					prerequisites
 				});
 			} else {
-				await createTraining(supabase, {
+				await createTraining(supabaseClient, {
 					name,
 					category: category as any,
 					description,
@@ -315,11 +322,11 @@
 				if (customPrerequisites && customPrerequisites !== basePrerequisites)
 					updates.custom_prerequisites = customPrerequisites;
 
-				await updateTrainingSlot(supabase, editingSlot.slot_id, {
+				await updateTrainingSlot(supabaseClient, editingSlot.slot_id, {
 					...updates
 				});
 			} else {
-				await createTrainingSlot(supabase, {
+				await createTrainingSlot(supabaseClient, {
 					training_id: trainingId,
 					custom_name: customName && customName !== baseName ? customName : null,
 					custom_description:
@@ -373,12 +380,15 @@
 		}
 		summarySending = true;
 		try {
-			const { data, error: invokeError } = await supabase.functions.invoke('discord-summary', {
-				body: {
-					from: summaryFrom,
-					to: summaryTo
+			const { data, error: invokeError } = await supabaseClient.functions.invoke(
+				'discord-summary',
+				{
+					body: {
+						from: summaryFrom,
+						to: summaryTo
+					}
 				}
-			});
+			);
 			if (invokeError) {
 				summaryError = invokeError.message || 'Impossible de déclencher le webhook.';
 				return;
