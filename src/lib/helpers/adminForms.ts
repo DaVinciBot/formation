@@ -160,7 +160,7 @@ export function buildSlotFields({
 			value: slot?.on_site_seats ?? ''
 		},
 		{
-			name: 'Places distanciel',
+			name: 'Places en distanciel',
 			id: 'remote_seats',
 			type: 'number',
 			min: 0,

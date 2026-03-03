@@ -180,7 +180,7 @@
 			registrations = data;
 		} catch (err) {
 			console.error(err);
-			loadError = 'Impossible de charger les inscriptions de ce slot.';
+			loadError = 'Impossible de charger les inscriptions de cette session.';
 			registrations = [];
 		} finally {
 			registrationsLoading = false;
@@ -235,7 +235,7 @@
 			}
 		} catch (err) {
 			console.error(err);
-			loadError = 'Impossible de charger vos créneaux de formation.';
+			loadError = 'Impossible de charger vos sessions de formation.';
 		} finally {
 			loading = false;
 		}
@@ -263,7 +263,7 @@
 			<div
 				class="flex flex-col items-center justify-center gap-3 rounded-[26px] border border-light-blue/20 bg-dark-blue/80 p-10 text-light-blue/70"
 			>
-				<p class="text-center text-sm">Aucun slot ne vous est attribué pour le moment.</p>
+				<p class="text-center text-sm">Aucune session ne vous est attribuée pour le moment.</p>
 			</div>
 		{:else}
 			<div class="grid gap-6 min-[1040px]:grid-cols-[minmax(0,0.38fr)_1fr]">
@@ -280,7 +280,7 @@
 						<div>
 							<h2 class="text-lg font-semibold text-white">Présences</h2>
 							<p class="text-xs text-light-blue/70">
-								{selectedSlot()?.name ?? 'Sélectionnez un slot'}
+								{selectedSlot()?.name ?? 'Sélectionnez une session'}
 							</p>
 						</div>
 						{#if selectedSlot()}
@@ -307,7 +307,7 @@
 						<div
 							class="mt-6 flex flex-col items-center justify-center gap-3 rounded-2xl border border-light-blue/15 bg-blue-gray/15 p-8 text-light-blue/70"
 						>
-							<p class="text-sm">Sélectionnez un slot pour démarrer.</p>
+							<p class="text-sm">Sélectionnez une session pour démarrer.</p>
 						</div>
 					{:else if registrationsLoading}
 						<Spinner
@@ -327,7 +327,7 @@
 							<div
 								class="mt-6 flex flex-col items-center justify-center gap-3 rounded-2xl border border-light-blue/15 bg-blue-gray/15 p-8 text-light-blue/70"
 							>
-								<p class="text-sm">Aucune inscription pour ce slot.</p>
+								<p class="text-sm">Aucune inscription pour cette session.</p>
 							</div>
 						{:else}
 							<RegistrationMobileList
