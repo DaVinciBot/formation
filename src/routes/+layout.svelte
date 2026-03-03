@@ -1,7 +1,6 @@
 <script lang="ts">
 	import favicon from '$lib/assets/favicon.svg';
 	import Topbar from '$lib/components/share/Topbar.svelte';
-	import DevAuthSwitcher from '$lib/components/utils/DevAuthSwitcher.svelte';
 	import { loadUserdata } from '$lib/utils';
 	import './layout.css';
 
@@ -29,7 +28,4 @@
 	<div class="pt-20">
 		{@render children()}
 	</div>
-	{#if import.meta.env.DEV}
-		<DevAuthSwitcher />
-	{/if}
 </div>

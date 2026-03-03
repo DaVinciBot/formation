@@ -6,14 +6,16 @@ const config = {
 	// Consult https://svelte.dev/docs/kit/integrations
 	// for more information about preprocessors
 	preprocess: vitePreprocess(),
-
+	prerender: {
+		entries: ['/formation/presence', '/formation/admin']
+	},
 	kit: {
 		adapter: adapter(),
 		paths: {
-			base: '/formation'
-		},
-	},
-
+			base: '/formation',
+			relative: false
+		}
+	}
 };
 
 export default config;
