@@ -5,7 +5,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 	const { session, user } = await locals.safeGetSession();
 
 	if (!session || !user) {
-		redirect(302, 'unauthorized?redirect=/');
+		redirect(302, '/unauthorized?redirect=/');
 	}
 
 	const { data: accessData, error: accessError } = await locals.supabase.rpc('has_permission', {
@@ -13,7 +13,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 	});
 
 	if (accessError || !accessData) {
-		redirect(302, 'unauthorized?redirect=/');
+		redirect(302, '/unauthorized?redirect=/');
 	}
 
 	const { data: manageData, error: manageError } = await locals.supabase.rpc('has_permission', {
