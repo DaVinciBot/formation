@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { page } from '$app/state';
 	import Table from '$lib/components/admin/Table.svelte';
 	import AttendanceHeader from '$lib/components/attendance/AttendanceHeader.svelte';
 	import AttendanceMainInfo from '$lib/components/attendance/AttendanceMainInfo.svelte';
@@ -59,6 +60,12 @@
 	]);
 
 	const slotRangeDays = 180;
+	const selectedSlotParam = $derived(() => {
+		const value = page.url.searchParams.get('slot');
+		if (!value) return null;
+		const parsed = Number(value);
+		return Number.isFinite(parsed) ? parsed : null;
+	});
 
 	const selectedSlot = $derived(
 		() => slots.find((slot) => slot.slot_id === selectedSlotId) ?? null
@@ -215,7 +222,11 @@
 				.filter((slot) => canManageTraining || slot.trainer_id === currentUserId)
 				.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
 
-			const initialSlot = pickDefaultSlot(slots);
+			const slotParam = selectedSlotParam();
+			const selectedFromParam = slotParam
+				? (slots.find((slot) => slot.slot_id === slotParam) ?? null)
+				: null;
+			const initialSlot = selectedFromParam ?? pickDefaultSlot(slots);
 			selectedSlotId = initialSlot?.slot_id ?? null;
 			if (selectedSlotId) {
 				await loadRegistrations(selectedSlotId);
