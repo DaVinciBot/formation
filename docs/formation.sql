@@ -736,6 +736,8 @@ begin
       perform public.send_training_email('waitlist_promoted', new.slot_id, new.member_id);
     when 'canceled_by_user', 'canceled_by_admin' then
       perform public.send_training_email('registration_confirmed', new.slot_id, new.member_id);
+    else
+       null;
   end case;
   return new;
 end;

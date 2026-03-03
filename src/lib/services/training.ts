@@ -99,7 +99,9 @@ export type UpdateRegistrationPayload = {
 
 export type TrainingSupabaseClient = SupabaseClient;
 
-export async function getTrainingList(supabase: TrainingSupabaseClient): Promise<TrainingListItem[]> {
+export async function getTrainingList(
+	supabase: TrainingSupabaseClient
+): Promise<TrainingListItem[]> {
 	const { data, error } = await supabase.rpc('training_list');
 	if (error) throw error;
 	return data;
@@ -136,9 +138,11 @@ export async function getSlotRegistrations(
 	supabase: TrainingSupabaseClient,
 	slotId: number
 ): Promise<RegistrationListItem[]> {
-	const { data, error } = await supabase.rpc('registration_list', {
-		p_slot_id: slotId
-	});
+	const { data, error } = await supabase
+		.rpc('registration_list', {
+			p_slot_id: slotId
+		})
+		.in('status', ['registered', 'waitlisted']);
 	if (error) throw error;
 	return data;
 }
@@ -153,6 +157,7 @@ export async function getTrainerSlotRegistrations(
 			'slot_id,member_id,date_hour,remote,status,present,to_excuse,feedback,member_username,member_avatar_url'
 		)
 		.eq('slot_id', slotId)
+		.in('status', ['registered', 'waitlisted'])
 		.order('date_hour', { ascending: true });
 	if (error) throw error;
 	return data;
