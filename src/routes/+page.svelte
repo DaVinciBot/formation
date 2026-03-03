@@ -149,6 +149,7 @@
 			onWeekChange={loadWeek}
 			onRegistrationChange={scheduleSilentRefresh}
 			{canManageTraining}
+			{currentUserId}
 			isLoading={loading}
 			errorMessage={error}
 			onRetry={() => loadWeek(currentDate)}
