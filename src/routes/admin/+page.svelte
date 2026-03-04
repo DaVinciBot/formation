@@ -504,7 +504,7 @@
 				class="flex flex-col items-center justify-center gap-3 rounded-[26px] border border-light-blue/20 bg-dark-blue/80 p-10 text-waiting"
 			>
 				<p class="text-sm">{error}</p>
-				<CTAButton type="button" variant="peps" size="sm" onclick={loadData}>Reessayer</CTAButton>
+				<CTAButton type="button" variant="peps" size="sm" onclick={loadData}>Réessayer</CTAButton>
 			</div>
 		{:else}
 			{#if formError}

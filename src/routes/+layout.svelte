@@ -1,5 +1,4 @@
 <script lang="ts">
-	import favicon from '$lib/assets/favicon.svg';
 	import Topbar from '$lib/components/share/Topbar.svelte';
 	import { loadUserdata } from '$lib/utils';
 	import './layout.css';
@@ -12,7 +11,10 @@
 </script>
 
 <svelte:head>
-	<link rel="icon" href={favicon} />
+	<link rel="icon" type="image/png" href="/favicon.png" />
+	<link rel="apple-touch-icon" href="/favicon.png" />
+	<link rel="mask-icon" href="/favicon.png" color="#000000" />
+	<link rel="shortcut icon" href="/favicon.png" />
 
 	<!-- font -->
 	<link rel="preconnect" href="https://fonts.googleapis.com" />
