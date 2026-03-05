@@ -47,6 +47,17 @@ export function buildTrainingFields(training: TrainingListItem | null) {
 	];
 }
 
+export type SlotFieldsConfig = {
+	slot: TrainingSlotListItem | null;
+	trainings: TrainingListItem[];
+	profiles: ProfileOption[];
+	selectedTrainingId?: number | null;
+	searchTrainings: (search: string) => Promise<{ value: number; text: string }[]>;
+	searchProfiles: (search: string) => Promise<{ value: string; text: string; image?: string }[]>;
+	onTrainerChange?: (nextId: string | null) => void;
+	onTrainingChange?: (nextId: number | null) => void;
+};
+
 export function buildSlotFields({
 	slot,
 	trainings,
@@ -56,16 +67,7 @@ export function buildSlotFields({
 	searchProfiles,
 	onTrainerChange,
 	onTrainingChange
-}: {
-	slot: TrainingSlotListItem | null;
-	trainings: TrainingListItem[];
-	profiles: ProfileOption[];
-	selectedTrainingId?: number | null;
-	searchTrainings: (search: string) => Promise<{ value: number; text: string }[]>;
-	searchProfiles: (search: string) => Promise<{ value: string; text: string; image?: string }[]>;
-	onTrainerChange?: (nextId: string | null) => void;
-	onTrainingChange?: (nextId: number | null) => void;
-}) {
+}: SlotFieldsConfig) {
 	const baseTrainingId = selectedTrainingId ?? slot?.training_id ?? null;
 	const baseTraining = baseTrainingId
 		? (trainings.find((training) => training.training_id === baseTrainingId) ?? null)

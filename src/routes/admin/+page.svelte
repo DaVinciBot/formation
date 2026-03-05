@@ -8,7 +8,8 @@
 	import {
 		buildSlotFields,
 		buildTrainingFields,
-		type ProfileOption
+		type ProfileOption,
+		type SlotFieldsConfig
 	} from '$lib/helpers/adminForms';
 	import { categoryOptions, statusOptions } from '$lib/helpers/adminOptions';
 	import {
@@ -152,11 +153,10 @@
 		formError = null;
 		editingSlot = slot;
 		selectedTrainerId = slot?.trainer_id ?? null;
-		const fallbackTrainingId = trainings[0]?.training_id ?? null;
-		selectedTrainingId = slot?.training_id ?? selectedTrainingId ?? fallbackTrainingId;
+		selectedTrainingId = slot?.training_id ?? null;
 		const rebuildSlotFields = (nextTrainingId: number | null) => {
 			const previousFields = slotFields;
-			const nextFields = buildSlotFields({
+			const nextConfig: SlotFieldsConfig = {
 				slot,
 				trainings,
 				profiles,
@@ -170,7 +170,8 @@
 					selectedTrainingId = nextId;
 					rebuildSlotFields(nextId);
 				}
-			});
+			};
+			const nextFields = buildSlotFields(nextConfig);
 
 			const previousById = new Map(
 				previousFields.filter((field) => field?.id).map((field) => [field.id, field])
@@ -189,7 +190,7 @@
 			});
 			selectedTrainingId = nextTrainingId;
 		};
-		slotFields = buildSlotFields({
+		const slotConfig: SlotFieldsConfig = {
 			slot,
 			trainings,
 			profiles,
@@ -203,7 +204,8 @@
 				selectedTrainingId = nextId;
 				rebuildSlotFields(nextId);
 			}
-		});
+		};
+		slotFields = buildSlotFields(slotConfig);
 		showSlotModal = true;
 	}
 
