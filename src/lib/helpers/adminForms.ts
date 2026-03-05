@@ -2,16 +2,54 @@ import { categoryOptions, statusOptions } from '$lib/helpers/adminOptions';
 import { formatParisDatetimeLocal } from '$lib/helpers/parisTime';
 import type { TrainingListItem, TrainingSlotListItem } from '$lib/services/training';
 
+export type SummaryFieldsConfig = {
+	from: string;
+	to: string;
+	intro: string;
+	outro: string;
+};
+
+export function buildSummaryFields({ from, to, intro, outro }: SummaryFieldsConfig) {
+	return [
+		{
+			id: 'summary_from',
+			name: 'Date de début',
+			type: 'date',
+			required: true,
+			value: from
+		},
+		{
+			id: 'summary_to',
+			name: 'Date de fin',
+			type: 'date',
+			required: true,
+			value: to
+		},
+		{
+			id: 'summary_intro',
+			name: 'Introduction',
+			type: 'textarea',
+			placeholder: 'Optionnel',
+			value: intro,
+			wide: true
+		},
+		{
+			id: 'summary_outro',
+			name: 'Conclusion',
+			type: 'textarea',
+			placeholder: 'Optionnel',
+			value: outro,
+			wide: true
+		}
+	];
+}
+
 export type ProfileOption = {
 	id: string;
 	username: string | null;
 	avatar_url: string | null;
 	email: string | null;
 };
-
-export function toDatetimeLocal(dateString: string) {
-	return formatParisDatetimeLocal(dateString);
-}
 
 export function buildTrainingFields(training: TrainingListItem | null) {
 	return [
@@ -141,7 +179,7 @@ export function buildSlotFields({
 			id: 'start',
 			type: 'datetime-local',
 			required: true,
-			value: slot ? toDatetimeLocal(slot.start) : ''
+			value: slot ? formatParisDatetimeLocal(slot.start) : ''
 		},
 		{
 			name: 'Durée (h)',

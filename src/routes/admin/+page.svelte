@@ -7,6 +7,7 @@
 	import CTAButton from '$lib/components/utils/CTAButton.svelte';
 	import {
 		buildSlotFields,
+		buildSummaryFields,
 		buildTrainingFields,
 		type ProfileOption,
 		type SlotFieldsConfig
@@ -52,9 +53,22 @@
 	let selectedTrainingId: number | null = null;
 	let summaryFrom = '';
 	let summaryTo = '';
+	let summaryIntro = '';
+	let summaryOutro = '';
 	let summarySending = false;
 	let summaryError: string | null = null;
-	let summarySuccess: string | null = null;
+	let showSummaryModal = false;
+	let summaryFields: any[] = [];
+
+	const defaultSummaryIntro = `# Formations de la semaine {emoji_dvb}
+:wave: Hello {member_tag} :blue_heart: !
+
+Voici une synthèse des formations prévues du {from} au {to} : {nb} formation{s} prévue{s}, pour s'inscrire ça se passe [**sur le site ouais ouais**](https://davincibot.fr/formation) !`;
+	const defaultSummaryOutro = `:warning: Si tu ne peux plus venir, n'oublie pas de te désinscrire pour libérer la place.
+
+:arrow_right: Si tu souhaites une formation en particulier tu peux faire une demande [**ici**](https://forms.office.com/e/KKeQs53RAu?origin=lprLink)
+
+DVBisous ! :robot:`;
 
 	const supabaseClient = supabase as SupabaseClient;
 
@@ -163,10 +177,10 @@
 				searchTrainings,
 				searchProfiles,
 				selectedTrainingId: nextTrainingId,
-				onTrainerChange: (nextId) => {
+				onTrainerChange: (nextId: string | null) => {
 					selectedTrainerId = nextId;
 				},
-				onTrainingChange: (nextId) => {
+				onTrainingChange: (nextId: number | null) => {
 					selectedTrainingId = nextId;
 					rebuildSlotFields(nextId);
 				}
@@ -197,10 +211,10 @@
 			searchTrainings,
 			searchProfiles,
 			selectedTrainingId,
-			onTrainerChange: (nextId) => {
+			onTrainerChange: (nextId: string | null) => {
 				selectedTrainerId = nextId;
 			},
-			onTrainingChange: (nextId) => {
+			onTrainingChange: (nextId: number | null) => {
 				selectedTrainingId = nextId;
 				rebuildSlotFields(nextId);
 			}
@@ -221,6 +235,24 @@
 		selectedTrainerId = null;
 		selectedTrainingId = null;
 		slotFields = [];
+	}
+
+	function openSummaryModal() {
+		summaryError = null;
+		summaryIntro = defaultSummaryIntro;
+		summaryOutro = defaultSummaryOutro;
+		summaryFields = buildSummaryFields({
+			from: summaryFrom,
+			to: summaryTo,
+			intro: summaryIntro,
+			outro: summaryOutro
+		});
+		showSummaryModal = true;
+	}
+
+	function closeSummaryModal() {
+		showSummaryModal = false;
+		summaryFields = [];
 	}
 
 	async function handleTrainingSubmit(event: Event) {
@@ -368,39 +400,68 @@
 		return rows;
 	}
 
-	async function sendDiscordSummary() {
+	async function sendDiscordSummary(config?: {
+		from?: string;
+		to?: string;
+		intro?: string;
+		outro?: string;
+	}) {
 		summaryError = null;
-		summarySuccess = null;
-		if (!summaryFrom || !summaryTo) {
+		const from = config?.from ?? summaryFrom;
+		const to = config?.to ?? summaryTo;
+		const intro = config?.intro ?? summaryIntro;
+		const outro = config?.outro ?? summaryOutro;
+		if (!from || !to) {
 			summaryError = 'Sélectionnez une date de début et une date de fin.';
 			return;
 		}
-		if (summaryFrom > summaryTo) {
+		if (from > to) {
 			summaryError = 'La date de début doit être avant la date de fin.';
 			return;
 		}
 		summarySending = true;
 		try {
+			const cleanIntro = intro?.trim();
+			const cleanOutro = outro?.trim();
 			const { data, error: invokeError } = await supabaseClient.functions.invoke(
 				'discord-summary',
 				{
 					body: {
-						from: summaryFrom,
-						to: summaryTo
+						from,
+						to,
+						...(cleanIntro ? { intro: cleanIntro } : {}),
+						...(cleanOutro ? { outro: cleanOutro } : {})
 					}
 				}
 			);
 			if (invokeError) {
-				summaryError = invokeError.message || 'Impossible de déclencher le webhook.';
+				summaryError =
+					"Impossible de déclencher le webhook. Assurez-vous qu'il y a des formations prévues dans la période sélectionnée et réessayez.";
 				return;
 			}
-			summarySuccess = `Webhook envoyé (${data?.count ?? 0} slots).`;
 		} catch (err) {
 			console.error(err);
 			summaryError = 'Impossible de déclencher le webhook.';
 		} finally {
 			summarySending = false;
 		}
+	}
+
+	async function handleSummarySubmit(event: Event) {
+		event.preventDefault();
+		const form = document.querySelector('#SummaryModal form') as HTMLFormElement | null;
+		if (!form) return;
+		const formData = new FormData(form);
+		const from = (formData.get('summary_from') || '').toString();
+		const to = (formData.get('summary_to') || '').toString();
+		const intro = (formData.get('summary_intro') || '').toString().trim();
+		const outro = (formData.get('summary_outro') || '').toString().trim();
+		summaryFrom = from;
+		summaryTo = to;
+		summaryIntro = intro;
+		summaryOutro = outro;
+		await sendDiscordSummary({ from, to, intro, outro });
+		if (!summaryError) closeSummaryModal();
 	}
 
 	const trainingActions = [
@@ -454,6 +515,8 @@
 	onMount(() => {
 		if (!summaryFrom) summaryFrom = getParisDateKey(new Date());
 		if (!summaryTo) summaryTo = getParisDateKey(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000));
+		if (!summaryIntro) summaryIntro = defaultSummaryIntro;
+		if (!summaryOutro) summaryOutro = defaultSummaryOutro;
 		void loadData();
 	});
 </script>
@@ -469,52 +532,27 @@
 			onAddSlot={() => openSlotModal()}
 		/>
 
-		<section class="rounded-[28px] border border-light-blue/10 bg-dark-blue/80 p-5 sm:p-6">
-			<div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+		<section class="rounded-[22px] border border-light-blue/10 bg-dark-blue/70 p-4 sm:p-5">
+			<div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 				<div>
-					<h2 class="text-xl font-semibold text-white">Synthèse Discord</h2>
-					<p class="text-sm text-light-blue/70">
-						Envoyez un récap des formations entre deux dates.
-					</p>
+					<h2 class="text-base font-semibold text-white">Discord</h2>
+					<p class="text-xs text-light-blue/60">Synthèse des formations.</p>
 				</div>
-				<div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+				<div class="flex flex-wrap gap-2">
 					<CTAButton
 						type="button"
 						variant={summarySending ? 'disabled' : 'primary'}
 						size="sm"
 						fullWidth={false}
 						disabled={summarySending}
-						onclick={sendDiscordSummary}
+						onclick={openSummaryModal}
 					>
-						{summarySending ? 'Envoi...' : 'Envoyer'}
+						{summarySending ? 'Envoi...' : 'Configurer & envoyer'}
 					</CTAButton>
-				</div>
-			</div>
-			<div class="mt-4 grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
-				<label class="flex flex-col gap-2 text-xs tracking-[0.2em] text-light-blue/60 uppercase">
-					Date de début
-					<input
-						type="date"
-						class="rounded-xl border border-light-blue/20 bg-dark-blue/70 px-3 py-2 text-sm text-white outline-none focus:border-light-blue"
-						bind:value={summaryFrom}
-					/>
-				</label>
-				<label class="flex flex-col gap-2 text-xs tracking-[0.2em] text-light-blue/60 uppercase">
-					Date de fin
-					<input
-						type="date"
-						class="rounded-xl border border-light-blue/20 bg-dark-blue/70 px-3 py-2 text-sm text-white outline-none focus:border-light-blue"
-						bind:value={summaryTo}
-					/>
-				</label>
-				<div class="flex items-end">
-					<p class="text-xs text-light-blue/50">Le message est envoyé sur Discord.</p>
 				</div>
 			</div>
 			{#if summaryError}
 				<p class="mt-3 text-sm text-waiting">{summaryError}</p>
-			{:else if summarySuccess}
-				<p class="mt-3 text-sm text-light-blue/80">{summarySuccess}</p>
 			{/if}
 		</section>
 
@@ -588,5 +626,18 @@
 		fields={trainingFields}
 		onClose={closeTrainingModal}
 		onSubmit={handleTrainingSubmit}
+	/>
+{/if}
+
+{#if showSummaryModal}
+	<CrudForm
+		id="SummaryModal"
+		type="synthese"
+		type_accord="une"
+		action="Envoyer"
+		title="Envoyer la synthèse Discord"
+		fields={summaryFields}
+		onClose={closeSummaryModal}
+		onSubmit={handleSummarySubmit}
 	/>
 {/if}
