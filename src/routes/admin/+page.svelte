@@ -545,8 +545,8 @@
 {#if showSlotModal}
 	<CrudForm
 		id="SlotModal"
-		type="slot"
-		type_accord="un"
+		type="session"
+		type_accord="une"
 		action={editingSlot ? 'Modifier' : 'Ajouter'}
 		fields={slotFields}
 		onClose={closeSlotModal}
