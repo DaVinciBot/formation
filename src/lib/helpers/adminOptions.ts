@@ -8,8 +8,13 @@ export const categoryOptions = [
 	{ value: 'other', text: 'Autre', selected: true }
 ];
 
-export const statusOptions: { value: SlotStatus; text: string; color: string }[] = [
-	{ value: 'draft', text: 'Brouillon', color: 'gray-100' },
+export const statusOptions: {
+	value: SlotStatus;
+	text: string;
+	color: string;
+	selected?: boolean;
+}[] = [
+	{ value: 'draft', text: 'Brouillon', color: 'gray-100', selected: true },
 	{
 		value: 'pending',
 		text: 'Planifiée',

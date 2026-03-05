@@ -137,10 +137,6 @@
 		selectedTrainerId = slot?.trainer_id ?? null;
 		const fallbackTrainingId = trainings[0]?.training_id ?? null;
 		selectedTrainingId = slot?.training_id ?? selectedTrainingId ?? fallbackTrainingId;
-		const getBaseTraining = (trainingId: number | null) => {
-			if (!trainingId) return null;
-			return trainings.find((training) => training.training_id === trainingId) ?? null;
-		};
 		const rebuildSlotFields = (nextTrainingId: number | null) => {
 			const previousFields = slotFields;
 			const nextFields = buildSlotFields({

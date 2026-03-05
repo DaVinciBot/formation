@@ -28,7 +28,7 @@ export function buildTrainingFields(training: TrainingListItem | null) {
 			type: 'select',
 			required: true,
 			options: categoryOptions,
-			value: training?.category || ''
+			value: training?.category
 		},
 		{
 			name: 'Description',
@@ -185,7 +185,7 @@ export function buildSlotFields({
 			type: 'select',
 			required: true,
 			options: statusOptions,
-			value: slot?.status || 'draft'
+			value: slot?.status
 		}
 	];
 }
