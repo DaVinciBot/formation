@@ -52,6 +52,7 @@ export function buildSlotFields({
 	trainings,
 	profiles,
 	selectedTrainingId,
+	searchTrainings,
 	searchProfiles,
 	onTrainerChange,
 	onTrainingChange
@@ -60,6 +61,7 @@ export function buildSlotFields({
 	trainings: TrainingListItem[];
 	profiles: ProfileOption[];
 	selectedTrainingId?: number | null;
+	searchTrainings: (search: string) => Promise<{ value: number; text: string }[]>;
 	searchProfiles: (search: string) => Promise<{ value: string; text: string; image?: string }[]>;
 	onTrainerChange?: (nextId: string | null) => void;
 	onTrainingChange?: (nextId: number | null) => void;
@@ -77,17 +79,19 @@ export function buildSlotFields({
 		{
 			name: 'Formation',
 			id: 'training_id',
-			type: 'select',
+			type: 'autocomplete',
 			required: true,
-			options: trainings.map((training) => ({
-				value: training.training_id,
-				text: training.name
-			})),
-			value: slot?.training_id ?? selectedTrainingId ?? '',
+			placeholder: 'Rechercher une formation',
+			value: baseTraining?.name || '',
+			data: baseTraining?.training_id ?? '',
 			onChange: (event: Event) => {
-				const target = event.target as HTMLSelectElement | null;
-				const nextId = target?.value ? Number(target.value) : null;
-				onTrainingChange?.(Number.isNaN(nextId as number) ? null : nextId);
+				const target = event.target as HTMLInputElement | null;
+				const search = target?.value?.toLowerCase().trim() || '';
+				return search ? searchTrainings(search) : [];
+			},
+			onSelect: (nextId: string) => {
+				const parsedId = Number(nextId);
+				onTrainingChange?.(Number.isNaN(parsedId) ? null : parsedId);
 			}
 		},
 		{

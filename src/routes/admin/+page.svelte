@@ -91,6 +91,23 @@
 		);
 	}
 
+	async function searchTrainings(search: string) {
+		const { data, error } = await supabaseClient
+			.from(trainingDbInfo.table)
+			.select('id, name')
+			.ilike('name', `%${search}%`)
+			.order('name')
+			.range(0, 6);
+
+		if (error) return [];
+
+		return (data ?? []).map((training: { id: number; name: string }) => ({
+			id: training.id,
+			value: training.id,
+			text: training.name
+		}));
+	}
+
 	async function loadProfiles() {
 		const { data, error: profilesError } = await supabaseClient
 			.from('profiles')
@@ -143,6 +160,7 @@
 				slot,
 				trainings,
 				profiles,
+				searchTrainings,
 				searchProfiles,
 				selectedTrainingId: nextTrainingId,
 				onTrainerChange: (nextId) => {
@@ -175,6 +193,7 @@
 			slot,
 			trainings,
 			profiles,
+			searchTrainings,
 			searchProfiles,
 			selectedTrainingId,
 			onTrainerChange: (nextId) => {
@@ -247,7 +266,15 @@
 		const form = document.querySelector('#SlotModal form') as HTMLFormElement | null;
 		if (!form) return;
 		const formData = new FormData(form);
-		const trainingId = Number(formData.get('training_id'));
+		const trainingField = slotFields.find((field) => field.id === 'training_id');
+		const trainingFromField = trainingField?.data ?? null;
+		const trainingFromForm = Number(formData.get('training_id'));
+		const trainingCandidate =
+			selectedTrainingId ??
+			(trainingFromField !== null && trainingFromField !== ''
+				? Number(trainingFromField)
+				: trainingFromForm);
+		const trainingId = Number.isNaN(trainingCandidate) ? 0 : trainingCandidate;
 		const startInput = (formData.get('start') || '').toString();
 		const duration = Number(formData.get('duration_hours'));
 		const status = (formData.get('status') || 'draft') as SlotStatus;
