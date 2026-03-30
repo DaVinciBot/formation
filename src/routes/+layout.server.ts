@@ -1,7 +1,13 @@
 import { buildUserProfile, hasPermission } from '$lib/server/auth';
 import type { LayoutServerLoad } from './$types';
+import { isBrowser } from '@supabase/ssr'
+
 
 export const load: LayoutServerLoad = async ({ locals }) => {
+	  const session = isBrowser()
+		? (await supabase.auth.getSession()).data.session
+		: data.session
+
 	const { session, user } = await locals.safeGetSession();
 
 	if (!user || !session) {
