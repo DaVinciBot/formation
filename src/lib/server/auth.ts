@@ -8,7 +8,10 @@ type ProfileRow = {
 	member_of: { project: { id: number; name: string; debut: string | null } | null }[] | null;
 };
 
-export async function hasPermission(supabase: SupabaseClient, permission: string): Promise<boolean> {
+export async function hasPermission(
+	supabase: SupabaseClient,
+	permission: string
+): Promise<boolean> {
 	const { data, error } = await supabase.rpc('has_permission', {
 		p_permission: permission
 	});
@@ -20,7 +23,7 @@ export async function hasPermission(supabase: SupabaseClient, permission: string
 export async function buildUserProfile(supabase: SupabaseClient, user: User) {
 	const { data, error } = await supabase
 		.from('profiles')
-		.select('username,avatar_url,role,permissions, member_of(project(id, name, debut))')
+		.select('username, avatar_url, permissions, member_of(project(id, name, debut))')
 		.eq('id', user.id)
 		.single<ProfileRow>();
 
@@ -39,14 +42,17 @@ export async function buildUserProfile(supabase: SupabaseClient, user: User) {
 		name: data.username || (user.email ? user.email.split('@')[0] : ''),
 		avatar,
 		id: user.id,
-		projects: ((data.member_of ?? [])
-			.map((member) => member.project)
-			.filter(Boolean) as { id: number; name: string; debut: string | null }[]).map((project) => ({
+		projects: (
+			(data.member_of ?? []).map((member) => member.project).filter(Boolean) as {
+				id: number;
+				name: string;
+				debut: string | null;
+			}[]
+		).map((project) => ({
 			id: project.id,
 			name: project.name,
 			debut: project.debut ?? '0000-00-00'
 		})),
-		role: data.role,
 		permissions,
 		allProjects: null as { value: number; name: string; debut: string }[] | null
 	};
