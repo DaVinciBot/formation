@@ -1,6 +1,6 @@
+import { browser } from '$app/environment';
 import { env } from '$env/dynamic/public';
 import { createBrowserClient } from '@supabase/ssr';
-import { browser } from '$app/environment';
 
 /** @type {import('@supabase/supabase-js').SupabaseClient | null} */
 let browserClient = null;

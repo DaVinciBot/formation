@@ -1,7 +1,8 @@
 import { buildUserProfile, hasPermission } from '$lib/server/auth';
 import type { LayoutServerLoad } from './$types';
 
-export const load: LayoutServerLoad = async ({ locals: { safeGetSession, supabase } }) => {
+export const load: LayoutServerLoad = async ({ locals }) => {
+	const { safeGetSession, supabase } = locals as any;
 	const { session, user } = await safeGetSession();
 
 	if (!user || !session) {
@@ -20,6 +21,8 @@ export const load: LayoutServerLoad = async ({ locals: { safeGetSession, supabas
 		hasPermission(supabase, 'access_training'),
 		hasPermission(supabase, 'manage_training')
 	]);
+
+	(locals as any).permissions = permissions;
 
 	return {
 		session,
