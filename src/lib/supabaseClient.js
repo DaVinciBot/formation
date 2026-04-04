@@ -1,5 +1,5 @@
 import { browser } from '$app/environment';
-import { env } from '$env/dynamic/public';
+import { PUBLIC_SUPABASE_PUBLISHABLE_KEY, PUBLIC_SUPABASE_URL } from '$env/static/public';
 import { createBrowserClient } from '@supabase/ssr';
 
 /** @type {import('@supabase/supabase-js').SupabaseClient | null} */
@@ -10,17 +10,14 @@ export function getSupabaseBrowserClient() {
 		throw new Error('Supabase browser client can only be used in the browser.');
 	}
 
-	const supabaseUrl = env.PUBLIC_SUPABASE_URL;
-	const supabasePublishableKey = env.PUBLIC_SUPABASE_PUBLISHABLE_KEY;
-
-	if (!supabaseUrl || !supabasePublishableKey) {
+	if (!PUBLIC_SUPABASE_URL || !PUBLIC_SUPABASE_PUBLISHABLE_KEY) {
 		throw new Error(
 			'Missing PUBLIC_SUPABASE_URL or PUBLIC_SUPABASE_PUBLISHABLE_KEY environment variables.'
 		);
 	}
 
 	if (!browserClient) {
-		browserClient = createBrowserClient(supabaseUrl, supabasePublishableKey);
+		browserClient = createBrowserClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_PUBLISHABLE_KEY);
 	}
 
 	return browserClient;
