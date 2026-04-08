@@ -4,35 +4,11 @@ import { userdata } from '$lib/store';
  * @param {Record<string, unknown> | null} userFromServer
  */
 export async function loadUserdata(userFromServer = null) {
-	const CACHE_KEY = 'userdata_cache';
-	const CACHE_DURATION = 60 * 60 * 1000; // 1 hour in ms
-
-	// Try to load from cache
-	try {
-		const raw = localStorage.getItem(CACHE_KEY);
-		const cached = raw ? JSON.parse(raw) : null;
-		if (
-			cached &&
-			cached.timestamp &&
-			Date.now() - cached.timestamp < CACHE_DURATION &&
-			cached.user &&
-			cached.user.permissions !== undefined
-		) {
-			userdata.set(cached.user);
-			return;
-		}
-	} catch (e) {
-		// Ignore cache errors
+	if (!userFromServer) {
+		userdata.set(null);
+		return;
 	}
-
-	if (!userFromServer) return;
-
 	userdata.set(userFromServer);
-	try {
-		localStorage.setItem(CACHE_KEY, JSON.stringify({ user: userFromServer, timestamp: Date.now() }));
-	} catch (e) {
-		// Ignore cache errors
-	}
 }
 
 export const statusText = {

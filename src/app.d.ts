@@ -14,7 +14,6 @@ type UserProfile = {
 	avatar: string;
 	id: string;
 	projects: UserProject[];
-	role: string | null;
 	permissions: string[];
 	allProjects: { value: number; name: string; debut: string }[] | null;
 };
