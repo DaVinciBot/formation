@@ -26,7 +26,7 @@
 </svelte:head>
 
 <div class="min-h-screen min-w-screen bg-dark-blue font-['Almarai'] text-white antialiased">
-	<Topbar />
+	<Topbar loginRedirect="/formation" />
 	<div class="pt-20">
 		{@render children()}
 	</div>
