@@ -9,7 +9,7 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
 	}
 
 	const { data, error } = await locals.supabase.rpc('has_permission', {
-		p_permission: 'manage_training'
+		p_permission: 'edit_trainings'
 	});
 
 	if (error || !data) {

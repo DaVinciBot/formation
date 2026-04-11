@@ -10,14 +10,14 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
 		redirect(302, `/auth/login?redirect=${encodeURIComponent(url.href)}`);
 	}
 
-	const canAccessTraining = await hasPermission(supabase, 'access_training');
+	const canAccessTraining = await hasPermission(supabase, 'view_trainings');
 	if (!canAccessTraining) {
 		redirect(302, `/unauthorized?redirect=${encodeURIComponent(url.href)}`);
 	}
 
 	const [{ userProfile, permissions }, canManageTraining] = await Promise.all([
 		buildUserProfile(supabase, user),
-		hasPermission(supabase, 'manage_training')
+		hasPermission(supabase, 'edit_trainings')
 	]);
 
 	(locals as any).permissions = permissions;
