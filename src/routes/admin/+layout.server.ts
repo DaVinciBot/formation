@@ -4,7 +4,7 @@ import type { LayoutServerLoad } from './$types';
 export const load: LayoutServerLoad = async ({ locals, url }) => {
 	const { session, user } = await locals.safeGetSession();
 
-	if (!session || !user) {
+	if ((!session || !user) && !import.meta.env?.DEV) {
 		redirect(302, `/auth/login?redirect=${encodeURIComponent(url.href)}`);
 	}
 

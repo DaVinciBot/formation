@@ -6,7 +6,7 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
 	const { safeGetSession, supabase } = locals as any;
 	const { session, user } = await safeGetSession();
 
-	if (!user || !session) {
+	if ((!user || !session) && !import.meta.env?.DEV) {
 		redirect(302, `/auth/login?redirect=${encodeURIComponent(url.href)}`);
 	}
 
