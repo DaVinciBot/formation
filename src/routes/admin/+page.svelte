@@ -449,6 +449,7 @@ DVBisous ! :robot:`;
 
 	async function handleSummarySubmit(event: Event) {
 		event.preventDefault();
+		if (summarySending) return;
 		const form = document.querySelector('#SummaryModal form') as HTMLFormElement | null;
 		if (!form) return;
 		const formData = new FormData(form);
@@ -636,6 +637,8 @@ DVBisous ! :robot:`;
 		type_accord="une"
 		action="Envoyer"
 		title="Envoyer la synthèse Discord"
+		submitting={summarySending}
+		submitLoadingLabel="Envoi..."
 		fields={summaryFields}
 		onClose={closeSummaryModal}
 		onSubmit={handleSummarySubmit}
