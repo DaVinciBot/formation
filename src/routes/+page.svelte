@@ -1,13 +1,18 @@
 <script lang="ts">
-	import { browser } from '$app/environment';
-	import { goto, invalidateAll } from '$app/navigation';
 	import Calendar, { type CalendarSlot } from '$lib/components/training/Calendar.svelte';
 	import type { TrainingCardStatus } from '$lib/components/training/TrainingCard.svelte';
 	import { getWeekStart } from '$lib/components/training/helpers/calendar';
-	import { type RegistrationStatus, type TrainingSlotListItem } from '$lib/services/training';
+	import {
+		getTrainingSlots,
+		type RegistrationStatus,
+		type TrainingSlotListItem
+	} from '$lib/services/training';
+	import { supabase } from '$lib/supabaseClient';
+	import type { RealtimeChannel, SupabaseClient } from '@supabase/supabase-js';
+	import { onDestroy, onMount } from 'svelte';
 	import { SvelteMap } from 'svelte/reactivity';
 
-	let { data } = $props<{ data: import('./$types').PageData }>();
+	let { data } = $props();
 	const currentUserId: string | null = $derived(data.userId ?? null);
 	let canManageTraining = $derived(Boolean(data.canManageTraining));
 
@@ -16,6 +21,10 @@
 	let error: string | null = $state(null);
 	let currentDate = $state(new Date());
 	const WEEK_STORAGE_KEY = 'training_calendar_week_start';
+	let refreshTimeout: ReturnType<typeof setTimeout> | null = null;
+	let realtimeChannel: RealtimeChannel | null = null;
+
+	const supabaseClient: SupabaseClient = supabase as SupabaseClient;
 
 	function resolveCardStatus(
 		slot: TrainingSlotListItem,
@@ -33,6 +42,14 @@
 		return isFull && canManageTraining ? 'complete' : 'free';
 	}
 
+	function readStoredWeekStart(): Date | null {
+		if (typeof localStorage === 'undefined') return null;
+		const raw = localStorage.getItem(WEEK_STORAGE_KEY);
+		if (!raw) return null;
+		const parsed = new Date(raw);
+		return Number.isNaN(parsed.getTime()) ? null : parsed;
+	}
+
 	function storeWeekStart(date: Date) {
 		if (typeof localStorage === 'undefined') return;
 		try {
@@ -42,55 +59,86 @@
 		}
 	}
 
-	async function loadWeek(date: Date) {
-		if (!browser) return;
+	function scheduleSilentRefresh() {
+		if (refreshTimeout) clearTimeout(refreshTimeout);
+		refreshTimeout = setTimeout(() => {
+			void loadWeek(currentDate, { silent: true });
+		}, 250);
+	}
+
+	async function loadWeek(date: Date, options: { silent?: boolean } = {}) {
 		currentDate = date;
 		const weekStart = getWeekStart(date);
-		if (Number.isNaN(weekStart.getTime())) return;
-		loading = true;
-		error = null;
+		if (!options.silent) {
+			loading = true;
+			error = null;
+		}
 		storeWeekStart(weekStart);
-		const targetWeek = weekStart.toISOString();
-		const currentWeek = data.weekStart ?? '';
-		if (currentWeek === targetWeek) {
-			await invalidateAll();
-		} else {
-			await goto(`/?week=${encodeURIComponent(targetWeek)}`, {
-				keepFocus: true,
-				replaceState: true,
-				noScroll: true
+		try {
+			const rawSlots = await getTrainingSlots(supabaseClient, weekStart, 7);
+			const registrationStatuses = new SvelteMap<number, RegistrationStatus>();
+			if (currentUserId && rawSlots.length > 0) {
+				const slotIds = rawSlots.map((slot) => slot.slot_id);
+				const { data: registrationData, error: registrationError } = await supabaseClient
+					.from('registration')
+					.select('slot_id,status,remote')
+					.eq('member_id', currentUserId)
+					.in('slot_id', slotIds);
+				if (registrationError) throw registrationError;
+				for (const registration of registrationData ?? []) {
+					if (registration.status === 'registered' || registration.status === 'waitlisted') {
+						registrationStatuses.set(registration.slot_id, registration.status);
+					}
+				}
+			}
+			const visibleSlots = rawSlots.filter((slot) => {
+				if (slot.status !== 'canceled' && slot.status !== 'postponed' && slot.status !== 'draft')
+					return true;
+				if (canManageTraining) return true;
+				const registrationStatus = registrationStatuses.get(slot.slot_id);
+				return registrationStatus === 'registered' || registrationStatus === 'waitlisted';
 			});
+			slots = visibleSlots.map((slot) => ({
+				...slot,
+				cardStatus: resolveCardStatus(slot, registrationStatuses.get(slot.slot_id), currentUserId)
+			}));
+		} catch (err) {
+			console.error(err);
+			if (!options.silent) {
+				slots = [];
+				error = 'Impossible de charger le calendrier pour cette semaine.';
+			}
+		} finally {
+			if (!options.silent) {
+				loading = false;
+			}
 		}
 	}
 
-	$effect(() => {
-		if (data.weekStart) {
-			const parsed = new Date(data.weekStart);
-			if (!Number.isNaN(parsed.getTime())) currentDate = parsed;
-		}
-		error = data.errorMessage ?? null;
+	function setupRealtime() {
+		realtimeChannel = supabaseClient
+			.channel('training_calendar')
+			.on('postgres_changes', { event: '*', schema: 'public', table: 'registration' }, () =>
+				scheduleSilentRefresh()
+			)
+			.on('postgres_changes', { event: '*', schema: 'public', table: 'training_slot' }, () =>
+				scheduleSilentRefresh()
+			)
+			.subscribe();
+	}
+
+	onMount(async () => {
+		const savedWeek = readStoredWeekStart();
+		void loadWeek(savedWeek ?? new Date());
+		setupRealtime();
 	});
 
-	$effect(() => {
-		const registrationStatuses = new SvelteMap<number, RegistrationStatus>();
-		for (const registration of data.registrationStatuses ?? []) {
-			if (registration.status === 'registered' || registration.status === 'waitlisted') {
-				registrationStatuses.set(registration.slot_id, registration.status);
-			}
+	onDestroy(() => {
+		if (refreshTimeout) clearTimeout(refreshTimeout);
+		if (realtimeChannel) {
+			realtimeChannel.unsubscribe();
+			realtimeChannel = null;
 		}
-		const rawSlots = data.slots ?? [];
-		const visibleSlots = rawSlots.filter((slot: TrainingSlotListItem) => {
-			if (slot.status !== 'canceled' && slot.status !== 'postponed' && slot.status !== 'draft')
-				return true;
-			if (canManageTraining) return true;
-			const registrationStatus = registrationStatuses.get(slot.slot_id);
-			return registrationStatus === 'registered' || registrationStatus === 'waitlisted';
-		});
-		slots = visibleSlots.map((slot: TrainingSlotListItem) => ({
-			...slot,
-			cardStatus: resolveCardStatus(slot, registrationStatuses.get(slot.slot_id), currentUserId)
-		}));
-		loading = false;
 	});
 </script>
 
@@ -100,7 +148,7 @@
 			{slots}
 			initialDate={currentDate}
 			onWeekChange={loadWeek}
-			onRegistrationChange={() => loadWeek(currentDate)}
+			onRegistrationChange={scheduleSilentRefresh}
 			{canManageTraining}
 			{currentUserId}
 			isLoading={loading}
