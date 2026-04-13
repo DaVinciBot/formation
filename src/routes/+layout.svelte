@@ -15,6 +15,15 @@
 
 	onMount(async () => {
 		try {
+			const serverSession = data?.session;
+			if (serverSession?.access_token && serverSession?.refresh_token) {
+				await supabaseClient.auth.setSession({
+					access_token: serverSession.access_token,
+					refresh_token: serverSession.refresh_token
+				});
+				return;
+			}
+
 			const { data: current, error } = await supabaseClient.auth.getSession();
 			if (error) {
 				await supabaseClient.auth.signOut({ scope: 'local' });
