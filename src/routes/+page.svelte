@@ -10,6 +10,7 @@
 	import { supabase } from '$lib/supabaseClient';
 	import type { RealtimeChannel, SupabaseClient } from '@supabase/supabase-js';
 	import { onDestroy, onMount } from 'svelte';
+	import { SvelteMap } from 'svelte/reactivity';
 
 	let { data } = $props();
 	const currentUserId: string | null = $derived(data.userId ?? null);
@@ -53,7 +54,7 @@
 		if (typeof localStorage === 'undefined') return;
 		try {
 			localStorage.setItem(WEEK_STORAGE_KEY, date.toISOString());
-		} catch (err) {
+		} catch {
 			// ignore storage issues
 		}
 	}
@@ -75,7 +76,7 @@
 		storeWeekStart(weekStart);
 		try {
 			const rawSlots = await getTrainingSlots(supabaseClient, weekStart, 7);
-			const registrationStatuses = new Map<number, RegistrationStatus>();
+			const registrationStatuses = new SvelteMap<number, RegistrationStatus>();
 			if (currentUserId && rawSlots.length > 0) {
 				const slotIds = rawSlots.map((slot) => slot.slot_id);
 				const { data: registrationData, error: registrationError } = await supabaseClient

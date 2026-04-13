@@ -7,8 +7,8 @@ CREATE TYPE "training_category" AS ENUM (
 );
 
 CREATE TYPE "permission" AS ENUM (
-  'manage_training',
-  'access_training'
+  'view_trainings',
+  'edit_trainings'
 );
 
 CREATE TYPE "slot_status" AS ENUM (
@@ -92,7 +92,7 @@ create table public.profiles (
   id uuid not null,
   username text null default ''::text,
   avatar_url text null default 'https://avatar.iran.liara.run/public/boy'::text,
-  permissions permission[] not null default '{access_training}'::permission[],
+  permissions permission[] not null default '{view_trainings}'::permission[],
   constraint profiles_pkey primary key (id),
   constraint profiles_id_fkey foreign KEY (id) references auth.users (id) on update CASCADE on delete CASCADE
 ) TABLESPACE pg_default;
@@ -257,7 +257,7 @@ begin
   ) reg on true
   where ts.start >= p_from
     and (p_to is null or ts.start < p_to)
-    and (public.has_permission('access_training') or public.has_permission('manage_training'))
+    and (public.has_permission('view_trainings') or public.has_permission('edit_trainings'))
   order by ts.start;
 end;
 $$;
@@ -294,7 +294,7 @@ security definer
 set search_path = public
 as $$
 begin
-  if coalesce(auth.role(), '') <> 'service_role' and not public.has_permission('access_training') and not public.has_permission('manage_training') then
+  if coalesce(auth.role(), '') <> 'service_role' and not public.has_permission('view_trainings') and not public.has_permission('edit_trainings') then
     raise exception 'Not authorized';
   end if;
   perform public.sync_training_slot_statuses();
@@ -396,7 +396,7 @@ begin
   return query
   select p.id
   from public.profiles p
-  where 'manage_training'::permission = any (p.permissions);
+  where 'edit_trainings'::permission = any (p.permissions);
 end;
 $$;
 
@@ -433,7 +433,7 @@ begin
     select 1
     from public.training_slot ts
     where ts.id = p_slot_id
-      and (ts.trainer_id = auth.uid() or public.has_permission('manage_training'))
+      and (ts.trainer_id = auth.uid() or public.has_permission('edit_trainings'))
   ) then
     raise exception 'Not authorized';
   end if;
@@ -499,7 +499,7 @@ begin
     raise exception 'Not authenticated';
   end if;
 
-  if not (public.has_permission('access_training') or public.has_permission('manage_training')) then
+  if not (public.has_permission('view_trainings') or public.has_permission('edit_trainings')) then
     raise exception 'Not authorized';
   end if;
 
@@ -857,29 +857,29 @@ alter table public.training_email_log enable row level security;
 create policy training_read on public.training
 for select
 to authenticated
-using (public.has_permission('access_training') or public.has_permission('manage_training'));
+using (public.has_permission('view_trainings') or public.has_permission('edit_trainings'));
 
 create policy training_write on public.training
 for all
 to authenticated
-using (public.has_permission('manage_training'))
-with check (public.has_permission('manage_training'));
+using (public.has_permission('edit_trainings'))
+with check (public.has_permission('edit_trainings'));
 
 create policy training_slot_read on public.training_slot
 for select
 to authenticated
-using (public.has_permission('access_training') or public.has_permission('manage_training'));
+using (public.has_permission('view_trainings') or public.has_permission('edit_trainings'));
 
 create policy training_slot_write on public.training_slot
 for all
 to authenticated
-using (public.has_permission('manage_training'))
-with check (public.has_permission('manage_training'));
+using (public.has_permission('edit_trainings'))
+with check (public.has_permission('edit_trainings'));
 
 create policy registration_read on public.registration
 for select
 to authenticated
-using (member_id = auth.uid() or public.has_permission('manage_training'));
+using (member_id = auth.uid() or public.has_permission('edit_trainings'));
 
 create policy registration_read_for_trainer on public.registration
 for select
@@ -896,23 +896,23 @@ using (
 create policy registration_insert on public.registration
 for insert
 to authenticated
-with check (member_id = auth.uid() and public.has_permission('access_training'));
+with check (member_id = auth.uid() and public.has_permission('view_trainings'));
 
 create policy registration_update on public.registration
 for update
 to authenticated
-using (member_id = auth.uid() or public.has_permission('manage_training'))
-with check (member_id = auth.uid() or public.has_permission('manage_training'));
+using (member_id = auth.uid() or public.has_permission('edit_trainings'))
+with check (member_id = auth.uid() or public.has_permission('edit_trainings'));
 
 create policy registration_delete on public.registration
 for delete
 to authenticated
-using (member_id = auth.uid() or public.has_permission('manage_training'));
+using (member_id = auth.uid() or public.has_permission('edit_trainings'));
 
 create policy profiles_read_for_training on public.profiles
 for select
 to authenticated
-using (public.has_permission('manage_training'));
+using (public.has_permission('edit_trainings'));
 
 create policy profiles_read_for_trainer on public.profiles
 for select
@@ -930,14 +930,14 @@ using (
 create policy training_email_log_read on public.training_email_log
 for select
 to authenticated
-using (public.has_permission('manage_training'));
+using (public.has_permission('edit_trainings'));
 
 create policy storage_training_images_read on storage.objects
 for select
 to authenticated
 using (
   bucket_id = 'training-images'
-  and (public.has_permission('access_training') or public.has_permission('manage_training'))
+  and (public.has_permission('view_trainings') or public.has_permission('edit_trainings'))
 );
 
 create policy storage_training_images_insert on storage.objects
@@ -945,7 +945,7 @@ for insert
 to authenticated
 with check (
   bucket_id = 'training-images'
-  and public.has_permission('manage_training')
+  and public.has_permission('edit_trainings')
 );
 
 create policy storage_training_images_update on storage.objects
@@ -953,11 +953,11 @@ for update
 to authenticated
 using (
   bucket_id = 'training-images'
-  and public.has_permission('manage_training')
+  and public.has_permission('edit_trainings')
 )
 with check (
   bucket_id = 'training-images'
-  and public.has_permission('manage_training')
+  and public.has_permission('edit_trainings')
 );
 
 create policy storage_training_images_delete on storage.objects
@@ -965,6 +965,6 @@ for delete
 to authenticated
 using (
   bucket_id = 'training-images'
-  and public.has_permission('manage_training')
+  and public.has_permission('edit_trainings')
 );
 

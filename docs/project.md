@@ -289,7 +289,7 @@ liste + filtre : à venir / passées / annulées
 ### Modules transverses
 
 - Auth email/password.
-- Gestion des permissions (access_training/manage_training).
+- Gestion des permissions (view_trainings/edit_trainings).
 - Export CSV (inscriptions, présences, stats).
 
 ## Droits & rôles
