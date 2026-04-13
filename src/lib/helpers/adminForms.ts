@@ -5,11 +5,10 @@ import type { TrainingListItem, TrainingSlotListItem } from '$lib/services/train
 export type SummaryFieldsConfig = {
 	from: string;
 	to: string;
-	intro: string;
-	outro: string;
+	text: string;
 };
 
-export function buildSummaryFields({ from, to, intro, outro }: SummaryFieldsConfig) {
+export function buildSummaryFields({ from, to, text }: SummaryFieldsConfig) {
 	return [
 		{
 			id: 'summary_from',
@@ -26,19 +25,11 @@ export function buildSummaryFields({ from, to, intro, outro }: SummaryFieldsConf
 			value: to
 		},
 		{
-			id: 'summary_intro',
-			name: 'Introduction',
+			id: 'summary_text',
+			name: 'Texte',
 			type: 'textarea',
 			placeholder: 'Optionnel',
-			value: intro,
-			wide: true
-		},
-		{
-			id: 'summary_outro',
-			name: 'Conclusion',
-			type: 'textarea',
-			placeholder: 'Optionnel',
-			value: outro,
+			value: text,
 			wide: true
 		}
 	];

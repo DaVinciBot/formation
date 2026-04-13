@@ -53,18 +53,18 @@
 	let selectedTrainingId: number | null = null;
 	let summaryFrom = '';
 	let summaryTo = '';
-	let summaryIntro = '';
-	let summaryOutro = '';
+	let summaryText = '';
 	let summarySending = false;
 	let summaryError: string | null = null;
 	let showSummaryModal = false;
 	let summaryFields: any[] = [];
 
-	const defaultSummaryIntro = `# Formations de la semaine {emoji_dvb}
+	const defaultSummaryText = `# Formations de la semaine {emoji_dvb}
 :wave: Hello {member_tag} :blue_heart: !
 
-Voici une synthèse des formations prévues du {from} au {to} : {nb} formation{s} prévue{s}, pour s'inscrire ça se passe [**sur le site ouais ouais**](https://davincibot.fr/formation) !`;
-	const defaultSummaryOutro = `:warning: Si tu ne peux plus venir, n'oublie pas de te désinscrire pour libérer la place.
+Voici une synthèse des formations prévues du {from} au {to} : {nb} formation{s} prévue{s}, pour s'inscrire ça se passe [**sur le site ouais ouais**](https://davincibot.fr/formation) !
+
+:warning: Si tu ne peux plus venir, n'oublie pas de te désinscrire pour libérer la place.
 
 :arrow_right: Si tu souhaites une formation en particulier tu peux faire une demande [**ici**](https://forms.office.com/e/KKeQs53RAu?origin=lprLink)
 
@@ -239,13 +239,11 @@ DVBisous ! :robot:`;
 
 	function openSummaryModal() {
 		summaryError = null;
-		summaryIntro = defaultSummaryIntro;
-		summaryOutro = defaultSummaryOutro;
+		summaryText = defaultSummaryText;
 		summaryFields = buildSummaryFields({
 			from: summaryFrom,
 			to: summaryTo,
-			intro: summaryIntro,
-			outro: summaryOutro
+			text: summaryText
 		});
 		showSummaryModal = true;
 	}
@@ -403,14 +401,12 @@ DVBisous ! :robot:`;
 	async function sendDiscordSummary(config?: {
 		from?: string;
 		to?: string;
-		intro?: string;
-		outro?: string;
+		text?: string;
 	}) {
 		summaryError = null;
 		const from = config?.from ?? summaryFrom;
 		const to = config?.to ?? summaryTo;
-		const intro = config?.intro ?? summaryIntro;
-		const outro = config?.outro ?? summaryOutro;
+		const text = config?.text ?? summaryText;
 		if (!from || !to) {
 			summaryError = 'Sélectionnez une date de début et une date de fin.';
 			return;
@@ -421,16 +417,14 @@ DVBisous ! :robot:`;
 		}
 		summarySending = true;
 		try {
-			const cleanIntro = intro?.trim();
-			const cleanOutro = outro?.trim();
+			const cleanText = text?.trim();
 			const { data, error: invokeError } = await supabaseClient.functions.invoke(
 				'discord-summary',
 				{
 					body: {
 						from,
 						to,
-						...(cleanIntro ? { intro: cleanIntro } : {}),
-						...(cleanOutro ? { outro: cleanOutro } : {})
+						...(cleanText ? { text: cleanText } : {})
 					}
 				}
 			);
@@ -455,13 +449,11 @@ DVBisous ! :robot:`;
 		const formData = new FormData(form);
 		const from = (formData.get('summary_from') || '').toString();
 		const to = (formData.get('summary_to') || '').toString();
-		const intro = (formData.get('summary_intro') || '').toString().trim();
-		const outro = (formData.get('summary_outro') || '').toString().trim();
+		const text = (formData.get('summary_text') || '').toString().trim();
 		summaryFrom = from;
 		summaryTo = to;
-		summaryIntro = intro;
-		summaryOutro = outro;
-		await sendDiscordSummary({ from, to, intro, outro });
+		summaryText = text;
+		await sendDiscordSummary({ from, to, text });
 		if (!summaryError) closeSummaryModal();
 	}
 
@@ -516,8 +508,7 @@ DVBisous ! :robot:`;
 	onMount(() => {
 		if (!summaryFrom) summaryFrom = getParisDateKey(new Date());
 		if (!summaryTo) summaryTo = getParisDateKey(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000));
-		if (!summaryIntro) summaryIntro = defaultSummaryIntro;
-		if (!summaryOutro) summaryOutro = defaultSummaryOutro;
+		if (!summaryText) summaryText = defaultSummaryText;
 		void loadData();
 	});
 </script>
