@@ -1,12 +1,35 @@
 <script lang="ts">
 	import Topbar from '$lib/components/share/Topbar.svelte';
+	import { supabase } from '$lib/supabaseClient';
 	import { loadUserdata } from '$lib/utils';
+	import { onMount } from 'svelte';
 	import './layout.css';
 
 	let { data, children } = $props();
 
 	$effect(() => {
 		void loadUserdata(data.userProfile);
+	});
+
+	const supabaseClient = supabase as any;
+
+	onMount(async () => {
+		try {
+			const { data: current } = await supabaseClient.auth.getSession();
+			if (current?.session?.access_token) return;
+			const response = await fetch('/auth/session');
+			if (!response.ok) return;
+			const payload = await response.json();
+			const session = payload?.session;
+			if (session?.access_token && session?.refresh_token) {
+				await supabaseClient.auth.setSession({
+					access_token: session.access_token,
+					refresh_token: session.refresh_token
+				});
+			}
+		} catch (error) {
+			console.error('[auth] unable to sync session', error);
+		}
 	});
 </script>
 
