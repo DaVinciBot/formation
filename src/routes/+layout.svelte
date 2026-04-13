@@ -15,7 +15,10 @@
 
 	onMount(async () => {
 		try {
-			const { data: current } = await supabaseClient.auth.getSession();
+			const { data: current, error } = await supabaseClient.auth.getSession();
+			if (error) {
+				await supabaseClient.auth.signOut({ scope: 'local' });
+			}
 			if (current?.session?.access_token) return;
 			const response = await fetch('/auth/session');
 			if (!response.ok) return;
@@ -26,6 +29,8 @@
 					access_token: session.access_token,
 					refresh_token: session.refresh_token
 				});
+			} else {
+				await supabaseClient.auth.signOut({ scope: 'local' });
 			}
 		} catch (error) {
 			console.error('[auth] unable to sync session', error);
