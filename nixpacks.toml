@@ -4,10 +4,10 @@ buildImage = 'ghcr.io/railwayapp/nixpacks:latest'
   nixpkgsArchive = '51ad838b03a05b1de6f9f2a0fffecee64a9788ee'
 
 [phases.install]
-cmds = ["npm ci --omit-dev"]
+cmds = ["corepack enable", "corepack prepare pnpm@10.33.0 --activate", "pnpm install --frozen-lockfile"]
 
 [phases.build]
-cmds = ["npm run build"]
+cmds = ["pnpm build"]
 
 [start]
 cmd = "node build"
