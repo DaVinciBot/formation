@@ -1,0 +1,67 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
+
+afterEach(() => {
+	vi.resetModules();
+	vi.clearAllMocks();
+});
+
+async function loadModule({ browser, url, key, client }) {
+	vi.resetModules();
+
+	vi.doMock('$app/environment', () => ({ browser }));
+	vi.doMock('$env/dynamic/public', () => ({
+		env: {
+			PUBLIC_SUPABASE_URL: url,
+			PUBLIC_SUPABASE_PUBLISHABLE_KEY: key
+		}
+	}));
+
+	const createBrowserClient = vi.fn(() => client);
+	vi.doMock('@supabase/ssr', () => ({ createBrowserClient }));
+
+	const mod = await import('../../src/lib/supabaseClient.js');
+	return { mod, createBrowserClient };
+}
+
+describe('supabase browser client', () => {
+	it('throws when client is requested outside browser', async () => {
+		const { mod } = await loadModule({
+			browser: false,
+			url: 'https://example.supabase.co',
+			key: 'pk-test',
+			client: {}
+		});
+
+		expect(() => mod.getSupabaseBrowserClient()).toThrow(
+			'Supabase browser client can only be used in the browser.'
+		);
+	});
+
+	it('throws when public env variables are missing', async () => {
+		const { mod } = await loadModule({ browser: true, url: '', key: '', client: {} });
+
+		expect(() => mod.getSupabaseBrowserClient()).toThrow(
+			'Missing PUBLIC_SUPABASE_URL or PUBLIC_SUPABASE_PUBLISHABLE_KEY environment variables.'
+		);
+	});
+
+	it('creates a singleton browser client and forwards proxy calls', async () => {
+		const client = { from: vi.fn(() => 'from-result') };
+		const { mod, createBrowserClient } = await loadModule({
+			browser: true,
+			url: 'https://example.supabase.co',
+			key: 'pk-test',
+			client
+		});
+
+		const first = mod.getSupabaseBrowserClient();
+		const second = mod.getSupabaseBrowserClient();
+
+		expect(first).toBe(client);
+		expect(second).toBe(client);
+		expect(createBrowserClient).toHaveBeenCalledTimes(1);
+
+		expect(mod.supabase.from('training')).toBe('from-result');
+		expect(client.from).toHaveBeenCalledWith('training');
+	});
+});

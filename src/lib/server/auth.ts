@@ -39,7 +39,7 @@ export async function buildUserProfile(supabase: SupabaseClient, user: User) {
 
 	const userProfile = {
 		email: user.email ?? '',
-		name: data.username || (user.email ? user.email.split('@')[0] : ''),
+		name: data.username || (user.email ? (user.email.split('@')[0] ?? '') : ''),
 		avatar,
 		id: user.id,
 		projects: (

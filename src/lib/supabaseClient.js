@@ -30,7 +30,9 @@ export const supabase = new Proxy(
 	{},
 	{
 		get(_, property) {
-			const client = getSupabaseBrowserClient();
+			const client = /** @type {Record<string | symbol, unknown>} */ (
+				/** @type {unknown} */ (getSupabaseBrowserClient())
+			);
 			return client[property];
 		}
 	}
