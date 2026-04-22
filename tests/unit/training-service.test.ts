@@ -135,7 +135,10 @@ describe('training service', () => {
 			rpc: vi.fn(async () => ({ data: { ok: true }, error: null }))
 		};
 
-		expect(await cancelRegistration(updateSupabase as any, 3)).toEqual([{ ok: true }]);
+		expect(await cancelRegistration(updateSupabase as any, 3)).toEqual({ ok: true });
+		expect(updateSupabase.rpc).toHaveBeenCalledWith('cancel_my_registration', {
+			p_slot_id: 3
+		});
 		expect(await updateRegistration(updateSupabase as any, 3, 'u-1', { status: 'registered' })).toEqual([
 			{ ok: true }
 		]);
@@ -182,11 +185,19 @@ describe('training service', () => {
 
 		await expect(getTrainingList(rpcFailSupabase as any)).rejects.toThrow('rpc failed');
 
+		const cancelFailSupabase = {
+			rpc: vi.fn(async () => ({ data: null, error: new Error('rpc failed') }))
+		};
+
+		await expect(cancelRegistration(cancelFailSupabase as any, 1)).rejects.toThrow('rpc failed');
+
 		const queryFailChain = createThenableChain({ data: null, error: new Error('query failed') });
 		const queryFailSupabase = {
 			from: vi.fn(() => queryFailChain)
 		};
 
-		await expect(cancelRegistration(queryFailSupabase as any, 1)).rejects.toThrow('query failed');
+		await expect(updateRegistration(queryFailSupabase as any, 1, 'u-1', { status: 'registered' })).rejects.toThrow(
+			'query failed'
+		);
 	});
 });

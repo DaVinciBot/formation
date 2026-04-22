@@ -531,6 +531,31 @@ begin
 end;
 $$;
 
+create or replace function public.cancel_my_registration(p_slot_id bigint)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  user_id uuid := auth.uid();
+begin
+  if user_id is null then
+    raise exception 'Not authenticated';
+  end if;
+
+  if not (public.has_permission('view_trainings') or public.has_permission('edit_trainings')) then
+    raise exception 'Not authorized';
+  end if;
+
+  update public.registration
+  set status = 'canceled_by_user'
+  where slot_id = p_slot_id
+    and member_id = user_id
+    and status in ('registered', 'waitlisted');
+end;
+$$;
+
 create or replace function public.registration_before_insert()
 returns trigger
 language plpgsql

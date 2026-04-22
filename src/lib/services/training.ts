@@ -205,10 +205,9 @@ export async function cancelRegistration(
 	supabase: TrainingSupabaseClient,
 	slotId: number
 ): Promise<unknown> {
-	const { data, error } = await supabase
-		.from('registration')
-		.update({ status: 'canceled_by_user' })
-		.eq('slot_id', slotId);
+	const { data, error } = await supabase.rpc('cancel_my_registration', {
+		p_slot_id: slotId
+	});
 	if (error) throw error;
 	return data;
 }
