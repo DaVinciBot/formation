@@ -47,8 +47,8 @@ describe('server auth helpers', () => {
 			rpc: vi.fn(async () => ({ data: null, error: new Error('rpc error') }))
 		};
 
-		expect(await hasPermission(supabaseTrue as any, 'view_trainings')).toBe(true);
-		expect(await hasPermission(supabaseFalse as any, 'view_trainings')).toBe(false);
+		expect(await hasPermission(supabaseTrue as any, 'training.slot.read')).toBe(true);
+		expect(await hasPermission(supabaseFalse as any, 'training.slot.read')).toBe(false);
 	});
 
 	it('buildUserProfile returns null profile when profile query fails', async () => {
@@ -67,7 +67,7 @@ describe('server auth helpers', () => {
 			profileData: {
 				username: 'Alice',
 				avatar_url: null,
-				permissions: ['view_members'],
+				permissions: ['members.profile.read.all'],
 				member_of: [{ project: { id: 7, name: 'Robot', debut: null } }]
 			},
 			projectsData: [{ id: 1, name: 'Project A', debut: '2025-01-01' }]
@@ -78,7 +78,7 @@ describe('server auth helpers', () => {
 			email: 'alice@example.com'
 		} as any);
 
-		expect(result.permissions).toEqual(['view_members']);
+		expect(result.permissions).toEqual(['members.profile.read.all']);
 		expect(result.userProfile).toMatchObject({
 			name: 'Alice',
 			email: 'alice@example.com',

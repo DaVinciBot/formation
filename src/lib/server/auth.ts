@@ -58,12 +58,15 @@ export async function buildUserProfile(supabase: SupabaseClient, user: User) {
 	};
 
 	if (
-		permissions.includes('view_all_orders') ||
-		permissions.includes('view_treso') ||
-		permissions.includes('view_members') ||
-		permissions.includes('edit_treso') ||
-		permissions.includes('edit_members')
+		permissions.includes('orders.read.all') ||
+		permissions.includes('finance.read') ||
+		permissions.includes('members.profile.read.all') ||
+		permissions.includes('finance.write') ||
+		permissions.includes('members.profile.update.all') ||
+		permissions.includes('projects.stats.read.all') ||
+		permissions.includes('iam.permissions.read.all')
 	) {
+		//TODO: review
 		userProfile.projects.push({ id: 0, name: 'Association', debut: '2014-09-01' });
 
 		const { data: projects, error: projectsError } = await supabase
