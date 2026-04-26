@@ -402,18 +402,20 @@ DVBisous ! :robot:`;
 		from?: string;
 		to?: string;
 		text?: string;
+		mode?: 'test' | 'live';
 	}) {
 		summaryError = null;
 		const from = config?.from ?? summaryFrom;
 		const to = config?.to ?? summaryTo;
 		const text = config?.text ?? summaryText;
+		const mode = config?.mode ?? 'live';
 		if (!from || !to) {
 			summaryError = 'Sélectionnez une date de début et une date de fin.';
-			return;
+			return false;
 		}
 		if (from > to) {
 			summaryError = 'La date de début doit être avant la date de fin.';
-			return;
+			return false;
 		}
 		summarySending = true;
 		try {
@@ -424,6 +426,7 @@ DVBisous ! :robot:`;
 					body: {
 						from,
 						to,
+						mode,
 						...(cleanText ? { text: cleanText } : {})
 					}
 				}
@@ -431,11 +434,16 @@ DVBisous ! :robot:`;
 			if (invokeError) {
 				summaryError =
 					"Impossible de déclencher le webhook. Assurez-vous qu'il y a des formations prévues dans la période sélectionnée et réessayez.";
-				return;
+				return false;
 			}
+			return true;
 		} catch (err) {
 			console.error(err);
-			summaryError = 'Impossible de déclencher le webhook.';
+			summaryError =
+				mode === 'test'
+					? "Impossible d'envoyer le test webhook."
+					: 'Impossible de déclencher le webhook.';
+			return false;
 		} finally {
 			summarySending = false;
 		}
@@ -453,8 +461,25 @@ DVBisous ! :robot:`;
 		summaryFrom = from;
 		summaryTo = to;
 		summaryText = text;
-		await sendDiscordSummary({ from, to, text });
-		if (!summaryError) closeSummaryModal();
+
+		const testSent = await sendDiscordSummary({
+			from,
+			to,
+			text,
+			mode: 'test'
+		});
+		if (!testSent) return;
+
+		const shouldSendLive = window.confirm(
+			'Test envoyé sans ping sur le webhook de test. Envoyer maintenant la synthèse sur le webhook réel ?'
+		);
+		if (!shouldSendLive) {
+			closeSummaryModal();
+			return;
+		}
+
+		const liveSent = await sendDiscordSummary({ from, to, text, mode: 'live' });
+		if (liveSent) closeSummaryModal();
 	}
 
 	const trainingActions = [
