@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Topbar from '$lib/components/share/Topbar.svelte';
-	import { supabase } from '$lib/supabaseClient';
+	import { getSupabaseBrowserClient } from '$lib/supabaseClient';
 	import { loadUserdata } from '$lib/utils';
 	import { onMount } from 'svelte';
 	import './layout.css';
@@ -11,10 +11,9 @@
 		void loadUserdata(data.userProfile);
 	});
 
-	const supabaseClient = supabase as any;
-
 	onMount(async () => {
 		try {
+			const supabaseClient = getSupabaseBrowserClient();
 			const serverSession = data?.session;
 			if (serverSession?.access_token && serverSession?.refresh_token) {
 				await supabaseClient.auth.setSession({

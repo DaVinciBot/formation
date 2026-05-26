@@ -24,7 +24,7 @@
 		type TrainingSlotListItem
 	} from '$lib/services/training';
 	import { triggerTableRefresh } from '$lib/store';
-	import { supabase } from '$lib/supabaseClient';
+	import { getSupabaseBrowserClient } from '$lib/supabaseClient';
 	import { RefreshCw } from '@lucide/svelte';
 	import type { SupabaseClient } from '@supabase/supabase-js';
 	import { onMount } from 'svelte';
@@ -43,7 +43,6 @@
 	let currentUserId: string | null = $derived(data.currentUserId ?? null);
 	let canManageTraining = $derived(Boolean(data.canManageTraining));
 
-	const supabaseClient = supabase as SupabaseClient;
 	const presenceTableTopic = 'presence-table';
 	const presenceDbInfo: DBInfo = {
 		table: 'trainer_registration_view',
@@ -183,6 +182,7 @@
 		loadError = null;
 		actionError = null;
 		try {
+			const supabaseClient = getSupabaseBrowserClient() as SupabaseClient;
 			const data = canManageTraining
 				? await getSlotRegistrations(supabaseClient, slotId)
 				: await getTrainerSlotRegistrations(supabaseClient, slotId);
@@ -207,6 +207,7 @@
 		actionError = null;
 		savingIds = new Set(savingIds).add(memberId);
 		try {
+			const supabaseClient = getSupabaseBrowserClient() as SupabaseClient;
 			await updateTrainerPresence(supabaseClient, selectedSlotId, memberId, present);
 			registrations = registrations.map((item) =>
 				item.member_id === memberId ? { ...item, present } : item
@@ -226,6 +227,7 @@
 		loading = true;
 		loadError = null;
 		try {
+			const supabaseClient = getSupabaseBrowserClient() as SupabaseClient;
 			const rawSlots = await getTrainingSlots(supabaseClient, new Date(), slotRangeDays);
 			slots = rawSlots
 				.filter((slot) => canManageTraining || slot.trainer_id === currentUserId)

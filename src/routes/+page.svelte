@@ -7,7 +7,7 @@
 		type RegistrationStatus,
 		type TrainingSlotListItem
 	} from '$lib/services/training';
-	import { supabase } from '$lib/supabaseClient';
+	import { getSupabaseBrowserClient } from '$lib/supabaseClient';
 	import type { RealtimeChannel, SupabaseClient } from '@supabase/supabase-js';
 	import { onDestroy, onMount } from 'svelte';
 	import { SvelteMap } from 'svelte/reactivity';
@@ -24,7 +24,12 @@
 	let refreshTimeout: ReturnType<typeof setTimeout> | null = null;
 	let realtimeChannel: RealtimeChannel | null = null;
 
-	const supabaseClient: SupabaseClient = supabase as SupabaseClient;
+	let supabaseClient: SupabaseClient | null = null;
+
+	function getClient() {
+		supabaseClient ??= getSupabaseBrowserClient() as SupabaseClient;
+		return supabaseClient;
+	}
 
 	function resolveCardStatus(
 		slot: TrainingSlotListItem,
@@ -75,11 +80,12 @@
 		}
 		storeWeekStart(weekStart);
 		try {
-			const rawSlots = await getTrainingSlots(supabaseClient, weekStart, 7);
+			const client = getClient();
+			const rawSlots = await getTrainingSlots(client, weekStart, 7);
 			const registrationStatuses = new SvelteMap<number, RegistrationStatus>();
 			if (currentUserId && rawSlots.length > 0) {
 				const slotIds = rawSlots.map((slot) => slot.slot_id);
-				const { data: registrationData, error: registrationError } = await supabaseClient
+				const { data: registrationData, error: registrationError } = await client
 					.from('registration')
 					.select('slot_id,status,remote')
 					.eq('member_id', currentUserId)
@@ -116,7 +122,7 @@
 	}
 
 	function setupRealtime() {
-		realtimeChannel = supabaseClient
+		realtimeChannel = getClient()
 			.channel('training_calendar')
 			.on('postgres_changes', { event: '*', schema: 'public', table: 'registration' }, () =>
 				scheduleSilentRefresh()
