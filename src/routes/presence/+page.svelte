@@ -1,6 +1,10 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import Table from '$lib/components/admin/Table.svelte';
+	import Table, {
+		type DBInfo,
+		type Filter,
+		type TableRow
+	} from '$lib/components/admin/Table.svelte';
 	import AttendanceHeader from '$lib/components/attendance/AttendanceHeader.svelte';
 	import AttendanceMainInfo from '$lib/components/attendance/AttendanceMainInfo.svelte';
 	import AttendanceStats from '$lib/components/attendance/AttendanceStats.svelte';
@@ -41,12 +45,12 @@
 
 	const supabaseClient = supabase as SupabaseClient;
 	const presenceTableTopic = 'presence-table';
-	const presenceDbInfo = {
+	const presenceDbInfo: DBInfo = {
 		table: 'trainer_registration_view',
 		key: 'slot_id,member_id,date_hour,remote,status,present,to_excuse,member_username,member_avatar_url',
 		ordering: 'date_hour:asc'
 	};
-	let presenceFilters = $state([
+	let presenceFilters = $state<Filter[]>([
 		{
 			category: 'hidden',
 			value: 'slot_id',
@@ -85,8 +89,13 @@
 		() =>
 			registrations.filter((item) => item.status === 'registered' && item.present === null).length
 	);
-	function parsePresenceItems(data: any[]) {
-		return data.map((reg) => {
+	type PresenceTableRegistration = Pick<
+		RegistrationListItem,
+		'member_id' | 'remote' | 'status' | 'present' | 'member_username' | 'member_avatar_url'
+	>;
+
+	function parsePresenceItems(data: unknown[]): TableRow[] {
+		return (data as PresenceTableRegistration[]).map((reg): TableRow => {
 			return [
 				{
 					value: reg.member_username ?? 'Membre',
