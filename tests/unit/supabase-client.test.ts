@@ -5,7 +5,17 @@ afterEach(() => {
 	vi.clearAllMocks();
 });
 
-async function loadModule({ browser, url, key, client }) {
+async function loadModule({
+	browser,
+	url,
+	key,
+	client
+}: {
+	browser: boolean;
+	url: string;
+	key: string;
+	client: object;
+}) {
 	vi.resetModules();
 
 	vi.doMock('$app/environment', () => ({ browser }));

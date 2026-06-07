@@ -33,8 +33,8 @@ describe('training calendar helpers', () => {
 
 		const days = getCalendarDays(new Date('2025-01-13T00:00:00.000Z'));
 		expect(days).toHaveLength(6);
-		expect(days[0].key).toBe('2025-01-13');
-		expect(days[0].isToday).toBe(true);
+		expect(days[0]?.key).toBe('2025-01-13');
+		expect(days[0]?.isToday).toBe(true);
 
 		vi.useRealTimers();
 	});

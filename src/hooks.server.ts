@@ -1,10 +1,25 @@
 import { createAnonClient, createUserClient, decodeJwt } from '$lib/server/sso';
+import type { User } from '@supabase/supabase-js';
+import type { Handle, RequestEvent } from '@sveltejs/kit';
 
-type CachedSession = {
-	session: any;
-	user: any;
+interface CachedSession {
+	session: App.Locals['session'];
+	user: App.Locals['user'];
 	timestamp: number;
-};
+}
+
+interface ServerSessionRow {
+	access_token: string;
+	refresh_token: string;
+	expires_at: string;
+	user_id: string;
+	revoked_at: string | null;
+}
+
+interface SupabaseQueryResult<T> {
+	data: T;
+	error: unknown;
+}
 
 const SESSION_CACHE_TTL_MS = 5 * 60 * 1000;
 const SESSION_REFRESH_GRACE_MS = 2 * 60 * 1000;
@@ -12,7 +27,9 @@ const sessionCache = new Map<string, CachedSession>();
 
 const getCachedSession = (cacheKey: string) => {
 	const cached = sessionCache.get(cacheKey);
-	if (!cached) return null;
+	if (!cached) {
+		return null;
+	}
 	if (Date.now() - cached.timestamp > SESSION_CACHE_TTL_MS) {
 		sessionCache.delete(cacheKey);
 		return null;
@@ -20,15 +37,15 @@ const getCachedSession = (cacheKey: string) => {
 	return cached;
 };
 
-const clearSessionCookie = (event: any) => {
+const clearSessionCookie = (event: RequestEvent) => {
 	event.cookies.delete('sid', { path: '/' });
 };
 
-export const handle = async ({ event, resolve }: any) => {
+export const handle: Handle = async ({ event, resolve }) => {
 	const rawSid = event.cookies.get('sid');
 	const [sessionId, sessionSecret] = rawSid ? rawSid.split('.') : [null, null];
-	let session: any = null;
-	let user: any = null;
+	let session: App.Locals['session'] = null;
+	let user: App.Locals['user'] = null;
 
 	if (sessionId && sessionSecret) {
 		const cached = getCachedSession(sessionId);
@@ -37,12 +54,14 @@ export const handle = async ({ event, resolve }: any) => {
 			user = cached.user;
 		} else {
 			const anon = createAnonClient();
-			const { data, error } = await anon.schema('sso').rpc('get_server_session', {
+			const sessionResult = (await anon.schema('sso').rpc('get_server_session', {
 				p_session_id: sessionId,
 				p_session_secret: sessionSecret
-			});
-			const sessionRow = Array.isArray(data) ? data[0] : data;
-			if (error || !sessionRow || sessionRow.revoked_at) {
+			})) as SupabaseQueryResult<ServerSessionRow[] | ServerSessionRow | null>;
+			const sessionRow = Array.isArray(sessionResult.data)
+				? (sessionResult.data[0] ?? null)
+				: sessionResult.data;
+			if (sessionResult.error || !sessionRow || sessionRow.revoked_at) {
 				clearSessionCookie(event);
 			} else {
 				const expiresAtMs = new Date(sessionRow.expires_at).getTime();
@@ -51,22 +70,23 @@ export const handle = async ({ event, resolve }: any) => {
 				let expiresAt = sessionRow.expires_at;
 
 				if (expiresAtMs - Date.now() < SESSION_REFRESH_GRACE_MS) {
-					const { data: refreshed, error: refreshError } = await anon.auth.refreshSession({
+					const refreshResult = (await anon.auth.refreshSession({
 						refresh_token: refreshToken
-					});
-					if (refreshError || !refreshed?.session) {
+					})) as SupabaseQueryResult<{ session: NonNullable<App.Locals['session']> | null }>;
+					if (refreshResult.error || !refreshResult.data.session) {
 						await anon.schema('sso').rpc('revoke_server_session', {
 							p_session_id: sessionId,
 							p_session_secret: sessionSecret
 						});
 						clearSessionCookie(event);
 					} else {
+						const refreshedSession = refreshResult.data.session;
 						const refreshedExpiresAt =
-							typeof refreshed.session.expires_at === 'number'
-								? refreshed.session.expires_at
+							typeof refreshedSession.expires_at === 'number'
+								? refreshedSession.expires_at
 								: Math.floor(new Date(expiresAt).getTime() / 1000);
-						accessToken = refreshed.session.access_token;
-						refreshToken = refreshed.session.refresh_token;
+						accessToken = refreshedSession.access_token;
+						refreshToken = refreshedSession.refresh_token;
 						expiresAt = new Date(refreshedExpiresAt * 1000).toISOString();
 						await anon.schema('sso').rpc('update_server_session_tokens', {
 							p_session_id: sessionId,
@@ -84,12 +104,12 @@ export const handle = async ({ event, resolve }: any) => {
 							user_id: jwt?.sub ?? sessionRow.user_id
 						};
 						user = jwt
-							? {
+							? ({
 									id: jwt.sub,
 									email: jwt.email,
 									app_metadata: jwt.app_metadata ?? {},
 									user_metadata: jwt.user_metadata ?? {}
-								}
+								} as User)
 							: { id: sessionRow.user_id, email: null, app_metadata: {}, user_metadata: {} };
 						if (sessionId) {
 							sessionCache.set(sessionId, { session, user, timestamp: Date.now() });
@@ -105,12 +125,12 @@ export const handle = async ({ event, resolve }: any) => {
 						user_id: jwt?.sub ?? sessionRow.user_id
 					};
 					user = jwt
-						? {
+						? ({
 								id: jwt.sub,
 								email: jwt.email,
 								app_metadata: jwt.app_metadata ?? {},
 								user_metadata: jwt.user_metadata ?? {}
-							}
+							} as User)
 						: { id: sessionRow.user_id, email: null, app_metadata: {}, user_metadata: {} };
 					sessionCache.set(sessionId, { session, user, timestamp: Date.now() });
 				}
@@ -126,7 +146,7 @@ export const handle = async ({ event, resolve }: any) => {
 
 	event.locals.session = session;
 	event.locals.user = user;
-	(event.locals as any).permissions = [];
+	event.locals.permissions = [];
 
 	event.locals.safeGetSession = async () => {
 		return { session, user };

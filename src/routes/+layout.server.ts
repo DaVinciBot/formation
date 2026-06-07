@@ -3,10 +3,10 @@ import { redirect } from '@sveltejs/kit';
 import type { LayoutServerLoad } from './$types';
 
 export const load: LayoutServerLoad = async ({ locals, url }) => {
-	const { safeGetSession, supabase } = locals as any;
+	const { safeGetSession, supabase } = locals;
 	const { session, user } = await safeGetSession();
 
-	if ((!user || !session) && !import.meta.env?.DEV) {
+	if (!user || !session) {
 		redirect(302, `/auth/login?redirect=${encodeURIComponent(url.href)}`);
 	}
 
@@ -21,7 +21,7 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
 
 	const { userProfile, permissions } = await buildUserProfile(supabase, user);
 
-	(locals as any).permissions = permissions;
+	locals.permissions = permissions;
 
 	return {
 		session,

@@ -31,11 +31,13 @@ function getCookieOptions() {
 
 export function getSupabaseBrowserClient(): BrowserSupabaseClient {
 	if (!browser) {
-		throw new Error('Use event.locals.supabase on the server.');
+		throw new Error('Supabase browser client can only be used in the browser.');
 	}
 
 	if (!publicSupabaseUrl || !publicSupabaseKey) {
-		throw new Error('Missing PUBLIC_SUPABASE_URL or PUBLIC_SUPABASE_PUBLISHABLE_KEY');
+		throw new Error(
+			'Missing PUBLIC_SUPABASE_URL or PUBLIC_SUPABASE_PUBLISHABLE_KEY environment variables.'
+		);
 	}
 
 	browserClient ??= createBrowserClient(publicSupabaseUrl, publicSupabaseKey, {

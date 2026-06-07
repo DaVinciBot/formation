@@ -33,8 +33,12 @@ function createSupabaseForProfile({
 			return { data: null, error: null };
 		}),
 		from: vi.fn((table: string) => {
-			if (table === 'profiles') return profilesChain;
-			if (table === 'projects') return projectsChain;
+			if (table === 'profiles') {
+				return profilesChain;
+			}
+			if (table === 'projects') {
+				return projectsChain;
+			}
 			throw new Error(`Unexpected table: ${table}`);
 		})
 	};

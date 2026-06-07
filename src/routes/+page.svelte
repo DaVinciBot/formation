@@ -1,6 +1,5 @@
 <script lang="ts">
 	import Calendar, { type CalendarSlot } from '$lib/components/training/Calendar.svelte';
-	import type { TrainingCardStatus } from '$lib/components/training/TrainingCard.svelte';
 	import { getWeekStart } from '$lib/components/training/helpers/calendar';
 	import {
 		getTrainingSlots,
@@ -11,10 +10,12 @@
 	import type { RealtimeChannel, SupabaseClient } from '@supabase/supabase-js';
 	import { onDestroy, onMount } from 'svelte';
 	import { SvelteMap } from 'svelte/reactivity';
+	import type { TrainingCardStatus } from '../database.types';
+	import type { PageData } from './$types';
 
-	let { data } = $props();
+	const { data }: { data: PageData } = $props();
 	const currentUserId: string | null = $derived(data.userId ?? null);
-	let canManageTraining = $derived(Boolean(data.canManageTraining));
+	const canManageTraining = $derived(data.canManageTraining);
 
 	let slots: CalendarSlot[] = $state([]);
 	let loading = $state(false);
@@ -36,11 +37,18 @@
 		registrationStatus: RegistrationStatus | undefined,
 		userId: string | null
 	): TrainingCardStatus {
-		if (slot.status === 'canceled' || slot.status === 'postponed' || slot.status === 'draft')
+		if (slot.status === 'canceled' || slot.status === 'postponed' || slot.status === 'draft') {
 			return 'hidden';
-		if (userId && slot.trainer_id === userId) return 'my';
-		if (registrationStatus === 'registered') return 'registered';
-		if (registrationStatus === 'waitlisted') return 'waiting';
+		}
+		if (userId && slot.trainer_id === userId) {
+			return 'my';
+		}
+		if (registrationStatus === 'registered') {
+			return 'registered';
+		}
+		if (registrationStatus === 'waitlisted') {
+			return 'waiting';
+		}
 		const hasCapacityInfo = slot.on_site_remaining !== null || slot.remote_remaining !== null;
 		const isFull =
 			hasCapacityInfo && (slot.on_site_remaining ?? 0) <= 0 && (slot.remote_remaining ?? 0) <= 0;
@@ -48,15 +56,21 @@
 	}
 
 	function readStoredWeekStart(): Date | null {
-		if (typeof localStorage === 'undefined') return null;
+		if (typeof localStorage === 'undefined') {
+			return null;
+		}
 		const raw = localStorage.getItem(WEEK_STORAGE_KEY);
-		if (!raw) return null;
+		if (!raw) {
+			return null;
+		}
 		const parsed = new Date(raw);
 		return Number.isNaN(parsed.getTime()) ? null : parsed;
 	}
 
 	function storeWeekStart(date: Date) {
-		if (typeof localStorage === 'undefined') return;
+		if (typeof localStorage === 'undefined') {
+			return;
+		}
 		try {
 			localStorage.setItem(WEEK_STORAGE_KEY, date.toISOString());
 		} catch {
@@ -65,7 +79,9 @@
 	}
 
 	function scheduleSilentRefresh() {
-		if (refreshTimeout) clearTimeout(refreshTimeout);
+		if (refreshTimeout) {
+			clearTimeout(refreshTimeout);
+		}
 		refreshTimeout = setTimeout(() => {
 			void loadWeek(currentDate, { silent: true });
 		}, 250);
@@ -90,17 +106,22 @@
 					.select('slot_id,status,remote')
 					.eq('member_id', currentUserId)
 					.in('slot_id', slotIds);
-				if (registrationError) throw registrationError;
-				for (const registration of registrationData ?? []) {
+				if (registrationError) {
+					throw registrationError;
+				}
+				for (const registration of registrationData) {
 					if (registration.status === 'registered' || registration.status === 'waitlisted') {
 						registrationStatuses.set(registration.slot_id, registration.status);
 					}
 				}
 			}
 			const visibleSlots = rawSlots.filter((slot) => {
-				if (slot.status !== 'canceled' && slot.status !== 'postponed' && slot.status !== 'draft')
+				if (slot.status !== 'canceled' && slot.status !== 'postponed' && slot.status !== 'draft') {
 					return true;
-				if (canManageTraining) return true;
+				}
+				if (canManageTraining) {
+					return true;
+				}
 				const registrationStatus = registrationStatuses.get(slot.slot_id);
 				return registrationStatus === 'registered' || registrationStatus === 'waitlisted';
 			});
@@ -108,8 +129,7 @@
 				...slot,
 				cardStatus: resolveCardStatus(slot, registrationStatuses.get(slot.slot_id), currentUserId)
 			}));
-		} catch (err) {
-			console.error(err);
+		} catch {
 			if (!options.silent) {
 				slots = [];
 				error = 'Impossible de charger le calendrier pour cette semaine.';
@@ -124,25 +144,27 @@
 	function setupRealtime() {
 		realtimeChannel = getClient()
 			.channel('training_calendar')
-			.on('postgres_changes', { event: '*', schema: 'public', table: 'registration' }, () =>
-				scheduleSilentRefresh()
-			)
-			.on('postgres_changes', { event: '*', schema: 'public', table: 'training_slot' }, () =>
-				scheduleSilentRefresh()
-			)
+			.on('postgres_changes', { event: '*', schema: 'public', table: 'registration' }, () => {
+				scheduleSilentRefresh();
+			})
+			.on('postgres_changes', { event: '*', schema: 'public', table: 'training_slot' }, () => {
+				scheduleSilentRefresh();
+			})
 			.subscribe();
 	}
 
-	onMount(async () => {
+	onMount(() => {
 		const savedWeek = readStoredWeekStart();
 		void loadWeek(savedWeek ?? new Date());
 		setupRealtime();
 	});
 
 	onDestroy(() => {
-		if (refreshTimeout) clearTimeout(refreshTimeout);
+		if (refreshTimeout) {
+			clearTimeout(refreshTimeout);
+		}
 		if (realtimeChannel) {
-			realtimeChannel.unsubscribe();
+			void realtimeChannel.unsubscribe();
 			realtimeChannel = null;
 		}
 	});

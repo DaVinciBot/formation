@@ -2,20 +2,43 @@
 	import Topbar from '$lib/components/share/Topbar.svelte';
 	import { getSupabaseBrowserClient } from '$lib/supabaseClient';
 	import { loadUserdata } from '$lib/utils';
+	import type { Snippet } from 'svelte';
 	import { onMount } from 'svelte';
+	import type { LayoutData } from './$types';
 	import './layout.css';
 
-	let { data, children } = $props();
+	interface SessionPayload {
+		session: {
+			access_token: string;
+			refresh_token: string;
+		} | null;
+	}
+
+	function isSessionPayload(value: unknown): value is SessionPayload {
+		return (
+			typeof value === 'object' &&
+			value !== null &&
+			'session' in value &&
+			(value.session === null ||
+				(typeof value.session === 'object' &&
+					'access_token' in value.session &&
+					'refresh_token' in value.session &&
+					typeof value.session.access_token === 'string' &&
+					typeof value.session.refresh_token === 'string'))
+		);
+	}
+
+	const { data, children }: { data: LayoutData; children: Snippet } = $props();
 
 	$effect(() => {
-		void loadUserdata(data.userProfile);
+		loadUserdata(data.userProfile);
 	});
 
 	onMount(async () => {
 		try {
 			const supabaseClient = getSupabaseBrowserClient();
-			const serverSession = data?.session;
-			if (serverSession?.access_token && serverSession?.refresh_token) {
+			const serverSession = data.session;
+			if (serverSession.access_token && serverSession.refresh_token) {
 				await supabaseClient.auth.setSession({
 					access_token: serverSession.access_token,
 					refresh_token: serverSession.refresh_token
@@ -27,12 +50,16 @@
 			if (error) {
 				await supabaseClient.auth.signOut({ scope: 'local' });
 			}
-			if (current?.session?.access_token) return;
+			if (current.session?.access_token) {
+				return;
+			}
 			const response = await fetch('/auth/session');
-			if (!response.ok) return;
-			const payload = await response.json();
-			const session = payload?.session;
-			if (session?.access_token && session?.refresh_token) {
+			if (!response.ok) {
+				return;
+			}
+			const payload: unknown = await response.json();
+			const session = isSessionPayload(payload) ? payload.session : null;
+			if (session?.access_token && session.refresh_token) {
 				await supabaseClient.auth.setSession({
 					access_token: session.access_token,
 					refresh_token: session.refresh_token
@@ -40,8 +67,8 @@
 			} else {
 				await supabaseClient.auth.signOut({ scope: 'local' });
 			}
-		} catch (error) {
-			console.error('[auth] unable to sync session', error);
+		} catch {
+			// Keep rendering even if browser session sync fails.
 		}
 	});
 </script>

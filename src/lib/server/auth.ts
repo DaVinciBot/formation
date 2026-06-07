@@ -1,45 +1,60 @@
+import type { Permission } from '$lib/permissions';
 import type { SupabaseClient, User } from '@supabase/supabase-js';
 
-type ProfileRow = {
+interface ProfileRow {
 	username: string | null;
 	avatar_url: string | null;
 	role: string | null;
 	permissions: string[] | null;
 	member_of: { project: { id: number; name: string; debut: string | null } | null }[] | null;
-};
+}
+
+interface ProjectRow {
+	id: number;
+	name: string;
+	debut: string;
+}
+
+interface SupabaseQueryResult<T> {
+	data: T;
+	error: unknown;
+}
 
 export async function hasPermission(
 	supabase: SupabaseClient,
-	permission: string
+	permission: Permission
 ): Promise<boolean> {
-	const { data, error } = await supabase.rpc('has_permission', {
+	const result = (await supabase.rpc('has_permission', {
 		p_permission: permission
-	});
+	})) as SupabaseQueryResult<boolean>;
 
-	if (error) return false;
-	return Boolean(data);
+	if (result.error) {
+		return false;
+	}
+	return result.data;
 }
 
 export async function buildUserProfile(supabase: SupabaseClient, user: User) {
-	const { data, error } = await supabase
+	const result = (await supabase
 		.from('profiles')
 		.select('username, avatar_url, permissions, member_of(project(id, name, debut))')
 		.eq('id', user.id)
-		.single<ProfileRow>();
+		.single()) as SupabaseQueryResult<ProfileRow | null>;
 
-	if (error || !data) {
+	if (result.error || !result.data) {
 		return {
 			userProfile: null,
-			permissions: [] as string[]
+			permissions: [] as Permission[]
 		};
 	}
 
-	const permissions = data.permissions ?? [];
-	const avatar = data.avatar_url || `https://avatar.iran.liara.run/public?username=${user.id}`;
+	const data = result.data;
+	const permissions = (data.permissions ?? []) as Permission[];
+	const avatar = data.avatar_url ?? `https://avatar.iran.liara.run/public?username=${user.id}`;
 
 	const userProfile = {
 		email: user.email ?? '',
-		name: data.username || (user.email ? (user.email.split('@')[0] ?? '') : ''),
+		name: data.username ?? (user.email ? (user.email.split('@')[0] ?? '') : ''),
 		avatar,
 		id: user.id,
 		projects: (
@@ -69,12 +84,12 @@ export async function buildUserProfile(supabase: SupabaseClient, user: User) {
 		//TODO: review
 		userProfile.projects.push({ id: 0, name: 'Association', debut: '2014-09-01' });
 
-		const { data: projects, error: projectsError } = await supabase
+		const projectsResult = (await supabase
 			.from('projects')
-			.select('id, name, debut');
+			.select('id, name, debut')) as SupabaseQueryResult<ProjectRow[]>;
 
-		if (!projectsError) {
-			userProfile.allProjects = (projects ?? []).map((project) => ({
+		if (!projectsResult.error) {
+			userProfile.allProjects = projectsResult.data.map((project) => ({
 				value: project.id,
 				name: project.name,
 				debut: project.debut

@@ -28,8 +28,10 @@
 	import { RefreshCw } from '@lucide/svelte';
 	import type { SupabaseClient } from '@supabase/supabase-js';
 	import { onMount } from 'svelte';
+	import { SvelteSet } from 'svelte/reactivity';
+	import type { PageData } from './$types';
 
-	let { data } = $props();
+	const { data }: { data: PageData } = $props();
 
 	let slots = $state<TrainingSlotListItem[]>([]);
 	type SlotRegistration = RegistrationListItem;
@@ -39,9 +41,9 @@
 	let registrationsLoading = $state(false);
 	let loadError = $state<string | null>(null);
 	let actionError = $state<string | null>(null);
-	let savingIds = $state(new Set<string>());
-	let currentUserId: string | null = $derived(data.currentUserId ?? null);
-	let canManageTraining = $derived(Boolean(data.canManageTraining));
+	const savingIds = new SvelteSet<string>();
+	const currentUserId: string | null = $derived(data.currentUserId ?? null);
+	const canManageTraining = $derived(Boolean(data.canManageTraining));
 
 	const presenceTableTopic = 'presence-table';
 	const presenceDbInfo: DBInfo = {
@@ -65,7 +67,9 @@
 	const slotRangeDays = 180;
 	const selectedSlotParam = $derived(() => {
 		const value = page.url.searchParams.get('slot');
-		if (!value) return null;
+		if (!value) {
+			return null;
+		}
 		const parsed = Number(value);
 		return Number.isFinite(parsed) ? parsed : null;
 	});
@@ -150,7 +154,9 @@
 	}
 
 	function pickDefaultSlot(list: TrainingSlotListItem[]) {
-		if (list.length === 0) return null;
+		if (list.length === 0) {
+			return null;
+		}
 		const now = Date.now();
 		const upcoming = list.find((slot) => new Date(slot.start).getTime() >= now);
 		return upcoming ?? list[list.length - 1];
@@ -187,8 +193,7 @@
 				? await getSlotRegistrations(supabaseClient, slotId)
 				: await getTrainerSlotRegistrations(supabaseClient, slotId);
 			registrations = data;
-		} catch (err) {
-			console.error(err);
+		} catch {
 			loadError = 'Impossible de charger les inscriptions de cette session.';
 			registrations = [];
 		} finally {
@@ -203,9 +208,11 @@
 	}
 
 	async function handlePresenceChange(memberId: string, present: boolean | null) {
-		if (!selectedSlotId) return;
+		if (!selectedSlotId) {
+			return;
+		}
 		actionError = null;
-		savingIds = new Set(savingIds).add(memberId);
+		savingIds.add(memberId);
 		try {
 			const supabaseClient = getSupabaseBrowserClient() as SupabaseClient;
 			await updateTrainerPresence(supabaseClient, selectedSlotId, memberId, present);
@@ -213,13 +220,10 @@
 				item.member_id === memberId ? { ...item, present } : item
 			);
 			triggerTableRefresh(presenceTableTopic);
-		} catch (err) {
-			console.error(err);
+		} catch {
 			actionError = 'Impossible de mettre à jour la présence.';
 		} finally {
-			const next = new Set(savingIds);
-			next.delete(memberId);
-			savingIds = next;
+			savingIds.delete(memberId);
 		}
 	}
 
@@ -244,8 +248,7 @@
 			} else {
 				registrations = [];
 			}
-		} catch (err) {
-			console.error(err);
+		} catch {
 			loadError = 'Impossible de charger vos sessions de formation.';
 		} finally {
 			loading = false;
