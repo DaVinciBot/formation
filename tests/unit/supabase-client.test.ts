@@ -19,7 +19,7 @@ async function loadModule({ browser, url, key, client }) {
 	const createBrowserClient = vi.fn(() => client);
 	vi.doMock('@supabase/ssr', () => ({ createBrowserClient }));
 
-	const mod = await import('../../src/lib/supabaseClient.js');
+	const mod = await import('../../src/lib/supabaseClient');
 	return { mod, createBrowserClient };
 }
 

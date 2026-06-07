@@ -15,8 +15,8 @@ export default defineConfig({
 				'src/lib/helpers/adminTables.ts',
 				'src/lib/services/training.ts',
 				'src/lib/server/auth.ts',
-				'src/lib/supabaseClient.js',
-				'src/lib/utils.js',
+				'src/lib/supabaseClient.ts',
+				'src/lib/utils.ts',
 				'src/lib/components/training/helpers/slotModal.ts',
 				'src/lib/components/training/helpers/calendar.ts',
 				'src/lib/components/training/stores/trainingCalendarFilters.ts'
