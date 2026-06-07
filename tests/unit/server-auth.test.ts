@@ -52,12 +52,18 @@ describe('server auth helpers', () => {
 	});
 
 	it('buildUserProfile returns null profile when profile query fails', async () => {
-		const supabase = createSupabaseForProfile({ profileData: null, profileError: new Error('missing') });
+		const supabase = createSupabaseForProfile({
+			profileData: null,
+			profileError: new Error('missing')
+		});
 
-		const result = await buildUserProfile(supabase as any, {
-			id: 'u-1',
-			email: 'u-1@example.com'
-		} as any);
+		const result = await buildUserProfile(
+			supabase as any,
+			{
+				id: 'u-1',
+				email: 'u-1@example.com'
+			} as any
+		);
 
 		expect(result).toEqual({ userProfile: null, permissions: [] });
 	});
@@ -73,10 +79,13 @@ describe('server auth helpers', () => {
 			projectsData: [{ id: 1, name: 'Project A', debut: '2025-01-01' }]
 		});
 
-		const result = await buildUserProfile(supabase as any, {
-			id: 'u-1',
-			email: 'alice@example.com'
-		} as any);
+		const result = await buildUserProfile(
+			supabase as any,
+			{
+				id: 'u-1',
+				email: 'alice@example.com'
+			} as any
+		);
 
 		expect(result.permissions).toEqual(['members.profile.read.all']);
 		expect(result.userProfile).toMatchObject({

@@ -139,13 +139,15 @@ describe('training service', () => {
 		expect(updateSupabase.rpc).toHaveBeenCalledWith('cancel_my_registration', {
 			p_slot_id: 3
 		});
-		expect(await updateRegistration(updateSupabase as any, 3, 'u-1', { status: 'registered' })).toEqual([
-			{ ok: true }
-		]);
+		expect(
+			await updateRegistration(updateSupabase as any, 3, 'u-1', { status: 'registered' })
+		).toEqual([{ ok: true }]);
 		expect(await updateMyRegistrationExcuse(updateSupabase as any, 3, true, 'u-1')).toEqual([
 			{ ok: true }
 		]);
-		expect(await updateTrainerPresence(updateSupabase as any, 3, 'u-1', true)).toEqual({ ok: true });
+		expect(await updateTrainerPresence(updateSupabase as any, 3, 'u-1', true)).toEqual({
+			ok: true
+		});
 
 		await expect(updateMyRegistrationExcuse(updateSupabase as any, 3, true, null)).rejects.toThrow(
 			'User not authenticated'
@@ -159,21 +161,27 @@ describe('training service', () => {
 		};
 
 		expect(
-			await createTraining(supabase as any, {
-				name: 'Svelte',
-				category: 'software'
-			} as any)
+			await createTraining(
+				supabase as any,
+				{
+					name: 'Svelte',
+					category: 'software'
+				} as any
+			)
 		).toEqual({ id: 1 });
 		expect(await updateTraining(supabase as any, 1, { name: 'Svelte 2' })).toEqual({ id: 1 });
 		expect(
-			await createTrainingSlot(supabase as any, {
-				training_id: 1,
-				trainer_id: 'u-1',
-				start: '2025-01-10T10:00:00.000Z',
-				duration_hours: 2,
-				excusable: true,
-				status: 'draft'
-			} as any)
+			await createTrainingSlot(
+				supabase as any,
+				{
+					training_id: 1,
+					trainer_id: 'u-1',
+					start: '2025-01-10T10:00:00.000Z',
+					duration_hours: 2,
+					excusable: true,
+					status: 'draft'
+				} as any
+			)
 		).toEqual({ id: 1 });
 		expect(await updateTrainingSlot(supabase as any, 1, { status: 'pending' })).toEqual({ id: 1 });
 	});
@@ -196,8 +204,8 @@ describe('training service', () => {
 			from: vi.fn(() => queryFailChain)
 		};
 
-		await expect(updateRegistration(queryFailSupabase as any, 1, 'u-1', { status: 'registered' })).rejects.toThrow(
-			'query failed'
-		);
+		await expect(
+			updateRegistration(queryFailSupabase as any, 1, 'u-1', { status: 'registered' })
+		).rejects.toThrow('query failed');
 	});
 });

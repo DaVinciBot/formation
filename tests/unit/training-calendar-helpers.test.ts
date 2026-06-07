@@ -48,12 +48,12 @@ describe('training calendar helpers', () => {
 		expect(isInPersonSlot(onlineSlot)).toBe(false);
 		expect(isOnlineSlot(onlineSlot)).toBe(true);
 
-		expect(filterSlotsByFormat([inPersonSlot, onlineSlot], { inPerson: true, online: false })).toEqual([
-			inPersonSlot
-		]);
-		expect(filterSlotsByFormat([inPersonSlot, onlineSlot], { inPerson: false, online: true })).toEqual([
-			onlineSlot
-		]);
+		expect(
+			filterSlotsByFormat([inPersonSlot, onlineSlot], { inPerson: true, online: false })
+		).toEqual([inPersonSlot]);
+		expect(
+			filterSlotsByFormat([inPersonSlot, onlineSlot], { inPerson: false, online: true })
+		).toEqual([onlineSlot]);
 	});
 
 	it('groupSlotsByDay buckets slots and ignores invalid dates', () => {

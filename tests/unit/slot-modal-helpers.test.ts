@@ -38,9 +38,9 @@ describe('slot modal helpers', () => {
 	});
 
 	it('isRegistrationMode matches registration remote flag', () => {
-		expect(isRegistrationMode({ remote: true, status: 'registered', to_excuse: null }, 'remote')).toBe(
-			true
-		);
+		expect(
+			isRegistrationMode({ remote: true, status: 'registered', to_excuse: null }, 'remote')
+		).toBe(true);
 		expect(
 			isRegistrationMode({ remote: false, status: 'registered', to_excuse: null }, 'remote')
 		).toBe(false);
