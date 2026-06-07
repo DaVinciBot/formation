@@ -16,7 +16,7 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
 	]);
 	const canAccessTraining = canReadTraining || canManageTraining;
 	if (!canAccessTraining) {
-		redirect(302, `/unauthorized?redirect=${encodeURIComponent(url.href)}`);
+		redirect(302, '/unauthorized');
 	}
 
 	const { userProfile, permissions } = await buildUserProfile(supabase, user);
