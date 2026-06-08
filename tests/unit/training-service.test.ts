@@ -194,29 +194,23 @@ describe('training service', () => {
 		};
 
 		expect(
-			await createTraining(
-				asTrainingClient(supabase),
-				{
-					name: 'Svelte',
-					category: 'software'
-				} satisfies CreateTrainingPayload
-			)
+			await createTraining(asTrainingClient(supabase), {
+				name: 'Svelte',
+				category: 'software'
+			} satisfies CreateTrainingPayload)
 		).toEqual({ id: 1 });
 		expect(await updateTraining(asTrainingClient(supabase), 1, { name: 'Svelte 2' })).toEqual({
 			id: 1
 		});
 		expect(
-			await createTrainingSlot(
-				asTrainingClient(supabase),
-				{
-					training_id: 1,
-					trainer_id: 'u-1',
-					start: '2025-01-10T10:00:00.000Z',
-					duration_hours: 2,
-					excusable: true,
-					status: 'draft'
-				} satisfies CreateTrainingSlotPayload
-			)
+			await createTrainingSlot(asTrainingClient(supabase), {
+				training_id: 1,
+				trainer_id: 'u-1',
+				start: '2025-01-10T10:00:00.000Z',
+				duration_hours: 2,
+				excusable: true,
+				status: 'draft'
+			} satisfies CreateTrainingSlotPayload)
 		).toEqual({ id: 1 });
 		expect(await updateTrainingSlot(asTrainingClient(supabase), 1, { status: 'pending' })).toEqual({
 			id: 1

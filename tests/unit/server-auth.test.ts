@@ -66,12 +66,12 @@ describe('server auth helpers', () => {
 			rpc: vi.fn(() => Promise.resolve({ data: null, error: new Error('rpc error') }))
 		};
 
-		expect(await hasPermission(supabaseTrue as unknown as SupabaseClient, 'training.slot.read')).toBe(
-			true
-		);
-		expect(await hasPermission(supabaseFalse as unknown as SupabaseClient, 'training.slot.read')).toBe(
-			false
-		);
+		expect(
+			await hasPermission(supabaseTrue as unknown as SupabaseClient, 'training.slot.read')
+		).toBe(true);
+		expect(
+			await hasPermission(supabaseFalse as unknown as SupabaseClient, 'training.slot.read')
+		).toBe(false);
 	});
 
 	it('buildUserProfile returns null profile when profile query fails', async () => {
