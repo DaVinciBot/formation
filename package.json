@@ -35,7 +35,6 @@
 		"jsdom": "^29.1.1",
 		"prettier": "^3.8.3",
 		"prettier-plugin-svelte": "3.5.2",
-		"//": "Note: This version is compatible with Prettier 3.x. If you upgrade to prettier-plugin-svelte 4.x, make sure to check for a compatible version of Prettier.",
 		"prettier-plugin-tailwindcss": "^0.8.0",
 		"svelte": "^5.55.9",
 		"svelte-check": "^4.4.8",
@@ -46,6 +45,7 @@
 		"vite": "^8.0.14",
 		"vitest": "^4.1.7"
 	},
+	"_note": "don't update prettier-plugin-svelte to 4.x until a compatible version of Prettier is released",
 	"dependencies": {
 		"@lucide/svelte": "^1.16.0",
 		"@supabase/ssr": "0.10.3",
