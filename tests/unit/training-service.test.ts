@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi, type Mock } from 'vitest';
 
 import {
 	cancelRegistration,
@@ -15,23 +15,46 @@ import {
 	updateRegistration,
 	updateTrainerPresence,
 	updateTraining,
-	updateTrainingSlot
+	updateTrainingSlot,
+	type CreateTrainingPayload,
+	type CreateTrainingSlotPayload,
+	type TrainingSupabaseClient
 } from '../../src/lib/services/training';
 
-function createThenableChain<T>(result: T) {
-	const chain: any = {
+interface ThenableChain<T> extends PromiseLike<T> {
+	select: Mock<() => ThenableChain<T>>;
+	eq: Mock<() => ThenableChain<T>>;
+	in: Mock<() => ThenableChain<T>>;
+	order: Mock<() => ThenableChain<T>>;
+	update: Mock<() => ThenableChain<T>>;
+	insert: Mock<() => ThenableChain<T>>;
+	single: Mock<() => Promise<T>>;
+	maybeSingle: Mock<() => Promise<T>>;
+}
+
+function createThenableChain<T>(result: T): ThenableChain<T> {
+	const chain = {
 		select: vi.fn(() => chain),
 		eq: vi.fn(() => chain),
 		in: vi.fn(() => chain),
 		order: vi.fn(() => chain),
 		update: vi.fn(() => chain),
 		insert: vi.fn(() => chain),
-		single: vi.fn(async () => result),
-		maybeSingle: vi.fn(async () => result),
-		then: (resolve: any, reject: any) => Promise.resolve(result).then(resolve, reject)
+		single: vi.fn(() => Promise.resolve(result)),
+		maybeSingle: vi.fn(() => Promise.resolve(result)),
+		then<TResult1 = T, TResult2 = never>(
+			onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | null,
+			onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null
+		) {
+			return Promise.resolve(result).then(onfulfilled, onrejected);
+		}
 	};
 
 	return chain;
+}
+
+function asTrainingClient(client: unknown): TrainingSupabaseClient {
+	return client as TrainingSupabaseClient;
 }
 
 describe('training service', () => {
@@ -43,8 +66,12 @@ describe('training service', () => {
 				.mockResolvedValueOnce({ data: [{ slot_id: 2 }], error: null })
 		};
 
-		const list = await getTrainingList(supabase as any);
-		const slots = await getTrainingSlots(supabase as any, new Date('2025-01-01T00:00:00.000Z'), 7);
+		const list = await getTrainingList(asTrainingClient(supabase));
+		const slots = await getTrainingSlots(
+			asTrainingClient(supabase),
+			new Date('2025-01-01T00:00:00.000Z'),
+			7
+		);
 
 		expect(list).toEqual([{ training_id: 1, name: 'Svelte' }]);
 		expect(slots).toEqual([{ slot_id: 2 }]);
@@ -67,8 +94,8 @@ describe('training service', () => {
 				.mockResolvedValueOnce({ data: [], error: null })
 		};
 
-		expect(await getTrainingSlotDetail(supabase as any, 10)).toEqual({ slot_id: 10 });
-		expect(await getTrainingSlotDetail(supabase as any, 11)).toBeNull();
+		expect(await getTrainingSlotDetail(asTrainingClient(supabase), 10)).toEqual({ slot_id: 10 });
+		expect(await getTrainingSlotDetail(asTrainingClient(supabase), 11)).toBeNull();
 	});
 
 	it('loads registrations and trainer registrations through chained filters', async () => {
@@ -83,10 +110,14 @@ describe('training service', () => {
 			from: vi.fn(() => trainerChain)
 		};
 
-		expect(await getSlotRegistrations(supabase as any, 99)).toEqual([{ member_id: 'u-1' }]);
+		expect(await getSlotRegistrations(asTrainingClient(supabase), 99)).toEqual([
+			{ member_id: 'u-1' }
+		]);
 		expect(rpcChain.in).toHaveBeenCalledWith('status', ['registered', 'waitlisted']);
 
-		expect(await getTrainerSlotRegistrations(supabase as any, 99)).toEqual([{ member_id: 'u-2' }]);
+		expect(await getTrainerSlotRegistrations(asTrainingClient(supabase), 99)).toEqual([
+			{ member_id: 'u-2' }
+		]);
 		expect(trainerChain.eq).toHaveBeenCalledWith('slot_id', 99);
 		expect(trainerChain.in).toHaveBeenCalledWith('status', ['registered', 'waitlisted']);
 		expect(trainerChain.order).toHaveBeenCalledWith('date_hour', { ascending: true });
@@ -109,20 +140,22 @@ describe('training service', () => {
 				.mockReturnValueOnce(inactiveRegistrationChain)
 		};
 
-		expect(await getMyRegistrationForSlot(supabase as any, 1, null)).toBeNull();
-		expect(await getMyRegistrationForSlot(supabase as any, 1, 'u-1')).toEqual({
+		expect(await getMyRegistrationForSlot(asTrainingClient(supabase), 1, null)).toBeNull();
+		expect(await getMyRegistrationForSlot(asTrainingClient(supabase), 1, 'u-1')).toEqual({
 			remote: true,
 			status: 'registered',
 			to_excuse: false
 		});
-		expect(await getMyRegistrationForSlot(supabase as any, 1, 'u-1')).toBeNull();
+		expect(await getMyRegistrationForSlot(asTrainingClient(supabase), 1, 'u-1')).toBeNull();
 	});
 
 	it('registers and updates registration states', async () => {
 		const registerSupabase = {
-			rpc: vi.fn(async () => ({ data: 'waitlisted', error: null }))
+			rpc: vi.fn(() => Promise.resolve({ data: 'waitlisted', error: null }))
 		};
-		expect(await registerToSlot(registerSupabase as any, 3, true, true)).toBe('waitlisted');
+		expect(await registerToSlot(asTrainingClient(registerSupabase), 3, true, true)).toBe(
+			'waitlisted'
+		);
 		expect(registerSupabase.rpc).toHaveBeenCalledWith('register_to_slot', {
 			p_slot_id: 3,
 			p_remote: true,
@@ -132,26 +165,26 @@ describe('training service', () => {
 		const updateChain = createThenableChain({ data: [{ ok: true }], error: null });
 		const updateSupabase = {
 			from: vi.fn(() => updateChain),
-			rpc: vi.fn(async () => ({ data: { ok: true }, error: null }))
+			rpc: vi.fn(() => Promise.resolve({ data: { ok: true }, error: null }))
 		};
 
-		expect(await cancelRegistration(updateSupabase as any, 3)).toEqual({ ok: true });
+		expect(await cancelRegistration(asTrainingClient(updateSupabase), 3)).toEqual({ ok: true });
 		expect(updateSupabase.rpc).toHaveBeenCalledWith('cancel_my_registration', {
 			p_slot_id: 3
 		});
 		expect(
-			await updateRegistration(updateSupabase as any, 3, 'u-1', { status: 'registered' })
+			await updateRegistration(asTrainingClient(updateSupabase), 3, 'u-1', { status: 'registered' })
 		).toEqual([{ ok: true }]);
-		expect(await updateMyRegistrationExcuse(updateSupabase as any, 3, true, 'u-1')).toEqual([
-			{ ok: true }
-		]);
-		expect(await updateTrainerPresence(updateSupabase as any, 3, 'u-1', true)).toEqual({
+		expect(
+			await updateMyRegistrationExcuse(asTrainingClient(updateSupabase), 3, true, 'u-1')
+		).toEqual([{ ok: true }]);
+		expect(await updateTrainerPresence(asTrainingClient(updateSupabase), 3, 'u-1', true)).toEqual({
 			ok: true
 		});
 
-		await expect(updateMyRegistrationExcuse(updateSupabase as any, 3, true, null)).rejects.toThrow(
-			'User not authenticated'
-		);
+		await expect(
+			updateMyRegistrationExcuse(asTrainingClient(updateSupabase), 3, true, null)
+		).rejects.toThrow('User not authenticated');
 	});
 
 	it('creates and updates trainings and slots via insert/update chains', async () => {
@@ -162,17 +195,19 @@ describe('training service', () => {
 
 		expect(
 			await createTraining(
-				supabase as any,
+				asTrainingClient(supabase),
 				{
 					name: 'Svelte',
 					category: 'software'
-				} as any
+				} satisfies CreateTrainingPayload
 			)
 		).toEqual({ id: 1 });
-		expect(await updateTraining(supabase as any, 1, { name: 'Svelte 2' })).toEqual({ id: 1 });
+		expect(await updateTraining(asTrainingClient(supabase), 1, { name: 'Svelte 2' })).toEqual({
+			id: 1
+		});
 		expect(
 			await createTrainingSlot(
-				supabase as any,
+				asTrainingClient(supabase),
 				{
 					training_id: 1,
 					trainer_id: 'u-1',
@@ -180,24 +215,28 @@ describe('training service', () => {
 					duration_hours: 2,
 					excusable: true,
 					status: 'draft'
-				} as any
+				} satisfies CreateTrainingSlotPayload
 			)
 		).toEqual({ id: 1 });
-		expect(await updateTrainingSlot(supabase as any, 1, { status: 'pending' })).toEqual({ id: 1 });
+		expect(await updateTrainingSlot(asTrainingClient(supabase), 1, { status: 'pending' })).toEqual({
+			id: 1
+		});
 	});
 
 	it('throws when rpc and query calls return errors', async () => {
 		const rpcFailSupabase = {
-			rpc: vi.fn(async () => ({ data: null, error: new Error('rpc failed') }))
+			rpc: vi.fn(() => Promise.resolve({ data: null, error: new Error('rpc failed') }))
 		};
 
-		await expect(getTrainingList(rpcFailSupabase as any)).rejects.toThrow('rpc failed');
+		await expect(getTrainingList(asTrainingClient(rpcFailSupabase))).rejects.toThrow('rpc failed');
 
 		const cancelFailSupabase = {
-			rpc: vi.fn(async () => ({ data: null, error: new Error('rpc failed') }))
+			rpc: vi.fn(() => Promise.resolve({ data: null, error: new Error('rpc failed') }))
 		};
 
-		await expect(cancelRegistration(cancelFailSupabase as any, 1)).rejects.toThrow('rpc failed');
+		await expect(cancelRegistration(asTrainingClient(cancelFailSupabase), 1)).rejects.toThrow(
+			'rpc failed'
+		);
 
 		const queryFailChain = createThenableChain({ data: null, error: new Error('query failed') });
 		const queryFailSupabase = {
@@ -205,7 +244,7 @@ describe('training service', () => {
 		};
 
 		await expect(
-			updateRegistration(queryFailSupabase as any, 1, 'u-1', { status: 'registered' })
+			updateRegistration(asTrainingClient(queryFailSupabase), 1, 'u-1', { status: 'registered' })
 		).rejects.toThrow('query failed');
 	});
 });

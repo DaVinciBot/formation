@@ -57,12 +57,13 @@ describe('training calendar helpers', () => {
 	});
 
 	it('groupSlotsByDay buckets slots and ignores invalid dates', () => {
-		const grouped = groupSlotsByDay([
+		const groupedSlots: { id: number; start: string }[] = [
 			{ id: 1, start: '2025-01-13T10:00:00.000Z' },
 			{ id: 2, start: '2025-01-13T18:00:00.000Z' },
 			{ id: 3, start: '2025-01-14T10:00:00.000Z' },
 			{ id: 4, start: 'invalid-date' }
-		] as any);
+		];
+		const grouped = groupSlotsByDay(groupedSlots);
 
 		expect(grouped.get('2025-01-13')).toHaveLength(2);
 		expect(grouped.get('2025-01-14')).toHaveLength(1);

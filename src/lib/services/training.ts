@@ -99,14 +99,26 @@ export interface UpdateRegistrationPayload {
 
 export type TrainingSupabaseClient = SupabaseClient;
 
+interface SupabaseQueryResult<T> {
+	data: T;
+	error: unknown;
+}
+
+function unwrapSupabaseResult<T>(result: SupabaseQueryResult<T>): T {
+	if (result.error) {
+		if (result.error instanceof Error) {
+			throw result.error;
+		}
+		throw new Error(typeof result.error === 'string' ? result.error : JSON.stringify(result.error));
+	}
+	return result.data;
+}
+
 export async function getTrainingList(
 	supabase: TrainingSupabaseClient
 ): Promise<TrainingListItem[]> {
-	const { data, error } = await supabase.rpc('training_list');
-	if (error) {
-		throw error;
-	}
-	return data;
+	const result = (await supabase.rpc('training_list')) as SupabaseQueryResult<TrainingListItem[]>;
+	return unwrapSupabaseResult(result);
 }
 
 export async function getTrainingSlots(
@@ -114,29 +126,24 @@ export async function getTrainingSlots(
 	fromDate = new Date(),
 	number_of_days: number | null = null
 ): Promise<TrainingSlotListItem[]> {
-	const { data, error } = await supabase.rpc('training_slot_list', {
+	const result = (await supabase.rpc('training_slot_list', {
 		p_from: fromDate.toISOString(),
 		p_to:
 			number_of_days === null
 				? null
 				: new Date(fromDate.getTime() + number_of_days * 24 * 60 * 60 * 1000).toISOString()
-	});
-	if (error) {
-		throw error;
-	}
-	return data;
+	})) as SupabaseQueryResult<TrainingSlotListItem[]>;
+	return unwrapSupabaseResult(result);
 }
 
 export async function getTrainingSlotDetail(
 	supabase: TrainingSupabaseClient,
 	slotId: number
 ): Promise<TrainingSlotListItem | null> {
-	const { data, error } = await supabase.rpc('training_slot_detail', {
+	const result = (await supabase.rpc('training_slot_detail', {
 		p_slot_id: slotId
-	});
-	if (error) {
-		throw error;
-	}
+	})) as SupabaseQueryResult<TrainingSlotListItem[] | null>;
+	const data = unwrapSupabaseResult(result);
 	return data?.[0] ?? null;
 }
 
@@ -144,33 +151,27 @@ export async function getSlotRegistrations(
 	supabase: TrainingSupabaseClient,
 	slotId: number
 ): Promise<RegistrationListItem[]> {
-	const { data, error } = await supabase
+	const result = (await supabase
 		.rpc('registration_list', {
 			p_slot_id: slotId
 		})
-		.in('status', ['registered', 'waitlisted']);
-	if (error) {
-		throw error;
-	}
-	return data;
+		.in('status', ['registered', 'waitlisted'])) as SupabaseQueryResult<RegistrationListItem[]>;
+	return unwrapSupabaseResult(result);
 }
 
 export async function getTrainerSlotRegistrations(
 	supabase: TrainingSupabaseClient,
 	slotId: number
 ): Promise<RegistrationListItem[]> {
-	const { data, error } = await supabase
+	const result = (await supabase
 		.from('trainer_registration_view')
 		.select(
 			'slot_id,member_id,date_hour,remote,status,present,to_excuse,feedback,member_username,member_avatar_url'
 		)
 		.eq('slot_id', slotId)
 		.in('status', ['registered', 'waitlisted'])
-		.order('date_hour', { ascending: true });
-	if (error) {
-		throw error;
-	}
-	return data;
+		.order('date_hour', { ascending: true })) as SupabaseQueryResult<RegistrationListItem[]>;
+	return unwrapSupabaseResult(result);
 }
 
 export async function getMyRegistrationForSlot(
@@ -182,15 +183,13 @@ export async function getMyRegistrationForSlot(
 		return null;
 	}
 
-	const { data, error } = await supabase
+	const result = (await supabase
 		.from('registration')
 		.select('remote,status,to_excuse')
 		.eq('slot_id', slotId)
 		.eq('member_id', userId)
-		.maybeSingle();
-	if (error) {
-		throw error;
-	}
+		.maybeSingle()) as SupabaseQueryResult<RegistrationSummary | null>;
+	const data = unwrapSupabaseResult(result);
 	if (!data) {
 		return null;
 	}
@@ -210,28 +209,22 @@ export async function registerToSlot(
 	remote: boolean,
 	toExcuse = false
 ): Promise<RegistrationStatus> {
-	const { data, error } = await supabase.rpc('register_to_slot', {
+	const result = (await supabase.rpc('register_to_slot', {
 		p_slot_id: slotId,
 		p_remote: remote,
 		p_to_excuse: toExcuse
-	});
-	if (error) {
-		throw error;
-	}
-	return data;
+	})) as SupabaseQueryResult<RegistrationStatus>;
+	return unwrapSupabaseResult(result);
 }
 
 export async function cancelRegistration(
 	supabase: TrainingSupabaseClient,
 	slotId: number
 ): Promise<unknown> {
-	const { data, error } = await supabase.rpc('cancel_my_registration', {
+	const result = (await supabase.rpc('cancel_my_registration', {
 		p_slot_id: slotId
-	});
-	if (error) {
-		throw error;
-	}
-	return data;
+	})) as SupabaseQueryResult<unknown>;
+	return unwrapSupabaseResult(result);
 }
 
 export async function updateMyRegistrationExcuse(
@@ -244,15 +237,12 @@ export async function updateMyRegistrationExcuse(
 		throw new Error('User not authenticated');
 	}
 
-	const { data, error } = await supabase
+	const result = (await supabase
 		.from('registration')
 		.update({ to_excuse: toExcuse })
 		.eq('slot_id', slotId)
-		.eq('member_id', userId);
-	if (error) {
-		throw error;
-	}
-	return data;
+		.eq('member_id', userId)) as SupabaseQueryResult<unknown>;
+	return unwrapSupabaseResult(result);
 }
 
 export async function updateRegistration(
@@ -261,15 +251,12 @@ export async function updateRegistration(
 	memberId: string,
 	updates: UpdateRegistrationPayload
 ): Promise<unknown> {
-	const { data, error } = await supabase
+	const result = (await supabase
 		.from('registration')
 		.update(updates)
 		.eq('slot_id', slotId)
-		.eq('member_id', memberId);
-	if (error) {
-		throw error;
-	}
-	return data;
+		.eq('member_id', memberId)) as SupabaseQueryResult<unknown>;
+	return unwrapSupabaseResult(result);
 }
 
 export async function updateTrainerPresence(
@@ -278,26 +265,24 @@ export async function updateTrainerPresence(
 	memberId: string,
 	present: boolean | null
 ): Promise<unknown> {
-	const { data, error } = await supabase.rpc('trainer_update_presence', {
+	const result = (await supabase.rpc('trainer_update_presence', {
 		p_slot_id: slotId,
 		p_member_id: memberId,
 		p_present: present
-	});
-	if (error) {
-		throw error;
-	}
-	return data;
+	})) as SupabaseQueryResult<unknown>;
+	return unwrapSupabaseResult(result);
 }
 
 export async function createTraining(
 	supabase: TrainingSupabaseClient,
 	payload: CreateTrainingPayload
 ): Promise<unknown> {
-	const { data, error } = await supabase.from('training').insert(payload).select().single();
-	if (error) {
-		throw error;
-	}
-	return data;
+	const result = (await supabase
+		.from('training')
+		.insert(payload)
+		.select()
+		.single()) as SupabaseQueryResult<unknown>;
+	return unwrapSupabaseResult(result);
 }
 
 export async function updateTraining(
@@ -305,27 +290,25 @@ export async function updateTraining(
 	trainingId: number,
 	updates: UpdateTrainingPayload
 ): Promise<unknown> {
-	const { data, error } = await supabase
+	const result = (await supabase
 		.from('training')
 		.update(updates)
 		.eq('id', trainingId)
 		.select()
-		.single();
-	if (error) {
-		throw error;
-	}
-	return data;
+		.single()) as SupabaseQueryResult<unknown>;
+	return unwrapSupabaseResult(result);
 }
 
 export async function createTrainingSlot(
 	supabase: TrainingSupabaseClient,
 	payload: CreateTrainingSlotPayload
 ): Promise<unknown> {
-	const { data, error } = await supabase.from('training_slot').insert(payload).select().single();
-	if (error) {
-		throw error;
-	}
-	return data;
+	const result = (await supabase
+		.from('training_slot')
+		.insert(payload)
+		.select()
+		.single()) as SupabaseQueryResult<unknown>;
+	return unwrapSupabaseResult(result);
 }
 
 export async function updateTrainingSlot(
@@ -333,14 +316,11 @@ export async function updateTrainingSlot(
 	slotId: number,
 	updates: UpdateTrainingSlotPayload
 ): Promise<unknown> {
-	const { data, error } = await supabase
+	const result = (await supabase
 		.from('training_slot')
 		.update(updates)
 		.eq('id', slotId)
 		.select()
-		.single();
-	if (error) {
-		throw error;
-	}
-	return data;
+		.single()) as SupabaseQueryResult<unknown>;
+	return unwrapSupabaseResult(result);
 }

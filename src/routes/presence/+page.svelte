@@ -42,8 +42,8 @@
 	let loadError = $state<string | null>(null);
 	let actionError = $state<string | null>(null);
 	const savingIds = new SvelteSet<string>();
-	const currentUserId: string | null = $derived(data.currentUserId ?? null);
-	const canManageTraining = $derived(Boolean(data.canManageTraining));
+	const currentUserId: string = $derived(data.currentUserId);
+	const canManageTraining = $derived(data.canManageTraining);
 
 	const presenceTableTopic = 'presence-table';
 	const presenceDbInfo: DBInfo = {

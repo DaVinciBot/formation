@@ -14,7 +14,7 @@
 	import type { PageData } from './$types';
 
 	const { data }: { data: PageData } = $props();
-	const currentUserId: string | null = $derived(data.userId ?? null);
+	const currentUserId: string = $derived(data.userId);
 	const canManageTraining = $derived(data.canManageTraining);
 
 	let slots: CalendarSlot[] = $state([]);

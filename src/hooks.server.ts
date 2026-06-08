@@ -21,6 +21,29 @@ interface SupabaseQueryResult<T> {
 	error: unknown;
 }
 
+function createSessionUser({
+	id,
+	email,
+	appMetadata = {},
+	userMetadata = {}
+}: {
+	id: string;
+	email: string | null;
+	appMetadata?: Record<string, unknown>;
+	userMetadata?: Record<string, unknown>;
+}): User {
+	return {
+		id,
+		aud: 'authenticated',
+		role: 'authenticated',
+		email: email ?? undefined,
+		app_metadata: appMetadata,
+		user_metadata: userMetadata,
+		created_at: '',
+		updated_at: ''
+	};
+}
+
 const SESSION_CACHE_TTL_MS = 5 * 60 * 1000;
 const SESSION_REFRESH_GRACE_MS = 2 * 60 * 1000;
 const sessionCache = new Map<string, CachedSession>();
@@ -104,13 +127,13 @@ export const handle: Handle = async ({ event, resolve }) => {
 							user_id: jwt?.sub ?? sessionRow.user_id
 						};
 						user = jwt
-							? ({
+							? createSessionUser({
 									id: jwt.sub,
-									email: jwt.email,
-									app_metadata: jwt.app_metadata ?? {},
-									user_metadata: jwt.user_metadata ?? {}
-								} as User)
-							: { id: sessionRow.user_id, email: null, app_metadata: {}, user_metadata: {} };
+									email: jwt.email ?? null,
+									appMetadata: jwt.app_metadata ?? {},
+									userMetadata: jwt.user_metadata ?? {}
+								})
+							: createSessionUser({ id: sessionRow.user_id, email: null });
 						if (sessionId) {
 							sessionCache.set(sessionId, { session, user, timestamp: Date.now() });
 						}
@@ -125,13 +148,13 @@ export const handle: Handle = async ({ event, resolve }) => {
 						user_id: jwt?.sub ?? sessionRow.user_id
 					};
 					user = jwt
-						? ({
+						? createSessionUser({
 								id: jwt.sub,
-								email: jwt.email,
-								app_metadata: jwt.app_metadata ?? {},
-								user_metadata: jwt.user_metadata ?? {}
-							} as User)
-						: { id: sessionRow.user_id, email: null, app_metadata: {}, user_metadata: {} };
+								email: jwt.email ?? null,
+								appMetadata: jwt.app_metadata ?? {},
+								userMetadata: jwt.user_metadata ?? {}
+							})
+						: createSessionUser({ id: sessionRow.user_id, email: null });
 					sessionCache.set(sessionId, { session, user, timestamp: Date.now() });
 				}
 			}
@@ -148,9 +171,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 	event.locals.user = user;
 	event.locals.permissions = [];
 
-	event.locals.safeGetSession = async () => {
-		return { session, user };
-	};
+	event.locals.safeGetSession = () => Promise.resolve({ session, user });
 
 	return resolve(event, {
 		filterSerializedResponseHeaders(name: string) {

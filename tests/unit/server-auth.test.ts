@@ -1,6 +1,21 @@
 import { describe, expect, it, vi } from 'vitest';
+import type { SupabaseClient, User } from '@supabase/supabase-js';
 
 import { buildUserProfile, hasPermission } from '../../src/lib/server/auth';
+import type { Permission } from '../../src/lib/permissions';
+
+interface ProfileFixture {
+	username: string | null;
+	avatar_url: string | null;
+	permissions: Permission[] | null;
+	member_of: { project: { id: number; name: string; debut: string | null } | null }[] | null;
+}
+
+interface ProjectFixture {
+	id: number;
+	name: string;
+	debut: string;
+}
 
 function createSupabaseForProfile({
 	hasPermissionResult = true,
@@ -10,27 +25,27 @@ function createSupabaseForProfile({
 	projectsError = null
 }: {
 	hasPermissionResult?: boolean;
-	profileData?: any;
-	profileError?: any;
-	projectsData?: any[];
-	projectsError?: any;
+	profileData?: ProfileFixture | null;
+	profileError?: Error | null;
+	projectsData?: ProjectFixture[];
+	projectsError?: Error | null;
 }) {
 	const profilesChain = {
 		select: vi.fn(() => profilesChain),
 		eq: vi.fn(() => profilesChain),
-		single: vi.fn(async () => ({ data: profileData, error: profileError }))
+		single: vi.fn(() => Promise.resolve({ data: profileData, error: profileError }))
 	};
 
 	const projectsChain = {
-		select: vi.fn(async () => ({ data: projectsData, error: projectsError }))
+		select: vi.fn(() => Promise.resolve({ data: projectsData, error: projectsError }))
 	};
 
 	return {
-		rpc: vi.fn(async (name: string) => {
+		rpc: vi.fn((name: string) => {
 			if (name === 'has_permission') {
-				return { data: hasPermissionResult, error: null };
+				return Promise.resolve({ data: hasPermissionResult, error: null });
 			}
-			return { data: null, error: null };
+			return Promise.resolve({ data: null, error: null });
 		}),
 		from: vi.fn((table: string) => {
 			if (table === 'profiles') {
@@ -48,11 +63,15 @@ describe('server auth helpers', () => {
 	it('hasPermission returns true/false based on rpc response', async () => {
 		const supabaseTrue = createSupabaseForProfile({ hasPermissionResult: true });
 		const supabaseFalse = {
-			rpc: vi.fn(async () => ({ data: null, error: new Error('rpc error') }))
+			rpc: vi.fn(() => Promise.resolve({ data: null, error: new Error('rpc error') }))
 		};
 
-		expect(await hasPermission(supabaseTrue as any, 'training.slot.read')).toBe(true);
-		expect(await hasPermission(supabaseFalse as any, 'training.slot.read')).toBe(false);
+		expect(await hasPermission(supabaseTrue as unknown as SupabaseClient, 'training.slot.read')).toBe(
+			true
+		);
+		expect(await hasPermission(supabaseFalse as unknown as SupabaseClient, 'training.slot.read')).toBe(
+			false
+		);
 	});
 
 	it('buildUserProfile returns null profile when profile query fails', async () => {
@@ -62,11 +81,11 @@ describe('server auth helpers', () => {
 		});
 
 		const result = await buildUserProfile(
-			supabase as any,
+			supabase as unknown as SupabaseClient,
 			{
 				id: 'u-1',
 				email: 'u-1@example.com'
-			} as any
+			} as User
 		);
 
 		expect(result).toEqual({ userProfile: null, permissions: [] });
@@ -84,11 +103,11 @@ describe('server auth helpers', () => {
 		});
 
 		const result = await buildUserProfile(
-			supabase as any,
+			supabase as unknown as SupabaseClient,
 			{
 				id: 'u-1',
 				email: 'alice@example.com'
-			} as any
+			} as User
 		);
 
 		expect(result.permissions).toEqual(['members.profile.read.all']);

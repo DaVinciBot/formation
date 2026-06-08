@@ -71,7 +71,10 @@ describe('supabase browser client', () => {
 		expect(second).toBe(client);
 		expect(createBrowserClient).toHaveBeenCalledTimes(1);
 
-		expect(mod.supabase.from('training')).toBe('from-result');
+		const legacySupabase = (mod as unknown as Record<string, unknown>).supabase as {
+			from: (table: string) => string;
+		};
+		expect(legacySupabase.from('training')).toBe('from-result');
 		expect(client.from).toHaveBeenCalledWith('training');
 	});
 });
