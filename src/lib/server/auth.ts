@@ -6,7 +6,9 @@ interface ProfileRow {
 	avatar_url: string | null;
 	role: string | null;
 	permissions: string[] | null;
-	member_of: { role: string | null; project: { id: number; name: string; debut: string | null } | null }[] | null;
+	member_of:
+		| { role: string | null; project: { id: number; name: string; debut: string | null } | null }[]
+		| null;
 }
 
 interface ProjectRow {
@@ -59,8 +61,12 @@ export async function buildUserProfile(supabase: SupabaseClient, user: User) {
 		id: user.id,
 		projects: (data.member_of ?? [])
 			.filter(
-				(member): member is { role: string | null; project: { id: number; name: string; debut: string | null } } =>
-					member.project !== null
+				(
+					member
+				): member is {
+					role: string | null;
+					project: { id: number; name: string; debut: string | null };
+				} => member.project !== null
 			)
 			.map((member) => ({
 				id: member.project.id,
