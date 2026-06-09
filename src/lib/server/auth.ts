@@ -6,7 +6,7 @@ interface ProfileRow {
 	avatar_url: string | null;
 	role: string | null;
 	permissions: string[] | null;
-	member_of: { project: { id: number; name: string; debut: string | null } | null }[] | null;
+	member_of: { role: string | null; project: { id: number; name: string; debut: string | null } | null }[] | null;
 }
 
 interface ProjectRow {
@@ -37,7 +37,7 @@ export async function hasPermission(
 export async function buildUserProfile(supabase: SupabaseClient, user: User) {
 	const result = (await supabase
 		.from('profiles')
-		.select('username, avatar_url, permissions, member_of(project(id, name, debut))')
+		.select('username, avatar_url, permissions, member_of(role, project(id, name, debut))')
 		.eq('id', user.id)
 		.single()) as SupabaseQueryResult<ProfileRow | null>;
 
@@ -57,17 +57,17 @@ export async function buildUserProfile(supabase: SupabaseClient, user: User) {
 		name: data.username ?? (user.email ? (user.email.split('@')[0] ?? '') : ''),
 		avatar,
 		id: user.id,
-		projects: (
-			(data.member_of ?? []).map((member) => member.project).filter(Boolean) as {
-				id: number;
-				name: string;
-				debut: string | null;
-			}[]
-		).map((project) => ({
-			id: project.id,
-			name: project.name,
-			debut: project.debut ?? '0000-00-00'
-		})),
+		projects: (data.member_of ?? [])
+			.filter(
+				(member): member is { role: string | null; project: { id: number; name: string; debut: string | null } } =>
+					member.project !== null
+			)
+			.map((member) => ({
+				id: member.project.id,
+				name: member.project.name,
+				debut: member.project.debut ?? '0000-00-00',
+				role: member.role ?? ''
+			})),
 		permissions,
 		allProjects: null as { value: number; name: string; debut: string }[] | null
 	};
@@ -82,7 +82,7 @@ export async function buildUserProfile(supabase: SupabaseClient, user: User) {
 		permissions.includes('iam.permissions.read.all')
 	) {
 		//TODO: review
-		userProfile.projects.push({ id: 0, name: 'Association', debut: '2014-09-01' });
+		userProfile.projects.push({ id: 0, name: 'Association', debut: '2014-09-01', role: '' });
 
 		const projectsResult = (await supabase
 			.from('projects')
