@@ -268,14 +268,14 @@
 			<Spinner divClass="h-full">Chargement des slots</Spinner>
 		{:else if loadError}
 			<div
-				class="flex flex-col items-center justify-center gap-3 rounded-[26px] border border-light-blue/20 bg-dark-blue/80 p-10 text-waiting"
+				class="border-light-blue/20 bg-dark-blue/80 text-waiting flex flex-col items-center justify-center gap-3 rounded-[26px] border p-10"
 			>
 				<p class="text-center text-sm">{loadError}</p>
 				<CtaButton type="button" variant="peps" size="sm" onclick={loadSlots}>Réessayer</CtaButton>
 			</div>
 		{:else if slots.length === 0}
 			<div
-				class="flex flex-col items-center justify-center gap-3 rounded-[26px] border border-light-blue/20 bg-dark-blue/80 p-10 text-light-blue/70"
+				class="border-light-blue/20 bg-dark-blue/80 text-light-blue/70 flex flex-col items-center justify-center gap-3 rounded-[26px] border p-10"
 			>
 				<p class="text-center text-sm">Aucune session ne vous est attribuée pour le moment.</p>
 			</div>
@@ -289,11 +289,11 @@
 					{formatTimeRange}
 				/>
 
-				<section class="rounded-[26px] border border-light-blue/10 bg-blue-gray/15 p-4 sm:p-6">
+				<section class="border-light-blue/10 bg-blue-gray/15 rounded-[26px] border p-4 sm:p-6">
 					<div class="flex items-center justify-between">
 						<div>
 							<h2 class="text-lg font-semibold text-white">Présences</h2>
-							<p class="text-xs text-light-blue/70">
+							<p class="text-light-blue/70 text-xs">
 								{selectedSlot()?.name ?? 'Sélectionnez une session'}
 							</p>
 						</div>
@@ -314,12 +314,12 @@
 					<AttendanceMainInfo selectedSlot={selectedSlot()} {formatDate} {formatTimeRange} />
 
 					{#if actionError}
-						<p class="mt-3 text-sm text-waiting">{actionError}</p>
+						<p class="text-waiting mt-3 text-sm">{actionError}</p>
 					{/if}
 
 					{#if !selectedSlot()}
 						<div
-							class="mt-6 flex flex-col items-center justify-center gap-3 rounded-2xl border border-light-blue/15 bg-blue-gray/15 p-8 text-light-blue/70"
+							class="border-light-blue/15 bg-blue-gray/15 text-light-blue/70 mt-6 flex flex-col items-center justify-center gap-3 rounded-2xl border p-8"
 						>
 							<p class="text-sm">Sélectionnez une session pour démarrer.</p>
 						</div>
@@ -339,7 +339,7 @@
 
 						{#if registrations.length === 0}
 							<div
-								class="mt-6 flex flex-col items-center justify-center gap-3 rounded-2xl border border-light-blue/15 bg-blue-gray/15 p-8 text-light-blue/70"
+								class="border-light-blue/15 bg-blue-gray/15 text-light-blue/70 mt-6 flex flex-col items-center justify-center gap-3 rounded-2xl border p-8"
 							>
 								<p class="text-sm">Aucune inscription pour cette session.</p>
 							</div>
@@ -351,7 +351,7 @@
 								{presenceButtonClass}
 							/>
 							<div
-								class="presence-table-container mt-6 hidden overflow-hidden rounded-2xl border border-light-blue/15 bg-blue-gray/15 min-[1040px]:block"
+								class="presence-table-container border-light-blue/15 bg-blue-gray/15 mt-6 hidden overflow-hidden rounded-2xl border min-[1040px]:block"
 							>
 								<Table
 									headers={['Membre', 'Format', 'Statut', 'Présence']}
