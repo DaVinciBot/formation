@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [dev, main, master, 'release/**', 'hotfix/**']
+    branches: [dev, staging, main, master, 'release/**', 'hotfix/**']
   pull_request:
     branches: [dev, staging, main, master, 'release/**', 'hotfix/**']
 
@@ -16,7 +16,7 @@ permissions:
 jobs:
   quality:
     name: Quality
-    uses: DaVinciBot/shared-workflows/.github/workflows/ci.yml@v2.0.0
+    uses: DaVinciBot/shared-workflows/.github/workflows/ci.yml@v2.1.0
     secrets: inherit
     with:
       pnpm_version: 11.5.2
