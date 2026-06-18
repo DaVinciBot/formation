@@ -25,8 +25,8 @@ importers:
         version: 4.3.0
     devDependencies:
       '@davincibot/eslint-config':
-        specifier: ^1.0.0
-        version: 1.0.0(@eslint/js@10.0.1(eslint@10.4.0(jiti@2.7.0)))(eslint-config-prettier@10.1.8(eslint@10.4.0(jiti@2.7.0)))(eslint-plugin-svelte@3.17.1(eslint@10.4.0(jiti@2.7.0))(svelte@5.55.9(@typescript-eslint/types@8.59.4)))(eslint@10.4.0(jiti@2.7.0))(globals@17.6.0)(typescript-eslint@8.59.4(eslint@10.4.0(jiti@2.7.0))(typescript@6.0.3))
+        specifier: ^1.0.1
+        version: 1.0.1(@eslint/js@10.0.1(eslint@10.4.0(jiti@2.7.0)))(eslint-config-prettier@10.1.8(eslint@10.4.0(jiti@2.7.0)))(eslint-plugin-svelte@3.17.1(eslint@10.4.0(jiti@2.7.0))(svelte@5.55.9(@typescript-eslint/types@8.59.4)))(eslint@10.4.0(jiti@2.7.0))(globals@17.6.0)(typescript-eslint@8.59.4(eslint@10.4.0(jiti@2.7.0))(typescript@6.0.3))
       '@davincibot/prettier-config':
         specifier: ^1.0.0
         version: 1.0.0
@@ -187,8 +187,8 @@ packages:
     resolution: {integrity: sha512-QxULHAm7cNu72w97JUNCBFODFaXpbDg+dP8b/oWFAZ2MTRppA3U00Y2L1HqaS4J6yBqxwa/Y3nMBaxVKbB/NsA==}
     engines: {node: '>=20.19.0'}
 
-  '@davincibot/eslint-config@1.0.0':
-    resolution: {integrity: sha512-seaQ30yB9ZFdFuhh01EkXpD5iGr+aQH6C1e4LvWp4A/baRMvK83thcOdfi0Rqd/JyKQaSbuugJFXRDnyH//RzA==}
+  '@davincibot/eslint-config@1.0.1':
+    resolution: {integrity: sha512-+fDPE0nLKfKjifXuMDZM2UzpNTfH5N+8IoP+L81HoffgE3wCPQxMMf6RI3G+1L8Op/H00v3iyD5H2ynTNaXFaw==}
     peerDependencies:
       '@eslint/js': '>=10'
       eslint: '>=10'
@@ -2143,7 +2143,7 @@ snapshots:
 
   '@csstools/css-tokenizer@4.0.0': {}
 
-  '@davincibot/eslint-config@1.0.0(@eslint/js@10.0.1(eslint@10.4.0(jiti@2.7.0)))(eslint-config-prettier@10.1.8(eslint@10.4.0(jiti@2.7.0)))(eslint-plugin-svelte@3.17.1(eslint@10.4.0(jiti@2.7.0))(svelte@5.55.9(@typescript-eslint/types@8.59.4)))(eslint@10.4.0(jiti@2.7.0))(globals@17.6.0)(typescript-eslint@8.59.4(eslint@10.4.0(jiti@2.7.0))(typescript@6.0.3))':
+  '@davincibot/eslint-config@1.0.1(@eslint/js@10.0.1(eslint@10.4.0(jiti@2.7.0)))(eslint-config-prettier@10.1.8(eslint@10.4.0(jiti@2.7.0)))(eslint-plugin-svelte@3.17.1(eslint@10.4.0(jiti@2.7.0))(svelte@5.55.9(@typescript-eslint/types@8.59.4)))(eslint@10.4.0(jiti@2.7.0))(globals@17.6.0)(typescript-eslint@8.59.4(eslint@10.4.0(jiti@2.7.0))(typescript@6.0.3))':
     dependencies:
       '@eslint/js': 10.0.1(eslint@10.4.0(jiti@2.7.0))
       eslint: 10.4.0(jiti@2.7.0)
