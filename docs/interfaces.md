@@ -58,7 +58,7 @@
 
 - [ ] Envoi message aux inscrit·e·s
 - [ ] Envoi message à la liste d'attente
-- [ ] Déclenchement annonce hebdo Discord
+- [x] Déclenchement annonce hebdo Discord
 
 ### Inscriptions et présences
 
