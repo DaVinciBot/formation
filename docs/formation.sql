@@ -380,7 +380,7 @@ as $$
 end;
 $$;
 
-create or replace function public.training_manager_ids()
+create or replace function public.training_director_ids()
 returns table (
   id uuid
 )
@@ -776,7 +776,7 @@ set search_path = public
 as $$
 begin
   if old.status is distinct from new.status and new.status = 'done' then
-    perform public.send_training_email('training_manager_summary', new.id, null);
+    perform public.send_training_email('training_director_summary', new.id, null);
   end if;
   return new;
 end;

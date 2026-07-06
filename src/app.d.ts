@@ -1,6 +1,6 @@
 // See https://svelte.dev/docs/kit/types#app.d.ts
 // for information about these interfaces
-import type { Permission } from '$lib/permissions';
+import type { EffectivePermission } from '$lib/permissions';
 import type { Session, SupabaseClient, User } from '@supabase/supabase-js';
 
 interface UserProject {
@@ -15,7 +15,7 @@ interface UserProfile {
 	avatar: string;
 	id: string;
 	projects: UserProject[];
-	permissions: Permission[];
+	permissions: EffectivePermission[];
 	allProjects: { value: number; name: string; debut: string }[] | null;
 }
 
@@ -34,14 +34,14 @@ declare global {
 			supabase: SupabaseClient;
 			session: ServerSession | null;
 			user: User | null;
-			permissions: Permission[];
+			permissions: EffectivePermission[];
 			safeGetSession: () => Promise<{ session: ServerSession | null; user: User | null }>;
 		}
 		interface PageData {
 			session: Session | null;
 			user: User | null;
 			userProfile: UserProfile | null;
-			permissions: Permission[];
+			permissions: EffectivePermission[];
 			canManageTraining: boolean;
 			canAccessTraining: boolean;
 		}

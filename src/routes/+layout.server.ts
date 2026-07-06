@@ -12,7 +12,7 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
 
 	const [canReadTraining, canManageTraining] = await Promise.all([
 		hasPermission(supabase, 'training.slot.read'),
-		hasPermission(supabase, 'training.slot.cu')
+		hasPermission(supabase, 'training.slot.manage')
 	]);
 	const canAccessTraining = canReadTraining || canManageTraining;
 	if (!canAccessTraining) {
