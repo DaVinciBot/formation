@@ -1,12 +1,3 @@
-// Référentiel RBAC (voir Supabased/docs/RBAC_REFERENCE.md).
-// - GLOBAL_PERMISSIONS : enum public.global_permission (permissions transverses).
-// - GLOBAL_ROLES / PROJECT_ROLES : enums public.global_role / public.project_role.
-// - PROJECT_PERMISSIONS : enum public.project_permission (scopé-projet, distinct).
-// Les permissions effectives d'un utilisateur sont résolues côté DB (fonction
-// has_permission, qui unit rôles globaux actifs + override profiles.permissions)
-// et exposées au front sous forme de liste ; hasPermission()/hasAnyPermission()
-// ne font qu'un includes() sur cette liste déjà résolue.
-
 export const GLOBAL_PERMISSIONS = [
 	// members.*
 	'members.profile.read.all',
