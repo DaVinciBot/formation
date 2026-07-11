@@ -63,7 +63,7 @@ export async function buildUserProfile(supabase: SupabaseClient, user: User) {
 	const result = (await supabase
 		.from('profiles')
 		.select(
-			'username, avatar_url, permissions, profile_global_roles(role, revoked_at, global_roles(permissions)), member_of(role, project(id, name, debut))'
+			'username, avatar_url, permissions, profile_global_roles!profile_global_roles_profile_fkey(role, revoked_at, global_roles(permissions)), member_of!membre_projet_profile_fkey(role, project(id, name, debut))'
 		)
 		.eq('id', user.id)
 		.single()) as SupabaseQueryResult<ProfileRow | null>;
