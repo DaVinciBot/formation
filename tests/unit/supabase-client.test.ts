@@ -26,11 +26,15 @@ async function loadModule({
 		}
 	}));
 
-	const createBrowserClient = vi.fn(() => client);
-	vi.doMock('@supabase/ssr', () => ({ createBrowserClient }));
+	const createClientCalls: unknown[][] = [];
+	const createClient = vi.fn((...args: unknown[]) => {
+		createClientCalls.push(args);
+		return client;
+	});
+	vi.doMock('@supabase/supabase-js', () => ({ createClient }));
 
 	const mod = await import('../../src/lib/supabaseClient');
-	return { mod, createBrowserClient };
+	return { mod, createClient, createClientCalls };
 }
 
 describe('supabase browser client', () => {
@@ -55,9 +59,9 @@ describe('supabase browser client', () => {
 		);
 	});
 
-	it('creates a singleton browser client and forwards proxy calls', async () => {
+	it('creates a singleton client in accessToken mode and forwards proxy calls', async () => {
 		const client = { from: vi.fn(() => 'from-result') };
-		const { mod, createBrowserClient } = await loadModule({
+		const { mod, createClient, createClientCalls } = await loadModule({
 			browser: true,
 			url: 'https://example.supabase.co',
 			key: 'pk-test',
@@ -69,7 +73,10 @@ describe('supabase browser client', () => {
 
 		expect(first).toBe(client);
 		expect(second).toBe(client);
-		expect(createBrowserClient).toHaveBeenCalledTimes(1);
+		expect(createClient).toHaveBeenCalledTimes(1);
+
+		const options = createClientCalls[0]?.[2] as { accessToken?: unknown } | undefined;
+		expect(typeof options?.accessToken).toBe('function');
 
 		const legacySupabase = (mod as unknown as Record<string, unknown>).supabase as {
 			from: (table: string) => string;
