@@ -25,7 +25,8 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
 	locals.permissions = permissions;
 
 	return {
-		session,
+		// Jamais de token dans les données de page : le navigateur passe par /api/session/token.
+		session: { id: session.id, expires_at: session.expires_at, user_id: session.user_id },
 		user,
 		userProfile,
 		permissions,
