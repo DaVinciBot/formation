@@ -2,12 +2,12 @@ import { describe, expect, it, vi } from 'vitest';
 import type { SupabaseClient, User } from '@supabase/supabase-js';
 
 import { buildUserProfile, hasPermission } from '../../src/lib/server/auth';
-import type { Permission } from '../../src/lib/permissions';
+import type { GlobalPermission } from '../../src/lib/permissions';
 
 interface ProfileFixture {
 	username: string | null;
 	avatar_url: string | null;
-	permissions: Permission[] | null;
+	permissions: GlobalPermission[] | null;
 	member_of: { project: { id: number; name: string; debut: string | null } | null }[] | null;
 }
 

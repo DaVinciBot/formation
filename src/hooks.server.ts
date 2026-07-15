@@ -1,11 +1,14 @@
+import { buildLoginUrl } from '$lib/config/auth';
 import { createAnonClient, createUserClient, decodeJwt } from '$lib/server/sso';
 import type { User } from '@supabase/supabase-js';
-import type { Handle, RequestEvent } from '@sveltejs/kit';
+import { error, redirect, type Handle, type RequestEvent } from '@sveltejs/kit';
+import { createHash, timingSafeEqual } from 'node:crypto';
 
 interface CachedSession {
 	session: App.Locals['session'];
 	user: App.Locals['user'];
 	timestamp: number;
+	secretHash: string;
 }
 
 interface ServerSessionRow {
@@ -48,13 +51,26 @@ const SESSION_CACHE_TTL_MS = 5 * 60 * 1000;
 const SESSION_REFRESH_GRACE_MS = 2 * 60 * 1000;
 const sessionCache = new Map<string, CachedSession>();
 
-const getCachedSession = (cacheKey: string) => {
+const hashSecret = (secret: string): string => createHash('sha256').update(secret).digest('hex');
+
+const secretMatches = (a: string, b: string): boolean => {
+	const bufA = Buffer.from(a);
+	const bufB = Buffer.from(b);
+	return bufA.length === bufB.length && timingSafeEqual(bufA, bufB);
+};
+
+// Le cache est lié au secret : un même sessionId présenté avec un secret différent
+// ne réutilise jamais l'entrée (sinon le secret ne serait plus vérifié).
+const getCachedSession = (cacheKey: string, secret: string) => {
 	const cached = sessionCache.get(cacheKey);
 	if (!cached) {
 		return null;
 	}
 	if (Date.now() - cached.timestamp > SESSION_CACHE_TTL_MS) {
 		sessionCache.delete(cacheKey);
+		return null;
+	}
+	if (!secretMatches(cached.secretHash, hashSecret(secret))) {
 		return null;
 	}
 	return cached;
@@ -64,6 +80,39 @@ const clearSessionCookie = (event: RequestEvent) => {
 	event.cookies.delete('sid', { path: '/' });
 };
 
+/**
+ * Garde d'accès aux environnements dev.* : exige d'être authentifié ET de
+ * détenir infra.environments.access (résolu côté DB via has_permission, qui
+ * unit rôles globaux actifs + override). Un utilisateur non connecté est
+ * redirigé vers le login ; connecté sans la permission -> 403.
+ */
+async function guardDevEnvironment(
+	event: RequestEvent,
+	session: App.Locals['session'],
+	user: App.Locals['user']
+): Promise<void> {
+	// Ne pas garder les routes d'authentification elles-mêmes : sur dev.*, le
+	// login vit sur le même hôte, donc les exempter évite une boucle de redirect.
+	if (event.url.pathname.startsWith('/auth/')) {
+		return;
+	}
+
+	if (!session || !user) {
+		redirect(302, buildLoginUrl(event.url.href));
+	}
+
+	const result = (await event.locals.supabase.rpc('has_permission', {
+		p_permission: 'infra.environments.access'
+	})) as { data: boolean | null; error: unknown };
+
+	if (result.error || !result.data) {
+		error(
+			403,
+			"Accès réservé à l'environnement de développement (infra.environments.access requis)."
+		);
+	}
+}
+
 export const handle: Handle = async ({ event, resolve }) => {
 	const rawSid = event.cookies.get('sid');
 	const [sessionId, sessionSecret] = rawSid ? rawSid.split('.') : [null, null];
@@ -71,7 +120,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 	let user: App.Locals['user'] = null;
 
 	if (sessionId && sessionSecret) {
-		const cached = getCachedSession(sessionId);
+		const cached = getCachedSession(sessionId, sessionSecret);
 		if (cached) {
 			session = cached.session;
 			user = cached.user;
@@ -135,7 +184,12 @@ export const handle: Handle = async ({ event, resolve }) => {
 								})
 							: createSessionUser({ id: sessionRow.user_id, email: null });
 						if (sessionId) {
-							sessionCache.set(sessionId, { session, user, timestamp: Date.now() });
+							sessionCache.set(sessionId, {
+								session,
+								user,
+								timestamp: Date.now(),
+								secretHash: hashSecret(sessionSecret)
+							});
 						}
 					}
 				} else {
@@ -155,7 +209,12 @@ export const handle: Handle = async ({ event, resolve }) => {
 								userMetadata: jwt.user_metadata ?? {}
 							})
 						: createSessionUser({ id: sessionRow.user_id, email: null });
-					sessionCache.set(sessionId, { session, user, timestamp: Date.now() });
+					sessionCache.set(sessionId, {
+						session,
+						user,
+						timestamp: Date.now(),
+						secretHash: hashSecret(sessionSecret)
+					});
 				}
 			}
 		}
@@ -172,6 +231,13 @@ export const handle: Handle = async ({ event, resolve }) => {
 	event.locals.permissions = [];
 
 	event.locals.safeGetSession = () => Promise.resolve({ session, user });
+
+	// Environnements de pré-production (dev.*) : accès réservé aux utilisateurs
+	// authentifiés détenant infra.environments.access. Enforcement applicatif en
+	// complément du reverse proxy.
+	if (event.url.hostname.startsWith('dev.')) {
+		await guardDevEnvironment(event, session, user);
+	}
 
 	return resolve(event, {
 		filterSerializedResponseHeaders(name: string) {

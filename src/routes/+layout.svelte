@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
 	import Topbar from '$lib/components/share/Topbar.svelte';
 	import { getSupabaseBrowserClient } from '$lib/supabaseClient';
 	import { loadUserdata } from '$lib/utils';
@@ -53,7 +54,7 @@
 			if (current.session?.access_token) {
 				return;
 			}
-			const response = await fetch('/auth/session');
+			const response = await fetch(resolve('/auth/session'));
 			if (!response.ok) {
 				return;
 			}

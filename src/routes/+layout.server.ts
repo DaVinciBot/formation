@@ -1,3 +1,4 @@
+import { buildLoginUrl } from '$lib/config/auth';
 import { buildUserProfile, hasPermission } from '$lib/server/auth';
 import { redirect } from '@sveltejs/kit';
 import type { LayoutServerLoad } from './$types';
@@ -7,12 +8,12 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
 	const { session, user } = await safeGetSession();
 
 	if (!user || !session) {
-		redirect(302, `/auth/login?redirect=${encodeURIComponent(url.href)}`);
+		redirect(302, buildLoginUrl(url.href));
 	}
 
 	const [canReadTraining, canManageTraining] = await Promise.all([
 		hasPermission(supabase, 'training.slot.read'),
-		hasPermission(supabase, 'training.slot.cu')
+		hasPermission(supabase, 'training.slot.manage')
 	]);
 	const canAccessTraining = canReadTraining || canManageTraining;
 	if (!canAccessTraining) {
