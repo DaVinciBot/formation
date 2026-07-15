@@ -75,8 +75,6 @@ describe('supabase browser client', () => {
 		expect(second).toBe(client);
 		expect(createClient).toHaveBeenCalledTimes(1);
 
-		// Le client navigateur ne gère plus la session GoTrue : il tire son
-		// access token du serveur du site via le callback accessToken.
 		const options = createClientCalls[0]?.[2] as { accessToken?: unknown } | undefined;
 		expect(typeof options?.accessToken).toBe('function');
 
