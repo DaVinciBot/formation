@@ -1,6 +1,6 @@
 import { resolve as resolveRoute } from '$app/paths';
 import { buildLoginUrl } from '$lib/config/auth';
-import { resolveSessionViaAuth } from '$lib/server/authService';
+import { resolveSessionViaAuth, sidCookieName } from '$lib/server/authService';
 import { SessionCache } from '$lib/server/sessionCache';
 import { createAnonClient, createUserClient } from '$lib/server/sso';
 import type { User } from '@supabase/supabase-js';
@@ -37,7 +37,7 @@ const sessionCache = new SessionCache<NonNullable<App.Locals['session']>, User>(
 );
 
 const clearSessionCookie = (event: RequestEvent) => {
-	event.cookies.delete('sid', { path: '/' });
+	event.cookies.delete(sidCookieName(), { path: '/' });
 };
 
 /**
@@ -79,7 +79,7 @@ async function guardDevEnvironment(
 }
 
 export const handle: Handle = async ({ event, resolve }) => {
-	const rawSid = event.cookies.get('sid');
+	const rawSid = event.cookies.get(sidCookieName());
 	const [sessionId, sessionSecret] = rawSid ? rawSid.split('.') : [null, null];
 	let session: App.Locals['session'] = null;
 	let user: App.Locals['user'] = null;
