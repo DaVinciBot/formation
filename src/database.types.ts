@@ -1,4 +1,4 @@
-﻿export type Json =
+export type Json =
   | string
   | number
   | boolean
@@ -6,7 +6,7 @@
   | { [key: string]: Json | undefined }
   | Json[]
 
-export type Database = {
+export interface Database {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
@@ -968,6 +968,16 @@ export type Database = {
         Returns: boolean
       }
       install_available_extensions_and_test: { Args: never; Returns: boolean }
+      list_user_oauth_connections: {
+        Args: { p_user_id: string }
+        Returns: {
+          client_id: string
+          client_name: string
+          latest_expires_at: string
+          scopes: string
+          token_count: number
+        }[]
+      }
       promote_waitlist: {
         Args: { p_remote: boolean; p_slot_id: number }
         Returns: undefined
@@ -1001,6 +1011,10 @@ export type Database = {
           p_role: Database["public"]["Enums"]["global_role"]
         }
         Returns: undefined
+      }
+      revoke_user_oauth_connection: {
+        Args: { p_client_id: string; p_user_id: string }
+        Returns: number
       }
       send_training_email: {
         Args: { p_member_id?: string; p_slot_id: number; p_template: string }
@@ -1179,114 +1193,7 @@ export type Database = {
         | "order-canceled-ops"
         | "order-completed"
     }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
-  sso: {
-    Tables: {
-      server_sessions: {
-        Row: {
-          absolute_expires_at: string | null
-          access_token: string
-          created_at: string
-          device_label: string | null
-          expires_at: string
-          id: string
-          last_seen_at: string | null
-          refresh_token: string
-          revoked_at: string | null
-          secret_hash: string
-          trusted_device: boolean
-          user_id: string
-        }
-        Insert: {
-          absolute_expires_at?: string | null
-          access_token: string
-          created_at?: string
-          device_label?: string | null
-          expires_at: string
-          id?: string
-          last_seen_at?: string | null
-          refresh_token: string
-          revoked_at?: string | null
-          secret_hash: string
-          trusted_device?: boolean
-          user_id: string
-        }
-        Update: {
-          absolute_expires_at?: string | null
-          access_token?: string
-          created_at?: string
-          device_label?: string | null
-          expires_at?: string
-          id?: string
-          last_seen_at?: string | null
-          refresh_token?: string
-          revoked_at?: string | null
-          secret_hash?: string
-          trusted_device?: boolean
-          user_id?: string
-        }
-        Relationships: []
-      }
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      create_server_session: {
-        Args: {
-          p_access_token: string
-          p_device_label?: string
-          p_expires_at: string
-          p_refresh_token: string
-          p_trusted?: boolean
-        }
-        Returns: {
-          session_id: string
-          session_secret: string
-        }[]
-      }
-      get_server_session: {
-        Args: { p_session_id: string; p_session_secret: string }
-        Returns: {
-          access_token: string
-          created_at: string
-          expires_at: string
-          id: string
-          last_seen_at: string
-          refresh_token: string
-          revoked_at: string
-          user_id: string
-        }[]
-      }
-      purge_expired_sessions: { Args: never; Returns: number }
-      revoke_server_session: {
-        Args: { p_session_id: string; p_session_secret: string }
-        Returns: undefined
-      }
-      revoke_user_sessions: {
-        Args: { p_except_session_id?: string; p_user_id: string }
-        Returns: number
-      }
-      update_server_session_tokens: {
-        Args: {
-          p_access_token: string
-          p_expires_at: string
-          p_refresh_token: string
-          p_session_id: string
-          p_session_secret: string
-        }
-        Returns: undefined
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
+    CompositeTypes: Record<never, never>
   }
 }
 
@@ -1511,29 +1418,6 @@ export const Constants = {
       ],
     },
   },
-  sso: {
-    Enums: {},
-  },
 } as const
 
-// UI/domain aliases kept outside the generated Database shape.
-export type TrainingCardStatus =
-  | "complete"
-  | "free"
-  | "hidden"
-  | "registered"
-  | "waiting"
-  | "my"
-export type BlogRow = Tables<"blog"> & { id: number }
-export type ItemRow = Tables<"items">
-export type OrderRow = Tables<"orders">
-export type ProjectRow = Tables<"projects">
-export type RegistrationRow = Tables<"registration">
-type GeneratedServerSessionRow =
-  Database["sso"]["Functions"]["get_server_session"]["Returns"][number]
-export type ServerSessionRow = Pick<
-  GeneratedServerSessionRow,
-  "access_token" | "expires_at" | "refresh_token" | "user_id"
-> & {
-  revoked_at: string | null
-}
+export type TrainingCardStatus = 'complete' | 'free' | 'hidden' | 'registered' | 'waiting' | 'my'
