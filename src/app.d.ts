@@ -32,7 +32,7 @@ declare global {
 	namespace App {
 		// interface Error {}
 		interface Locals {
-			supabase: SupabaseClient;
+			supabase: SupabaseClient<Database>;
 			session: ServerSession | null;
 			user: User | null;
 			permissions: EffectivePermission[];

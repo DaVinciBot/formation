@@ -1,5 +1,6 @@
 import type { EffectivePermission, GlobalPermission } from '$lib/permissions';
 import type { SupabaseClient, User } from '@supabase/supabase-js';
+import type { Database } from '../../database.types.ts';
 
 interface ProfileRow {
 	username: string | null;
@@ -46,8 +47,8 @@ interface SupabaseQueryResult<T> {
 }
 
 export async function hasPermission(
-	supabase: SupabaseClient,
-	permission: EffectivePermission
+	supabase: SupabaseClient<Database>,
+	permission: GlobalPermission
 ): Promise<boolean> {
 	const result = (await supabase.rpc('has_permission', {
 		p_permission: permission
@@ -59,14 +60,32 @@ export async function hasPermission(
 	return result.data;
 }
 
-export async function buildUserProfile(supabase: SupabaseClient, user: User) {
-	const result = (await supabase
-		.from('profiles')
-		.select(
-			'username, avatar_url, permissions, profile_global_roles!profile_global_roles_profile_fkey(role, revoked_at, global_roles(permissions)), member_of!membre_projet_profile_fkey(role, project(id, name, debut))'
-		)
-		.eq('id', user.id)
-		.single()) as SupabaseQueryResult<ProfileRow | null>;
+export async function buildUserProfile(supabase: SupabaseClient<Database>, user: User) {
+	const [
+		result,
+		{ data: canReadOrders },
+		{ data: canReadFinance },
+		{ data: canReadProfiles },
+		{ data: canWriteFinance },
+		{ data: canUpdateProfiles },
+		{ data: canReadStats },
+		{ data: canManageRoles }
+	] = await Promise.all([
+		supabase
+			.from('profiles')
+			.select(
+				'username, avatar_url, permissions, profile_global_roles!profile_global_roles_profile_fkey(role, revoked_at, global_roles(permissions)), member_of!membre_projet_profile_fkey(role, project(id, name, debut))'
+			)
+			.eq('id', user.id)
+			.single() as unknown as Promise<SupabaseQueryResult<ProfileRow | null>>,
+		supabase.rpc('has_permission', { p_permission: 'orders.read.all' }),
+		supabase.rpc('has_permission', { p_permission: 'finance.read' }),
+		supabase.rpc('has_permission', { p_permission: 'members.profile.read.all' }),
+		supabase.rpc('has_permission', { p_permission: 'finance.write' }),
+		supabase.rpc('has_permission', { p_permission: 'members.profile.update.all' }),
+		supabase.rpc('has_permission', { p_permission: 'stats.read.all' }),
+		supabase.rpc('has_permission', { p_permission: 'iam.roles.manage' })
+	]);
 
 	if (result.error || !result.data) {
 		return {
@@ -104,13 +123,13 @@ export async function buildUserProfile(supabase: SupabaseClient, user: User) {
 	};
 
 	if (
-		permissions.includes('orders.read.all') ||
-		permissions.includes('finance.read') ||
-		permissions.includes('members.profile.read.all') ||
-		permissions.includes('finance.write') ||
-		permissions.includes('members.profile.update.all') ||
-		permissions.includes('stats.read.all') ||
-		permissions.includes('iam.roles.manage')
+		canReadOrders ||
+		canReadFinance ||
+		canReadProfiles ||
+		canWriteFinance ||
+		canUpdateProfiles ||
+		canReadStats ||
+		canManageRoles
 	) {
 		//TODO: review
 		userProfile.projects.push({ id: 0, name: 'Association', debut: '2014-09-01', role: '' });
