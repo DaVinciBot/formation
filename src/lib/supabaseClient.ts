@@ -3,6 +3,7 @@ import { resolve } from '$app/paths';
 import { env } from '$env/dynamic/public';
 import { createClient } from '@supabase/supabase-js';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import type { Database } from '../database.types';
 
 const publicSupabaseUrl = env.PUBLIC_SUPABASE_URL;
 const publicSupabaseKey = env.PUBLIC_SUPABASE_PUBLISHABLE_KEY;
@@ -10,7 +11,7 @@ const publicSupabaseKey = env.PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 export const supabaseUrl = publicSupabaseUrl.replace(/\/$/, '');
 export const supabaseKey = publicSupabaseKey;
 
-type BrowserSupabaseClient = SupabaseClient;
+type BrowserSupabaseClient = SupabaseClient<Database>;
 
 let browserClient: BrowserSupabaseClient | null = null;
 
@@ -54,7 +55,7 @@ export function getSupabaseBrowserClient(): BrowserSupabaseClient {
 		);
 	}
 
-	browserClient ??= createClient(publicSupabaseUrl, publicSupabaseKey, {
+	browserClient ??= createClient<Database>(publicSupabaseUrl, publicSupabaseKey, {
 		accessToken: fetchAccessToken
 	});
 

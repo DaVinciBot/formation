@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { SupabaseClient, User } from '@supabase/supabase-js';
+import type { Database } from '../../src/database.types';
 
 import { buildUserProfile, hasPermission } from '../../src/lib/server/auth';
 import type { GlobalPermission } from '../../src/lib/permissions';
@@ -67,10 +68,13 @@ describe('server auth helpers', () => {
 		};
 
 		expect(
-			await hasPermission(supabaseTrue as unknown as SupabaseClient, 'training.slot.read')
+			await hasPermission(supabaseTrue as unknown as SupabaseClient<Database>, 'training.slot.read')
 		).toBe(true);
 		expect(
-			await hasPermission(supabaseFalse as unknown as SupabaseClient, 'training.slot.read')
+			await hasPermission(
+				supabaseFalse as unknown as SupabaseClient<Database>,
+				'training.slot.read'
+			)
 		).toBe(false);
 	});
 
@@ -81,7 +85,7 @@ describe('server auth helpers', () => {
 		});
 
 		const result = await buildUserProfile(
-			supabase as unknown as SupabaseClient,
+			supabase as unknown as SupabaseClient<Database>,
 			{
 				id: 'u-1',
 				email: 'u-1@example.com'
@@ -103,7 +107,7 @@ describe('server auth helpers', () => {
 		});
 
 		const result = await buildUserProfile(
-			supabase as unknown as SupabaseClient,
+			supabase as unknown as SupabaseClient<Database>,
 			{
 				id: 'u-1',
 				email: 'alice@example.com'
