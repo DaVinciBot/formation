@@ -1,6 +1,6 @@
 import { env } from '$env/dynamic/public';
 import { createClient } from '@supabase/supabase-js';
-import type { Database } from '../../database.types';
+import type { Database } from '@davincibot/database-types';
 
 interface DecodedJwt {
 	sub: string;

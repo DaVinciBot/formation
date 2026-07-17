@@ -1,16 +1,16 @@
 <script lang="ts">
-	import Calendar, { type CalendarSlot } from '$lib/components/training/Calendar.svelte';
-	import { getWeekStart } from '$lib/components/training/helpers/calendar';
+	import { Calendar, type CalendarSlot } from '@davincibot/components';
+	import { getWeekStart } from '@davincibot/components';
 	import {
 		getTrainingSlots,
 		type RegistrationStatus,
 		type TrainingSlotListItem
-	} from '$lib/services/training';
-	import { getSupabaseBrowserClient } from '$lib/supabaseClient';
+	} from '@davincibot/lib';
+	import { getSupabaseBrowserClient } from '@davincibot/lib/supabase';
 	import type { RealtimeChannel, SupabaseClient } from '@supabase/supabase-js';
 	import { onDestroy, onMount } from 'svelte';
 	import { SvelteMap } from 'svelte/reactivity';
-	import type { TrainingCardStatus } from '../database.types';
+	import type { TrainingCardStatus } from '@davincibot/database-types';
 	import type { PageData } from './$types';
 
 	const { data }: { data: PageData } = $props();

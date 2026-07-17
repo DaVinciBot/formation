@@ -1,6 +1,6 @@
 <script lang="ts">
-	import Topbar from '$lib/components/share/Topbar.svelte';
-	import { loadUserdata } from '$lib/utils';
+	import { Topbar } from '@davincibot/components';
+	import { loadUserdata } from '@davincibot/lib';
 	import type { Snippet } from 'svelte';
 	import type { LayoutData } from './$types';
 	import './layout.css';
