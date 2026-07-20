@@ -6,7 +6,7 @@ import {
 	hasContent,
 	isRegistrationMode,
 	resolveRemaining
-} from '../../src/lib/components/training/helpers/slotModal';
+} from '@davincibot/components';
 
 describe('slot modal helpers', () => {
 	it('hasContent checks trimmed content', () => {

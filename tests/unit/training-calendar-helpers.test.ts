@@ -9,7 +9,7 @@ import {
 	isInPersonSlot,
 	isOnlineSlot,
 	toDateKey
-} from '../../src/lib/components/training/helpers/calendar';
+} from '@davincibot/components';
 
 describe('training calendar helpers', () => {
 	it('toDateKey returns paris date key', () => {
