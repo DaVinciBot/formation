@@ -4,13 +4,13 @@
 		type DBInfo,
 		type Filter,
 		type TableRow } from '@davincibot/components';
-	import { AttendanceHeader } from '@davincibot/components';
-	import { AttendanceMainInfo } from '@davincibot/components';
-	import { AttendanceStats } from '@davincibot/components';
-	import { RegistrationMobileList } from '@davincibot/components';
-	import { SlotList } from '@davincibot/components';
+	import AttendanceHeader from '$lib/components/attendance/AttendanceHeader.svelte';
+	import AttendanceMainInfo from '$lib/components/attendance/AttendanceMainInfo.svelte';
+	import AttendanceStats from '$lib/components/attendance/AttendanceStats.svelte';
+	import RegistrationMobileList from '$lib/components/attendance/RegistrationMobileList.svelte';
+	import SlotList from '$lib/components/attendance/SlotList.svelte';
 	import { Spinner } from '@davincibot/components';
-	import { PresenceActionsCell } from '@davincibot/components';
+	import PresenceActionsCell from '$lib/components/training/PresenceActionsCell.svelte';
 	import { Badge } from '@davincibot/components';
 	import { CTAButton as CtaButton } from '@davincibot/components';
 	import { formatParisDate, formatParisTimeRange } from '@davincibot/lib';
