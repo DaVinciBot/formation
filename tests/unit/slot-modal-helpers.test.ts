@@ -1,12 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import {
-	buildActionButtons,
-	buildAvailability,
-	hasContent,
-	isRegistrationMode,
-	resolveRemaining
-} from '@davincibot/components';
+import { buildActionButtons, buildAvailability, hasContent, isRegistrationMode, resolveRemaining } from '$lib/components/training/helpers/slotModal';
 
 describe('slot modal helpers', () => {
 	it('hasContent checks trimmed content', () => {
