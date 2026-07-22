@@ -1,6 +1,12 @@
 import { resolve as resolveRoute } from '$app/paths';
 import { buildLoginUrl } from '@davincibot/lib';
-import { SessionCache, createAnonClient, createUserClient, resolveSessionViaAuth, sidCookieName } from '@davincibot/lib/server';
+import {
+	SessionCache,
+	createAnonClient,
+	createUserClient,
+	resolveSessionViaAuth,
+	sidCookieName
+} from '@davincibot/lib/server';
 import type { User } from '@supabase/supabase-js';
 import { error, redirect, type Handle, type RequestEvent } from '@sveltejs/kit';
 

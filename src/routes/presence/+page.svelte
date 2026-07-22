@@ -1,9 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import Table, {
-		type DBInfo,
-		type Filter,
-		type TableRow } from '@davincibot/components';
+	import Table, { type DBInfo, type Filter, type TableRow } from '@davincibot/components';
 	import AttendanceHeader from '$lib/components/attendance/AttendanceHeader.svelte';
 	import AttendanceMainInfo from '$lib/components/attendance/AttendanceMainInfo.svelte';
 	import AttendanceStats from '$lib/components/attendance/AttendanceStats.svelte';

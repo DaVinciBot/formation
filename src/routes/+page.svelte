@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { CalendarSlot } from '$lib/components/training/Calendar.svelte';
-import Calendar from '$lib/components/training/Calendar.svelte';
+	import Calendar from '$lib/components/training/Calendar.svelte';
 	import { getWeekStart } from '$lib/components/training/helpers/calendar';
 	import {
 		getTrainingSlots,
