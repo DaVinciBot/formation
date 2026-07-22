@@ -1,25 +1,31 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import Table, { type DBInfo, type Filter, type TableRow } from '@davincibot/components';
 	import AttendanceHeader from '$lib/components/attendance/AttendanceHeader.svelte';
 	import AttendanceMainInfo from '$lib/components/attendance/AttendanceMainInfo.svelte';
 	import AttendanceStats from '$lib/components/attendance/AttendanceStats.svelte';
 	import RegistrationMobileList from '$lib/components/attendance/RegistrationMobileList.svelte';
 	import SlotList from '$lib/components/attendance/SlotList.svelte';
-	import { Spinner } from '@davincibot/components';
 	import PresenceActionsCell from '$lib/components/training/PresenceActionsCell.svelte';
-	import { Badge } from '@davincibot/components';
-	import { CTAButton as CtaButton } from '@davincibot/components';
-	import { formatParisDate, formatParisTimeRange } from '@davincibot/lib';
 	import {
+		Badge,
+		CTAButton,
+		Spinner,
+		Table,
+		type DBInfo,
+		type Filter,
+		type TableRow
+	} from '@davincibot/components';
+	import {
+		formatParisDate,
+		formatParisTimeRange,
 		getSlotRegistrations,
 		getTrainerSlotRegistrations,
 		getTrainingSlots,
+		triggerTableRefresh,
 		updateTrainerPresence,
 		type RegistrationListItem,
 		type TrainingSlotListItem
 	} from '@davincibot/lib';
-	import { triggerTableRefresh } from '@davincibot/lib';
 	import { getSupabaseBrowserClient } from '@davincibot/lib/supabase';
 	import { RefreshCw } from '@lucide/svelte';
 	import type { SupabaseClient } from '@supabase/supabase-js';
@@ -267,7 +273,7 @@
 				class="border-light-blue/20 bg-dark-blue/80 text-waiting flex flex-col items-center justify-center gap-3 rounded-[26px] border p-10"
 			>
 				<p class="text-center text-sm">{loadError}</p>
-				<CtaButton type="button" variant="peps" size="sm" onclick={loadSlots}>Réessayer</CtaButton>
+				<CTAButton type="button" variant="peps" size="sm" onclick={loadSlots}>Réessayer</CTAButton>
 			</div>
 		{:else if slots.length === 0}
 			<div
@@ -295,14 +301,14 @@
 						</div>
 						{#if selectedSlot()}
 							<div class="flex flex-wrap">
-								<CtaButton
+								<CTAButton
 									variant="secondary"
 									size="sm"
 									fullWidth={false}
 									onclick={() => selectedSlotId && loadRegistrations(selectedSlotId)}
 								>
 									<RefreshCw strokeWidth={3} class="str size-5" />
-								</CtaButton>
+								</CTAButton>
 							</div>
 						{/if}
 					</div>
