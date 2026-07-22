@@ -19,7 +19,7 @@ import {
 	type CreateTrainingPayload,
 	type CreateTrainingSlotPayload,
 	type TrainingSupabaseClient
-} from '../../src/lib/services/training';
+} from '@davincibot/lib';
 
 interface ThenableChain<T> extends PromiseLike<T> {
 	select: Mock<() => ThenableChain<T>>;

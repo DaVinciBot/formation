@@ -1,15 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import {
-	filterSlotsByFormat,
-	getCalendarDays,
-	getWeekNumber,
-	getWeekStart,
-	groupSlotsByDay,
-	isInPersonSlot,
-	isOnlineSlot,
-	toDateKey
-} from '../../src/lib/components/training/helpers/calendar';
+import { filterSlotsByFormat, getCalendarDays, getWeekNumber, getWeekStart, groupSlotsByDay, isInPersonSlot, isOnlineSlot, toDateKey } from '$lib/components/training/helpers/calendar';
 
 describe('training calendar helpers', () => {
 	it('toDateKey returns paris date key', () => {

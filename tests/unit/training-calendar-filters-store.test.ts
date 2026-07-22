@@ -13,7 +13,7 @@ describe('training calendar filters store', () => {
 		);
 
 		const { calendarFilters } =
-			await import('../../src/lib/components/training/stores/trainingCalendarFilters');
+			await import('$lib/components/training/stores/trainingCalendarFilters');
 
 		let current;
 		const unsubscribe = calendarFilters.subscribe((value) => {
@@ -28,7 +28,7 @@ describe('training calendar filters store', () => {
 		window.localStorage.setItem('training_calendar_filters', '{broken');
 
 		const { calendarFilters } =
-			await import('../../src/lib/components/training/stores/trainingCalendarFilters');
+			await import('$lib/components/training/stores/trainingCalendarFilters');
 
 		let current;
 		const unsubscribe = calendarFilters.subscribe((value) => {
@@ -41,7 +41,7 @@ describe('training calendar filters store', () => {
 
 	it('persists updates back to localStorage', async () => {
 		const { calendarFilters } =
-			await import('../../src/lib/components/training/stores/trainingCalendarFilters');
+			await import('$lib/components/training/stores/trainingCalendarFilters');
 
 		calendarFilters.set({ inPerson: false, online: true });
 

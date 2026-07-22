@@ -1,12 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import {
-	buildActionButtons,
-	buildAvailability,
-	hasContent,
-	isRegistrationMode,
-	resolveRemaining
-} from '../../src/lib/components/training/helpers/slotModal';
+import { buildActionButtons, buildAvailability, hasContent, isRegistrationMode, resolveRemaining } from '$lib/components/training/helpers/slotModal';
 
 describe('slot modal helpers', () => {
 	it('hasContent checks trimmed content', () => {

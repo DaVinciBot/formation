@@ -33,7 +33,7 @@ async function loadModule({
 	});
 	vi.doMock('@supabase/supabase-js', () => ({ createClient }));
 
-	const mod = await import('../../src/lib/supabaseClient');
+	const mod = await import('@davincibot/lib/supabase');
 	return { mod, createClient, createClientCalls };
 }
 

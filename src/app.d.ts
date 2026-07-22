@@ -1,6 +1,6 @@
 // See https://svelte.dev/docs/kit/types#app.d.ts
 // for information about these interfaces
-import type { EffectivePermission } from '$lib/permissions';
+import type { EffectivePermission } from '@davincibot/lib';
 import type { SupabaseClient, User } from '@supabase/supabase-js';
 
 interface UserProject {

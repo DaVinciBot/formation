@@ -3,18 +3,17 @@
 	import Table, {
 		type DBInfo,
 		type Filter,
-		type TableRow
-	} from '$lib/components/admin/Table.svelte';
+		type TableRow } from '@davincibot/components';
 	import AttendanceHeader from '$lib/components/attendance/AttendanceHeader.svelte';
 	import AttendanceMainInfo from '$lib/components/attendance/AttendanceMainInfo.svelte';
 	import AttendanceStats from '$lib/components/attendance/AttendanceStats.svelte';
 	import RegistrationMobileList from '$lib/components/attendance/RegistrationMobileList.svelte';
 	import SlotList from '$lib/components/attendance/SlotList.svelte';
-	import Spinner from '$lib/components/share/Spinner.svelte';
+	import { Spinner } from '@davincibot/components';
 	import PresenceActionsCell from '$lib/components/training/PresenceActionsCell.svelte';
-	import Badge from '$lib/components/utils/Badge.svelte';
-	import CtaButton from '$lib/components/utils/CTAButton.svelte';
-	import { formatParisDate, formatParisTimeRange } from '$lib/helpers/parisTime';
+	import { Badge } from '@davincibot/components';
+	import { CTAButton as CtaButton } from '@davincibot/components';
+	import { formatParisDate, formatParisTimeRange } from '@davincibot/lib';
 	import {
 		getSlotRegistrations,
 		getTrainerSlotRegistrations,
@@ -22,9 +21,9 @@
 		updateTrainerPresence,
 		type RegistrationListItem,
 		type TrainingSlotListItem
-	} from '$lib/services/training';
-	import { triggerTableRefresh } from '$lib/store';
-	import { getSupabaseBrowserClient } from '$lib/supabaseClient';
+	} from '@davincibot/lib';
+	import { triggerTableRefresh } from '@davincibot/lib';
+	import { getSupabaseBrowserClient } from '@davincibot/lib/supabase';
 	import { RefreshCw } from '@lucide/svelte';
 	import type { SupabaseClient } from '@supabase/supabase-js';
 	import { onMount } from 'svelte';
