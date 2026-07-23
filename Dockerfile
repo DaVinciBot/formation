@@ -10,7 +10,6 @@ WORKDIR /app
 FROM base AS deps
 
 COPY package.json pnpm-lock.yaml .npmrc pnpm-workspace.yaml ./
-# npm_token (read:packages) : monté uniquement pendant ce RUN, jamais dans une layer.
 RUN --mount=type=secret,id=npm_token,env=NPM_TOKEN pnpm install --frozen-lockfile --prod
 
 FROM base AS build
