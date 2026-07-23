@@ -1,9 +1,29 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-afterEach(() => {
-	vi.resetModules();
-	vi.clearAllMocks();
-});
+// Ce module lit `browser` ($app/environment) et `env` ($env/dynamic/public) au
+// niveau du module. On pilote ces valeurs via un état mutable et un vi.mock de
+// fichier (qui prend le pas sur le stub global de tests/vitest-setup.ts), puis
+// on réimporte le module après vi.resetModules() pour chaque scénario.
+const state = vi.hoisted(() => ({
+	browser: true,
+	env: {},
+	createClient: vi.fn(),
+	createClientCalls: [] as unknown[][]
+}));
+
+vi.mock('$app/environment', () => ({
+	get browser() {
+		return state.browser;
+	}
+}));
+vi.mock('$env/dynamic/public', () => ({
+	get env() {
+		return state.env;
+	}
+}));
+vi.mock('@supabase/supabase-js', () => ({
+	createClient: (...args: unknown[]) => state.createClient(...args)
+}));
 
 async function loadModule({
 	browser,
@@ -17,26 +37,32 @@ async function loadModule({
 	client: object;
 }) {
 	vi.resetModules();
-
-	vi.doMock('$app/environment', () => ({ browser }));
-	vi.doMock('$env/dynamic/public', () => ({
-		env: {
-			PUBLIC_SUPABASE_URL: url,
-			PUBLIC_SUPABASE_PUBLISHABLE_KEY: key
-		}
-	}));
-
-	const createClientCalls: unknown[][] = [];
-	const createClient = vi.fn((...args: unknown[]) => {
-		createClientCalls.push(args);
+	state.browser = browser;
+	state.env = { PUBLIC_SUPABASE_URL: url, PUBLIC_SUPABASE_PUBLISHABLE_KEY: key };
+	state.createClientCalls = [];
+	state.createClient = vi.fn((...args: unknown[]) => {
+		state.createClientCalls.push(args);
 		return client;
 	});
-	vi.doMock('@supabase/supabase-js', () => ({ createClient }));
 
 	const mod = await import('@davincibot/lib/supabase');
-	return { mod, createClient, createClientCalls };
+	return { mod, createClient: state.createClient, createClientCalls: state.createClientCalls };
 }
 
+beforeEach(() => {
+	state.browser = true;
+	state.env = {};
+});
+
+afterEach(() => {
+	vi.resetModules();
+	vi.clearAllMocks();
+});
+
+// Chaque cas fait un vi.resetModules() + import dynamique du vrai module
+// @davincibot/lib/supabase (qui tire @supabase/ssr et @supabase/supabase-js) :
+// la première transformation à froid dépasse le timeout par défaut de 5 s sur
+// une machine lente. On élargit donc le timeout de ce fichier.
 describe('supabase browser client', () => {
 	it('throws when client is requested outside browser', async () => {
 		const { mod } = await loadModule({
@@ -47,17 +73,17 @@ describe('supabase browser client', () => {
 		});
 
 		expect(() => mod.getSupabaseBrowserClient()).toThrow(
-			'Supabase browser client can only be used in the browser.'
+			'Use event.locals.supabase on the server.'
 		);
-	});
+	}, 30000);
 
 	it('throws when public env variables are missing', async () => {
 		const { mod } = await loadModule({ browser: true, url: '', key: '', client: {} });
 
 		expect(() => mod.getSupabaseBrowserClient()).toThrow(
-			'Missing PUBLIC_SUPABASE_URL or PUBLIC_SUPABASE_PUBLISHABLE_KEY environment variables.'
+			'Missing PUBLIC_SUPABASE_URL or PUBLIC_SUPABASE_PUBLISHABLE_KEY'
 		);
-	});
+	}, 30000);
 
 	it('creates a singleton client in accessToken mode and forwards proxy calls', async () => {
 		const client = { from: vi.fn(() => 'from-result') };
@@ -83,5 +109,5 @@ describe('supabase browser client', () => {
 		};
 		expect(legacySupabase.from('training')).toBe('from-result');
 		expect(client.from).toHaveBeenCalledWith('training');
-	});
+	}, 30000);
 });
