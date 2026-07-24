@@ -264,7 +264,7 @@
 
 <section class="px-4 py-6 sm:px-6 sm:py-8">
 	<div class="mx-auto flex w-full max-w-6xl flex-col gap-6">
-		<AttendanceHeader onRefresh={loadSlots} {currentUserId} />
+		<AttendanceHeader {currentUserId} onRefresh={loadSlots} />
 
 		{#if loading}
 			<Spinner divClass="h-full">Chargement des slots</Spinner>
@@ -273,7 +273,7 @@
 				class="border-light-blue/20 bg-dark-blue/80 text-waiting flex flex-col items-center justify-center gap-3 rounded-[26px] border p-10"
 			>
 				<p class="text-center text-sm">{loadError}</p>
-				<CTAButton type="button" variant="peps" size="sm" onclick={loadSlots}>Réessayer</CTAButton>
+				<CTAButton onclick={loadSlots} size="sm" type="button" variant="peps">Réessayer</CTAButton>
 			</div>
 		{:else if slots.length === 0}
 			<div
@@ -284,11 +284,11 @@
 		{:else}
 			<div class="grid gap-6 min-[1040px]:grid-cols-[minmax(0,0.38fr)_1fr]">
 				<SlotList
-					{slots}
-					{selectedSlotId}
-					onSelectSlot={handleSlotChange}
 					{formatDate}
 					{formatTimeRange}
+					onSelectSlot={handleSlotChange}
+					{selectedSlotId}
+					{slots}
 				/>
 
 				<section class="border-light-blue/10 bg-blue-gray/15 rounded-[26px] border p-4 sm:p-6">
@@ -302,18 +302,18 @@
 						{#if selectedSlot()}
 							<div class="flex flex-wrap">
 								<CTAButton
-									variant="secondary"
-									size="sm"
 									fullWidth={false}
 									onclick={() => selectedSlotId && loadRegistrations(selectedSlotId)}
+									size="sm"
+									variant="secondary"
 								>
-									<RefreshCw strokeWidth={3} class="str size-5" />
+									<RefreshCw class="str size-5" strokeWidth={3} />
 								</CTAButton>
 							</div>
 						{/if}
 					</div>
 
-					<AttendanceMainInfo selectedSlot={selectedSlot()} {formatDate} {formatTimeRange} />
+					<AttendanceMainInfo {formatDate} {formatTimeRange} selectedSlot={selectedSlot()} />
 
 					{#if actionError}
 						<p class="text-waiting mt-3 text-sm">{actionError}</p>
@@ -333,9 +333,9 @@
 						</Spinner>
 					{:else}
 						<AttendanceStats
-							registeredCount={registeredCount()}
-							presentCount={presentCount()}
 							absentCount={absentCount()}
+							presentCount={presentCount()}
+							registeredCount={registeredCount()}
 							unknownCount={unknownCount()}
 						/>
 
@@ -347,24 +347,24 @@
 							</div>
 						{:else}
 							<RegistrationMobileList
-								{registrations}
 								{isSaving}
 								onPresenceChange={handlePresenceChange}
 								{presenceButtonClass}
+								{registrations}
 							/>
 							<div
 								class="presence-table-container border-light-blue/15 bg-blue-gray/15 mt-6 hidden overflow-hidden rounded-2xl border min-[1040px]:block"
 							>
 								<Table
-									headers={['Membre', 'Format', 'Statut', 'Présence']}
+									can_load={Boolean(selectedSlotId)}
 									dbInfo={presenceDbInfo}
-									parseItems={parsePresenceItems}
+									emptyMessage="Aucune inscription"
 									filters={presenceFilters}
-									showToolbar={false}
+									headers={['Membre', 'Format', 'Statut', 'Présence']}
+									parseItems={parsePresenceItems}
 									refreshTopic={presenceTableTopic}
 									searchable="member_username"
-									emptyMessage="Aucune inscription"
-									can_load={Boolean(selectedSlotId)}
+									showToolbar={false}
 									size={10}
 								/>
 							</div>

@@ -263,8 +263,8 @@
 {#if isOpen()}
 	<div
 		class="fixed inset-0 z-50 flex items-center justify-center px-6 py-8"
-		role="dialog"
 		aria-modal="true"
+		role="dialog"
 	>
 		<OverlayBackdrop {onClose} />
 		<section
@@ -281,7 +281,7 @@
 								{slot?.name}
 							</h2>
 							{#if badgeText()}
-								<Badge text={badgeText()} color={badgeColor()} className="h-min" />
+								<Badge className="h-min" color={badgeColor()} text={badgeText()} />
 							{/if}
 						</div>
 						{#if slot?.cardStatus === 'hidden'}
@@ -295,10 +295,10 @@
 						{/if}
 					</div>
 					<button
-						type="button"
 						class="border-light-blue/30 text-light-blue hover:border-light-blue/60 flex size-9 cursor-pointer items-center justify-center rounded-full border transition"
-						onclick={onClose}
 						aria-label="Fermer"
+						onclick={onClose}
+						type="button"
 					>
 						<X class="size-5.5" />
 					</button>
@@ -424,16 +424,16 @@
 									<span>Participant·e·s</span>
 								</div>
 								<CtaButton
-									type="button"
-									size="xs"
-									variant="secondary"
+									class="manage_button hidden items-center gap-2 whitespace-nowrap min-[430px]:inline-flex"
+									fullWidth={false}
 									onclick={() => {
 										if (slot) {
 											void goto(resolve(`/presence?slot=${String(slot.slot_id)}` as '/'));
 										}
 									}}
-									class="manage_button hidden items-center gap-2 whitespace-nowrap min-[430px]:inline-flex"
-									fullWidth={false}
+									size="xs"
+									type="button"
+									variant="secondary"
 								>
 									<span>Gérer</span>
 									<ArrowRight size={16} />
@@ -459,9 +459,9 @@
 										>
 											{#if reg.member_avatar_url}
 												<img
-													src={reg.member_avatar_url}
-													alt={reg.member_username ?? 'Membre'}
 													class="border-light-blue/20 size-9 rounded-full border object-cover"
+													alt={reg.member_username ?? 'Membre'}
+													src={reg.member_avatar_url}
 												/>
 											{:else}
 												<div
@@ -484,16 +484,16 @@
 							{/if}
 							<div class="mt-3 flex justify-end min-[430px]:hidden">
 								<CtaButton
-									type="button"
-									size="xs"
-									variant="secondary"
+									class="manage_button inline-flex items-center gap-2 whitespace-nowrap"
+									fullWidth={false}
 									onclick={() => {
 										if (slot) {
 											void goto(resolve(`/presence?slot=${String(slot.slot_id)}` as '/'));
 										}
 									}}
-									class="manage_button inline-flex items-center gap-2 whitespace-nowrap"
-									fullWidth={false}
+									size="xs"
+									type="button"
+									variant="secondary"
 								>
 									<span>Gérer</span>
 									<ArrowRight size={16} />
@@ -544,10 +544,10 @@
 							</div>
 							<!-- eslint-disable svelte/no-navigation-without-resolve -->
 							<a
-								href={slot?.video_conference_link ?? ''}
-								target="_blank"
-								rel="noopener noreferrer"
 								class="text-light-blue hover:text-blue-peps mt-3 inline-flex cursor-pointer items-center gap-2 text-sm font-semibold transition"
+								href={slot?.video_conference_link ?? ''}
+								rel="noopener noreferrer"
+								target="_blank"
 							>
 								<span>Rejoindre la session en ligne</span>
 								<MoveUpRight class="size-4" />
@@ -561,25 +561,25 @@
 					<div class="mt-4 grid gap-3 md:grid-cols-2">
 						{#if showExcuseToggle()}
 							<CtaButton
-								type="button"
-								size="sm"
-								variant="secondary"
-								onclick={handleExcuseToggle}
 								disabled={isRegistrationBusy()}
+								onclick={handleExcuseToggle}
+								size="sm"
+								type="button"
+								variant="secondary"
 							>
 								{isExcuseUpdating() ? 'Mise à jour...' : excuseToggleLabel()}
 							</CtaButton>
 						{/if}
 						{#each actionButtons() as action (action.key)}
 							<CtaButton
-								type="button"
-								size="sm"
-								variant={action.variant}
+								class={actionCount() === 1 ? 'w-auto justify-self-end md:col-start-2' : ''}
+								disabled={confirmLoading || excuseUpdating}
 								onclick={() => {
 									handleActionClick(action);
 								}}
-								disabled={confirmLoading || excuseUpdating}
-								class={actionCount() === 1 ? 'w-auto justify-self-end md:col-start-2' : ''}
+								size="sm"
+								type="button"
+								variant={action.variant}
 								>{action.label}
 							</CtaButton>
 						{/each}
@@ -591,13 +591,13 @@
 {/if}
 
 <TrainingRegistrationPopup
-	open={confirmOpen}
-	trainingName={slot?.name ?? 'Titre'}
-	showExcuse={slot?.excusable ?? true}
-	confirmLabel={confirmLabel()}
 	confirmDisabled={confirmLoading}
-	onConfirm={handleConfirmRegistration}
+	confirmLabel={confirmLabel()}
 	onCancel={closeConfirmation}
+	onConfirm={handleConfirmRegistration}
+	open={confirmOpen}
+	showExcuse={slot?.excusable ?? true}
+	trainingName={slot?.name ?? 'Titre'}
 />
 
 <style>

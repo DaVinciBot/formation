@@ -31,7 +31,6 @@
 	<div class="mt-5 grid gap-3">
 		{#each slots as slot (slot.slot_id)}
 			<button
-				type="button"
 				class={`flex w-full cursor-pointer flex-col gap-2 rounded-2xl border p-3 text-left transition sm:p-4 ${
 					slot.slot_id === selectedSlotId
 						? 'border-light-blue/20 bg-blue-gray/25 text-light-blue'
@@ -40,6 +39,7 @@
 				onclick={() => {
 					onSelectSlot(slot.slot_id);
 				}}
+				type="button"
 			>
 				<p class="text-sm font-semibold text-white">{slot.name}</p>
 				<p class="text-dark-light-blue text-xs tracking-[0.2em] uppercase">

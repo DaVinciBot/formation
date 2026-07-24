@@ -42,8 +42,8 @@
 {#if open}
 	<div
 		class="fixed inset-0 z-50 flex items-center justify-center px-4 py-6"
-		role="dialog"
 		aria-modal="true"
+		role="dialog"
 	>
 		<OverlayBackdrop onClose={onCancel} />
 		<section
@@ -54,24 +54,24 @@
 			</h2>
 			{#if showExcuse}
 				<label class="text-light-blue mt-5 flex items-center gap-2.5 text-sm sm:gap-3">
-					<Checkbox bind:checked={toExcuse} className="size-4" />
+					<Checkbox className="size-4" bind:checked={toExcuse} />
 					<span class="cursor-pointer">J'ai besoin de me faire excuser</span>
 				</label>
 			{/if}
 			<div class="mt-5 flex flex-row justify-end gap-3">
 				<CtaButton
-					variant="secondary"
-					size="sm"
+					disabled={confirmDisabled}
 					fullWidth={false}
 					onclick={onCancel}
-					disabled={confirmDisabled}>Annuler</CtaButton
+					size="sm"
+					variant="secondary">Annuler</CtaButton
 				>
 				<CtaButton
-					variant="primary"
-					size="sm"
+					disabled={confirmDisabled}
 					fullWidth={false}
 					onclick={handleConfirm}
-					disabled={confirmDisabled}>{confirmLabel}</CtaButton
+					size="sm"
+					variant="primary">{confirmLabel}</CtaButton
 				>
 			</div>
 		</section>

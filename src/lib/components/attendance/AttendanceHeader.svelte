@@ -25,11 +25,11 @@
 			</p>
 		</div>
 		<div class="flex flex-wrap gap-3 sm:justify-end">
-			<CTAButton type="button" variant="secondary" size="sm" onclick={onRefresh}>
+			<CTAButton onclick={onRefresh} size="sm" type="button" variant="secondary">
 				Actualiser
 			</CTAButton>
 			{#if currentUserId}
-				<CTAButton href="/" variant="secondary" size="sm">Retour au calendrier</CTAButton>
+				<CTAButton href="/" size="sm" variant="secondary">Retour au calendrier</CTAButton>
 			{/if}
 		</div>
 	</div>

@@ -246,23 +246,23 @@
 		<div class="grid grid-cols-3 gap-1">
 			<div class="wrap left-center inset-y-0 col-span-2 flex flex-row items-center gap-2">
 				<CtaButton
-					type="button"
-					variant="secondary"
-					size="xs"
 					class="border-light-blue/0 text-dark-light-blue flex items-center justify-center rounded-full"
+					aria-label="Semaine précédente"
 					fullWidth={false}
 					onclick={goPrev}
-					aria-label="Semaine précédente"
+					size="xs"
+					type="button"
+					variant="secondary"
 				>
 					<svg
 						class="size-4"
-						viewBox="0 0 12 12"
+						aria-hidden="true"
 						fill="none"
 						stroke="currentColor"
-						stroke-width="1.6"
 						stroke-linecap="round"
 						stroke-linejoin="round"
-						aria-hidden="true"
+						stroke-width="1.6"
+						viewBox="0 0 12 12"
 					>
 						<path d="M7.5 2.5 4 6l3.5 3.5" />
 					</svg>
@@ -271,35 +271,35 @@
 					{weekLabel()}
 				</span>
 				<CtaButton
-					type="button"
-					variant="secondary"
-					size="xs"
 					class="border-light-blue/0 text-dark-light-blue flex items-center justify-center rounded-full"
+					aria-label="Semaine suivante"
 					fullWidth={false}
 					onclick={goNext}
-					aria-label="Semaine suivante"
+					size="xs"
+					type="button"
+					variant="secondary"
 				>
 					<svg
 						class="size-4"
-						viewBox="0 0 12 12"
+						aria-hidden="true"
 						fill="none"
 						stroke="currentColor"
-						stroke-width="1.6"
 						stroke-linecap="round"
 						stroke-linejoin="round"
-						aria-hidden="true"
+						stroke-width="1.6"
+						viewBox="0 0 12 12"
 					>
 						<path d="M4.5 2.5 8 6l-3.5 3.5" />
 					</svg>
 				</CtaButton>
 			</div>
 			<CtaButton
-				type="button"
-				variant="secondary"
 				class="border-light-blue/0 col-span-1 flex items-center justify-end rounded-full text-[0.7rem] uppercase"
 				fullWidth={false}
-				size="sm"
 				onclick={goToday}
+				size="sm"
+				type="button"
+				variant="secondary"
 				><CalendarSync class="size-4.5" />
 			</CtaButton>
 		</div>
@@ -307,13 +307,13 @@
 			<label
 				class="text-dark-light-blue flex cursor-pointer items-center gap-1.5 px-1 text-[0.62rem] tracking-widest uppercase"
 			>
-				<Checkbox bind:checked={isInPerson} name="filter_in_person" value="in-person" required />
+				<Checkbox name="filter_in_person" required value="in-person" bind:checked={isInPerson} />
 				Présentiel
 			</label>
 			<label
 				class="text-dark-light-blue flex cursor-pointer items-center gap-1.5 px-1 text-[0.62rem] tracking-widest uppercase"
 			>
-				<Checkbox bind:checked={isOnline} name="filter_online" value="online" />
+				<Checkbox name="filter_online" value="online" bind:checked={isOnline} />
 				En ligne
 			</label>
 		</div>
@@ -326,18 +326,18 @@
 				class="text-dark-light-blue flex cursor-pointer items-center gap-2 text-xs tracking-[0.28em] uppercase"
 			>
 				<Checkbox
-					bind:checked={isInPerson}
 					name="filter_in_person"
-					value="in-person"
-					required
 					className="size-4"
+					required
+					value="in-person"
+					bind:checked={isInPerson}
 				/>
 				Présentiel
 			</label>
 			<label
 				class="text-dark-light-blue flex cursor-pointer items-center gap-2 text-xs tracking-[0.28em] uppercase"
 			>
-				<Checkbox bind:checked={isOnline} name="filter_online" value="online" className="size-4" />
+				<Checkbox name="filter_online" className="size-4" value="online" bind:checked={isOnline} />
 				En ligne
 			</label>
 		</div>
@@ -347,54 +347,54 @@
 				: 'grid-cols-[min-content_auto_min-content_min-content]'} text-dark-light-blue items-center gap-3 text-xs tracking-[0.3em] uppercase"
 		>
 			<CtaButton
+				class="border-light-blue/0 flex size-7 items-center justify-center pr-1 pl-1"
+				aria-label="Semaine précédente"
+				onclick={goPrev}
+				size="sm"
 				type="button"
 				variant="secondary"
-				size="sm"
-				class="border-light-blue/0 flex size-7 items-center justify-center pr-1 pl-1"
-				onclick={goPrev}
-				aria-label="Semaine précédente"
 			>
 				<svg
 					class="size-4.5"
-					viewBox="0 0 12 12"
+					aria-hidden="true"
 					fill="none"
 					stroke="currentColor"
-					stroke-width="1.6"
 					stroke-linecap="round"
 					stroke-linejoin="round"
-					aria-hidden="true"
+					stroke-width="1.6"
+					viewBox="0 0 12 12"
 				>
 					<path d="M7.5 2.5 4 6l3.5 3.5" />
 				</svg>
 			</CtaButton>
 			<span class="text-dark-light-blue text-[0.8rem] uppercase">{weekLabel()}</span>
 			<CtaButton
+				class="border-light-blue/0 flex size-7 items-center justify-center pr-1 pl-1"
+				aria-label="Semaine suivante"
+				onclick={goNext}
+				size="sm"
 				type="button"
 				variant="secondary"
-				size="sm"
-				class="border-light-blue/0 flex size-7 items-center justify-center pr-1 pl-1"
-				onclick={goNext}
-				aria-label="Semaine suivante"
 			>
 				<svg
 					class="size-4.5"
-					viewBox="0 0 12 12"
+					aria-hidden="true"
 					fill="none"
 					stroke="currentColor"
-					stroke-width="1.6"
 					stroke-linecap="round"
 					stroke-linejoin="round"
-					aria-hidden="true"
+					stroke-width="1.6"
+					viewBox="0 0 12 12"
 				>
 					<path d="M4.5 2.5 8 6l-3.5 3.5" />
 				</svg>
 			</CtaButton>
 			<CtaButton
+				class="border-light-blue/0 flex size-7 items-center pr-1 pl-1 uppercase"
+				onclick={goToday}
+				size="sm"
 				type="button"
 				variant="secondary"
-				class="border-light-blue/0 flex size-7 items-center pr-1 pl-1 uppercase"
-				size="sm"
-				onclick={goToday}
 				><CalendarSync class="size-4.5" />
 			</CtaButton>
 		</div>
@@ -402,18 +402,18 @@
 
 	<div class="mt-4 hidden lg:flex lg:min-h-0 lg:flex-1 lg:flex-col">
 		<div
-			class="border-light-blue/30 bg-blue-gray/25 text-light-blue grid rounded-t-xl border text-sm tracking-[0.2em] uppercase"
 			style={calendarGridTemplate()}
+			class="border-light-blue/30 bg-blue-gray/25 text-light-blue grid rounded-t-xl border text-sm tracking-[0.2em] uppercase"
 		>
 			{#each calendarDays() as day, index (index)}
 				<button
-					type="button"
 					class={`border-light-blue/30 flex items-center justify-center gap-2 px-3 py-3 ${
 						index !== calendarDaysCount() - 1 ? 'border-r' : ''
 					} ${day.isToday ? 'text-primary-400' : ''}`}
 					onclick={() => {
 						handleDaySelect(day.date);
 					}}
+					type="button"
 				>
 					<span>{weekdayLabel(index).substring(0, 2)}</span>
 					<span>{formatParisDayShort(day.date)}</span>
@@ -428,14 +428,14 @@
 					<div class="text-waiting flex flex-col items-center gap-3">
 						<p class="text-sm tracking-wide">{errorMessage}</p>
 						{#if onRetry}
-							<CtaButton type="button" variant="peps" size="sm" onclick={onRetry}>
+							<CtaButton onclick={onRetry} size="sm" type="button" variant="peps">
 								Réessayer
 							</CtaButton>
 						{/if}
 					</div>
 				</div>
 			{:else}
-				<div class="grid min-h-full" style={calendarGridTemplate()}>
+				<div style={calendarGridTemplate()} class="grid min-h-full">
 					{#each calendarDays() as day, index (index)}
 						<div
 							class={`border-light-blue/30 h-full overflow-hidden ${
@@ -445,11 +445,11 @@
 							<div class="flex h-full flex-col gap-3 p-3">
 								{#each slotsByDay().get(day.key) ?? [] as slot (slot.slot_id)}
 									<button
-										type="button"
-										tabindex="0"
 										onclick={() => {
 											handleSlotSelect(slot);
 										}}
+										tabindex="0"
+										type="button"
 									>
 										<TrainingCard {slot} status={slot.cardStatus ?? 'free'} />
 									</button>
@@ -479,7 +479,7 @@
 				<div class="text-waiting flex flex-col items-center gap-3">
 					<p class="text-sm tracking-wide">{errorMessage}</p>
 					{#if onRetry}
-						<CtaButton type="button" variant="peps" size="sm" onclick={onRetry}>
+						<CtaButton onclick={onRetry} size="sm" type="button" variant="peps">
 							Réessayer
 						</CtaButton>
 					{/if}
@@ -489,14 +489,14 @@
 			<div class="flex flex-col gap-4">
 				{#each calendarDays() as day, index (index)}
 					{#if day.isToday}
-						<div class="flex scroll-mt-4 flex-col gap-2" bind:this={todayRow}>
+						<div bind:this={todayRow} class="flex scroll-mt-4 flex-col gap-2">
 							<button
-								type="button"
 								class="border-primary-400/60 text-primary-400 flex h-14 w-full flex-col items-center justify-center rounded-[14px] text-center tracking-[0.32em]
 								"
 								onclick={() => {
 									handleDaySelect(day.date);
 								}}
+								type="button"
 							>
 								<span class="text-[0.72rem] uppercase">
 									{weekdayLabel(index)}
@@ -513,17 +513,17 @@
 								{:else}
 									{#each slotsByDay().get(day.key) ?? [] as slot (slot.slot_id)}
 										<button
-											type="button"
-											tabindex="0"
 											onclick={() => {
 												handleSlotSelect(slot);
 											}}
+											tabindex="0"
+											type="button"
 										>
 											<TrainingCard
 												{slot}
+												className="text-left"
 												status={slot.cardStatus ?? 'free'}
 												variant="compact"
-												className="text-left"
 											/>
 										</button>
 									{/each}
@@ -533,11 +533,11 @@
 					{:else}
 						<div class="flex flex-col gap-2">
 							<button
-								type="button"
 								class="border-light-blue/30 text-light-blue h-14 w-full flex-col items-center justify-center rounded-[14px] text-center tracking-[0.32em] not-last:flex"
 								onclick={() => {
 									handleDaySelect(day.date);
 								}}
+								type="button"
 							>
 								<span class="text-[0.72rem] uppercase">
 									{weekdayLabel(index)}
@@ -554,17 +554,17 @@
 								{:else}
 									{#each slotsByDay().get(day.key) ?? [] as slot (slot.slot_id)}
 										<button
-											type="button"
-											tabindex="0"
 											onclick={() => {
 												handleSlotSelect(slot);
 											}}
+											tabindex="0"
+											type="button"
 										>
 											<TrainingCard
 												{slot}
+												className="text-left"
 												status={slot.cardStatus ?? 'free'}
 												variant="compact"
-												className="text-left"
 											/>
 										</button>
 									{/each}
@@ -604,11 +604,11 @@
 
 <TrainingSlotModal
 	slot={selectedSlot}
-	open={isModalOpen}
-	onClose={handleModalClose}
-	{onRegistrationChange}
 	{canManageTraining}
 	{currentUserId}
+	onClose={handleModalClose}
+	{onRegistrationChange}
+	open={isModalOpen}
 />
 
 <style>

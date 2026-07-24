@@ -174,15 +174,15 @@
 <div class="px-6 pt-4 pb-6">
 	<div class="h-[calc(100vh-8rem)]">
 		<Calendar
-			{slots}
-			initialDate={currentDate}
-			onWeekChange={loadWeek}
-			onRegistrationChange={scheduleSilentRefresh}
 			{canManageTraining}
 			{currentUserId}
-			isLoading={loading}
 			errorMessage={error}
+			initialDate={currentDate}
+			isLoading={loading}
+			onRegistrationChange={scheduleSilentRefresh}
 			onRetry={() => loadWeek(currentDate)}
+			onWeekChange={loadWeek}
+			{slots}
 		/>
 	</div>
 </div>

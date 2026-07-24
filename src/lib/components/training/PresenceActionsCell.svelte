@@ -23,7 +23,6 @@
 {#if status === 'registered'}
 	<div class="flex flex-wrap items-center gap-2">
 		<button
-			type="button"
 			class={`flex items-center gap-1 rounded-full border px-2.5 py-1 text-[0.65rem] uppercase ${presenceButtonClass(
 				null,
 				present
@@ -32,12 +31,12 @@
 			onclick={() => {
 				onChange(memberId, null);
 			}}
+			type="button"
 		>
 			<Users class="size-3" />
 			NSP
 		</button>
 		<button
-			type="button"
 			class={`flex items-center gap-1 rounded-full border px-2.5 py-1 text-[0.65rem] uppercase ${presenceButtonClass(
 				true,
 				present
@@ -46,12 +45,12 @@
 			onclick={() => {
 				onChange(memberId, true);
 			}}
+			type="button"
 		>
 			<CircleCheck class="size-3" />
 			Présent
 		</button>
 		<button
-			type="button"
 			class={`flex items-center gap-1 rounded-full border px-2.5 py-1 text-[0.65rem] uppercase ${presenceButtonClass(
 				false,
 				present
@@ -60,6 +59,7 @@
 			onclick={() => {
 				onChange(memberId, false);
 			}}
+			type="button"
 		>
 			<CircleX class="size-3" />
 			Absent
