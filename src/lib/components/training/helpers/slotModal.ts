@@ -1,5 +1,5 @@
-import { formatParisDate, formatParisTime, formatParisTimeRange } from '@davincibot/lib';
 import type { RegistrationSummary } from '@davincibot/lib';
+import { formatParisDate, formatParisTime, formatParisTimeRange } from '@davincibot/lib';
 
 export interface AvailabilityMode {
 	key: 'on-site' | 'remote';

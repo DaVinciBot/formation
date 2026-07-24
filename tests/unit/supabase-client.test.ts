@@ -4,12 +4,16 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 // niveau du module. On pilote ces valeurs via un état mutable et un vi.mock de
 // fichier (qui prend le pas sur le stub global de tests/vitest-setup.ts), puis
 // on réimporte le module après vi.resetModules() pour chaque scénario.
-const state = vi.hoisted(() => ({
-	browser: true,
-	env: {},
-	createClient: vi.fn(),
-	createClientCalls: [] as unknown[][]
-}));
+const state = vi.hoisted(() => {
+	const env: Record<string, string | undefined> = {};
+	const createClient: (...args: unknown[]) => unknown = vi.fn();
+	return {
+		browser: true,
+		env,
+		createClient,
+		createClientCalls: [] as unknown[][]
+	};
+});
 
 vi.mock('$app/environment', () => ({
 	get browser() {
@@ -22,7 +26,7 @@ vi.mock('$env/dynamic/public', () => ({
 	}
 }));
 vi.mock('@supabase/supabase-js', () => ({
-	createClient: (...args: unknown[]) => state.createClient(...args)
+	createClient: (...args: unknown[]): unknown => state.createClient(...args)
 }));
 
 async function loadModule({

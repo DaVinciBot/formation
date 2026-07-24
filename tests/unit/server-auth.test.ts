@@ -1,9 +1,9 @@
-import { describe, expect, it, vi } from 'vitest';
-import type { SupabaseClient, User } from '@supabase/supabase-js';
 import type { Database } from '@davincibot/database-types';
+import type { SupabaseClient, User } from '@supabase/supabase-js';
+import { describe, expect, it, vi } from 'vitest';
 
-import { buildUserProfile, hasPermission } from '../../src/lib/server/auth';
 import type { GlobalPermission } from '@davincibot/lib';
+import { buildUserProfile, hasPermission } from '../../src/lib/server/auth';
 
 interface ProfileFixture {
 	username: string | null;

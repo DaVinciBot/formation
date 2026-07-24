@@ -1,6 +1,6 @@
+import type { Database } from '@davincibot/database-types';
 import type { EffectivePermission, GlobalPermission } from '@davincibot/lib';
 import type { SupabaseClient, User } from '@supabase/supabase-js';
-import type { Database } from '@davincibot/database-types';
 
 interface ProfileRow {
 	username: string | null;

@@ -1,14 +1,14 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { get } from 'svelte/store';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { userdata } from '@davincibot/lib';
 import type { UserProfile } from '@davincibot/lib';
 import {
 	hashCode,
 	hideOnClickOutside,
 	loadSettings,
 	loadUserdata,
-	saveSettings
+	saveSettings,
+	userdata
 } from '@davincibot/lib';
 
 describe('utils helpers', () => {
