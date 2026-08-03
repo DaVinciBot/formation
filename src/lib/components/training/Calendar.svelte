@@ -42,7 +42,7 @@
 		onRetry?: () => void;
 	}
 
-	const {
+	let {
 		slots = [],
 		initialDate = new Date(),
 		onSelectSlot,

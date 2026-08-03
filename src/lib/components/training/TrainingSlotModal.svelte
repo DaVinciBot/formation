@@ -63,7 +63,7 @@
 
 	const noop = () => undefined;
 
-	const {
+	let {
 		slot = null,
 		open = false,
 		onClose = noop,

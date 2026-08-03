@@ -10,7 +10,7 @@
 		formatTimeRange: (startValue: string, durationHours: number) => string;
 	}
 
-	const {
+	let {
 		slots = [],
 		selectedSlotId = null,
 		onSelectSlot,

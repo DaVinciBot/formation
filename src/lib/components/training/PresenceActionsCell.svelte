@@ -10,7 +10,7 @@
 		presenceButtonClass: (value: boolean | null, current: boolean | null) => string;
 	}
 
-	const {
+	let {
 		memberId,
 		present,
 		status,

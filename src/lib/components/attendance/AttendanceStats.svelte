@@ -6,7 +6,7 @@
 		unknownCount?: number;
 	}
 
-	const {
+	let {
 		registeredCount = 0,
 		presentCount = 0,
 		absentCount = 0,

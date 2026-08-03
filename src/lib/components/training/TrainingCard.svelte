@@ -15,7 +15,7 @@
 		variant?: 'default' | 'compact';
 	}
 
-	const { slot, status, className = '', variant = 'default' }: Props = $props();
+	let { slot, status, className = '', variant = 'default' }: Props = $props();
 
 	function formatTimeRange(startValue: Date | string, durationHours: number) {
 		return formatParisTimeRange(startValue, durationHours);

@@ -9,7 +9,7 @@
 		presenceButtonClass: (value: boolean | null, current: boolean | null) => string;
 	}
 
-	const { registrations = [], isSaving, onPresenceChange, presenceButtonClass }: Props = $props();
+	let { registrations = [], isSaving, onPresenceChange, presenceButtonClass }: Props = $props();
 </script>
 
 <div class="mt-4 grid gap-4 min-[1040px]:hidden">

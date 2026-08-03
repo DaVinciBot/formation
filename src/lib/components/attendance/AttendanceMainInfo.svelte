@@ -8,7 +8,7 @@
 		formatTimeRange: (startValue: string, durationHours: number) => string;
 	}
 
-	const { selectedSlot = null, formatDate, formatTimeRange }: Props = $props();
+	let { selectedSlot = null, formatDate, formatTimeRange }: Props = $props();
 </script>
 
 {#if selectedSlot}

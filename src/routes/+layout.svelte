@@ -5,7 +5,7 @@
 	import type { LayoutData } from './$types';
 	import './layout.css';
 
-	const { data, children }: { data: LayoutData; children: Snippet } = $props();
+	let { data, children }: { data: LayoutData; children: Snippet } = $props();
 
 	$effect(() => {
 		loadUserdata(data.userProfile);

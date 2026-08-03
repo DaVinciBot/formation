@@ -33,7 +33,7 @@
 	import { SvelteSet } from 'svelte/reactivity';
 	import type { PageData } from './$types';
 
-	const { data }: { data: PageData } = $props();
+	let { data }: { data: PageData } = $props();
 
 	let slots = $state<TrainingSlotListItem[]>([]);
 	type SlotRegistration = RegistrationListItem;

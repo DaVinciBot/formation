@@ -14,7 +14,7 @@
 	import type { TrainingCardStatus } from '@davincibot/database-types';
 	import type { PageData } from './$types';
 
-	const { data }: { data: PageData } = $props();
+	let { data }: { data: PageData } = $props();
 	const currentUserId: string = $derived(data.userId);
 	const canManageTraining = $derived(data.canManageTraining);
 

@@ -16,7 +16,7 @@
 	const noop = () => undefined;
 	const noopConfirm: (toExcuse: boolean) => void = () => undefined;
 
-	const {
+	let {
 		open = false,
 		trainingName = 'Titre',
 		showExcuse = true,

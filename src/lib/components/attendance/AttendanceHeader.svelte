@@ -8,7 +8,7 @@
 		currentUserId?: string | null;
 	}
 
-	const { onRefresh = noop, currentUserId = null }: Props = $props();
+	let { onRefresh = noop, currentUserId = null }: Props = $props();
 </script>
 
 <header
