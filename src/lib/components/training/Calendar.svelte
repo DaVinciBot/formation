@@ -28,7 +28,7 @@
 	import { CalendarSync } from '@lucide/svelte';
 	import { onMount, tick } from 'svelte';
 
-	interface CalendarProps {
+	interface Props {
 		slots?: CalendarSlot[];
 		initialDate?: Date;
 		onSelectSlot?: (slot: CalendarSlot) => void;
@@ -54,7 +54,7 @@
 		isLoading = false,
 		errorMessage = null,
 		onRetry
-	}: CalendarProps = $props();
+	}: Props = $props();
 
 	let isInPerson = $state(false);
 	let isOnline = $state(false);

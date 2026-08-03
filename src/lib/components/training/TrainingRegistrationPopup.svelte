@@ -3,7 +3,7 @@
 	import { Checkbox } from '@davincibot/components';
 	import { CTAButton as CtaButton } from '@davincibot/components';
 
-	interface TrainingRegistrationPopupProps {
+	interface Props {
 		open?: boolean;
 		trainingName?: string;
 		showExcuse?: boolean;
@@ -24,7 +24,7 @@
 		confirmDisabled = false,
 		onConfirm = noopConfirm,
 		onCancel = noop
-	}: TrainingRegistrationPopupProps = $props();
+	}: Props = $props();
 
 	let toExcuse = $state(false);
 

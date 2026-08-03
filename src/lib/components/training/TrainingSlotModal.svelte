@@ -52,7 +52,7 @@
 		cardStatus?: TrainingCardStatus;
 	};
 
-	interface TrainingSlotModalProps {
+	interface Props {
 		slot?: CalendarSlot | null;
 		open?: boolean;
 		onClose?: () => void;
@@ -70,7 +70,7 @@
 		onRegistrationChange,
 		canManageTraining = false,
 		currentUserId = null
-	}: TrainingSlotModalProps = $props();
+	}: Props = $props();
 
 	let registration = $state<RegistrationSummary | null>(null);
 	let registrationRequestId = 0;

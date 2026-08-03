@@ -2,7 +2,7 @@
 	import type { TrainingSlotListItem } from '@davincibot/lib';
 	import { Clock, MapPin } from '@lucide/svelte';
 
-	interface SlotListProps {
+	interface Props {
 		slots?: TrainingSlotListItem[];
 		selectedSlotId?: number | null;
 		onSelectSlot: (slotId: number) => void;
@@ -16,7 +16,7 @@
 		onSelectSlot,
 		formatDate,
 		formatTimeRange
-	}: SlotListProps = $props();
+	}: Props = $props();
 </script>
 
 <section

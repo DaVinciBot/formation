@@ -2,13 +2,13 @@
 	import type { TrainingSlotListItem } from '@davincibot/lib';
 	import { Calendar, Clock, MapPin } from '@lucide/svelte';
 
-	interface AttendanceMainInfoProps {
+	interface Props {
 		selectedSlot?: TrainingSlotListItem | null;
 		formatDate: (value: string) => string;
 		formatTimeRange: (startValue: string, durationHours: number) => string;
 	}
 
-	const { selectedSlot = null, formatDate, formatTimeRange }: AttendanceMainInfoProps = $props();
+	const { selectedSlot = null, formatDate, formatTimeRange }: Props = $props();
 </script>
 
 {#if selectedSlot}

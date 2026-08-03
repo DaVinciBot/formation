@@ -2,19 +2,14 @@
 	import type { RegistrationListItem } from '@davincibot/lib';
 	import { CircleCheck, CircleX, Users } from '@lucide/svelte';
 
-	interface RegistrationMobileListProps {
+	interface Props {
 		registrations?: RegistrationListItem[];
 		isSaving: (memberId: string) => boolean;
 		onPresenceChange: (memberId: string, present: boolean | null) => void;
 		presenceButtonClass: (value: boolean | null, current: boolean | null) => string;
 	}
 
-	const {
-		registrations = [],
-		isSaving,
-		onPresenceChange,
-		presenceButtonClass
-	}: RegistrationMobileListProps = $props();
+	const { registrations = [], isSaving, onPresenceChange, presenceButtonClass }: Props = $props();
 </script>
 
 <div class="mt-4 grid gap-4 min-[1040px]:hidden">

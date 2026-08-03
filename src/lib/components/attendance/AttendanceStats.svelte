@@ -1,5 +1,5 @@
 <script lang="ts">
-	interface AttendanceStatsProps {
+	interface Props {
 		registeredCount?: number;
 		presentCount?: number;
 		absentCount?: number;
@@ -11,7 +11,7 @@
 		presentCount = 0,
 		absentCount = 0,
 		unknownCount = 0
-	}: AttendanceStatsProps = $props();
+	}: Props = $props();
 </script>
 
 <div class="mt-4 grid grid-cols-2 gap-4 xl:grid-cols-4">

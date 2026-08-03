@@ -3,12 +3,12 @@
 
 	const noop = () => undefined;
 
-	interface AttendanceHeaderProps {
+	interface Props {
 		onRefresh?: () => void;
 		currentUserId?: string | null;
 	}
 
-	const { onRefresh = noop, currentUserId = null }: AttendanceHeaderProps = $props();
+	const { onRefresh = noop, currentUserId = null }: Props = $props();
 </script>
 
 <header

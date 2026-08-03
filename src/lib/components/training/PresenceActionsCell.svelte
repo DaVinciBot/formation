@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { CircleCheck, CircleX, Users } from '@lucide/svelte';
 
-	interface PresenceActionsCellProps {
+	interface Props {
 		memberId: string;
 		present: boolean | null;
 		status: string;
@@ -17,7 +17,7 @@
 		isSaving = false,
 		onChange,
 		presenceButtonClass
-	}: PresenceActionsCellProps = $props();
+	}: Props = $props();
 </script>
 
 {#if status === 'registered'}
