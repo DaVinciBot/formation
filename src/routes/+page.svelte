@@ -103,6 +103,7 @@
 			if (currentUserId && rawSlots.length > 0) {
 				const slotIds = rawSlots.map((slot) => slot.slot_id);
 				const { data: registrationData, error: registrationError } = await client
+					.schema('formation')
 					.from('registration')
 					.select('slot_id,status,remote')
 					.eq('member_id', currentUserId)
@@ -145,10 +146,10 @@
 	function setupRealtime() {
 		realtimeChannel = getClient()
 			.channel('training_calendar')
-			.on('postgres_changes', { event: '*', schema: 'public', table: 'registration' }, () => {
+			.on('postgres_changes', { event: '*', schema: 'formation', table: 'registration' }, () => {
 				scheduleSilentRefresh();
 			})
-			.on('postgres_changes', { event: '*', schema: 'public', table: 'training_slot' }, () => {
+			.on('postgres_changes', { event: '*', schema: 'formation', table: 'training_slot' }, () => {
 				scheduleSilentRefresh();
 			})
 			.subscribe();

@@ -49,6 +49,7 @@
 
 	const presenceTableTopic = 'presence-table';
 	const presenceDbInfo: DBInfo = {
+		schema: 'formation',
 		table: 'trainer_registration_view',
 		key: 'slot_id,member_id,date_hour,remote,status,present,to_excuse,member_username,member_avatar_url',
 		ordering: 'date_hour:asc'
