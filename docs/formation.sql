@@ -97,7 +97,11 @@ create table public.profiles (
   constraint profiles_id_fkey foreign KEY (id) references auth.users (id) on update CASCADE on delete CASCADE
 ) TABLESPACE pg_default;
 
+-- La clé primaire est un identifiant propre ; « une inscription par membre et
+-- par créneau » est portée par la contrainte d'unicité, sur laquelle s'appuie le
+-- `on conflict (slot_id, member_id)` de `register_to_slot`.
 create table public.registration (
+  id bigint generated always as identity not null,
   slot_id bigint not null,
   member_id uuid not null,
   date_hour timestamp with time zone not null default now(),
@@ -106,7 +110,8 @@ create table public.registration (
   present boolean null,
   to_excuse boolean null,
   feedback text null,
-  constraint registration_pkey primary key (slot_id, member_id),
+  constraint registration_pkey primary key (id),
+  constraint registration_slot_member_unique unique (slot_id, member_id),
   constraint registration_slot_id_fkey foreign KEY (slot_id) references training_slot (id) on update CASCADE on delete CASCADE,
   constraint registration_member_id_fkey foreign KEY (member_id) references profiles (id) on update CASCADE on delete RESTRICT
 ) TABLESPACE pg_default;
