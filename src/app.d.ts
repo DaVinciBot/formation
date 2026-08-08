@@ -4,10 +4,12 @@ import type { Database } from '@davincibot/database-types';
 import type { EffectivePermission } from '@davincibot/lib';
 import type { SupabaseClient, User } from '@supabase/supabase-js';
 
+type Campus = 'nantes' | 'paris';
+
 interface UserProject {
 	id: number;
 	name: string;
-	debut: string;
+	campus: Campus | null;
 }
 
 interface UserProfile {
@@ -17,7 +19,7 @@ interface UserProfile {
 	id: string;
 	projects: UserProject[];
 	permissions: EffectivePermission[];
-	allProjects: { value: number; name: string; debut: string }[] | null;
+	allProjects: { value: number; name: string; campus: Campus | null }[] | null;
 }
 
 // Le refresh token ne quitte jamais le service auth : les sites ne voient

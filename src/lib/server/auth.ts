@@ -6,6 +6,7 @@ interface ProfileRow {
 	username: string | null;
 	avatar_url: string | null;
 	role: string | null;
+	campus: 'nantes' | 'paris' | null;
 	permissions: GlobalPermission[] | null;
 	profile_global_roles:
 		| {
@@ -15,7 +16,11 @@ interface ProfileRow {
 		  }[]
 		| null;
 	member_of:
-		| { role: string | null; project: { id: number; name: string; debut: string | null } | null }[]
+		| {
+				role: string | null;
+				revoked_at: string | null;
+				project: { id: number; name: string; campus: 'nantes' | 'paris' | null } | null;
+		  }[]
 		| null;
 }
 
@@ -38,7 +43,7 @@ function resolveEffectivePermissions(data: ProfileRow): EffectivePermission[] {
 interface ProjectRow {
 	id: number;
 	name: string;
-	debut: string;
+	campus: 'nantes' | 'paris' | null;
 }
 
 interface SupabaseQueryResult<T> {
@@ -74,7 +79,7 @@ export async function buildUserProfile(supabase: SupabaseClient<Database>, user:
 		supabase
 			.from('profiles')
 			.select(
-				'username, avatar_url, permissions, profile_global_roles!profile_global_roles_profile_fkey(role, revoked_at, global_roles(permissions)), member_of!membre_projet_profile_fkey(role, project(id, name, debut))'
+				'username, avatar_url, campus, permissions, profile_global_roles!profile_global_roles_profile_fkey(role, revoked_at, global_roles(permissions)), member_of!membre_projet_profile_fkey(role, revoked_at, project(id, name, campus))'
 			)
 			.eq('id', user.id)
 			.single() as unknown as Promise<SupabaseQueryResult<ProfileRow | null>>,
@@ -103,23 +108,27 @@ export async function buildUserProfile(supabase: SupabaseClient<Database>, user:
 		name: data.username ?? (user.email ? (user.email.split('@')[0] ?? '') : ''),
 		avatar,
 		id: user.id,
+		campus: data.campus,
 		projects: (data.member_of ?? [])
+			// Un rattachement se révoque, il ne se supprime pas : sans ce filtre un
+			// ancien membre resterait rattaché à un projet qu'il a quitté.
 			.filter(
 				(
 					member
 				): member is {
 					role: string | null;
-					project: { id: number; name: string; debut: string | null };
-				} => member.project !== null
+					revoked_at: string | null;
+					project: { id: number; name: string; campus: 'nantes' | 'paris' | null };
+				} => member.project !== null && !member.revoked_at
 			)
 			.map((member) => ({
 				id: member.project.id,
 				name: member.project.name,
-				debut: member.project.debut ?? '0000-00-00',
+				campus: member.project.campus,
 				role: member.role ?? ''
 			})),
 		permissions,
-		allProjects: null as { value: number; name: string; debut: string }[] | null
+		allProjects: null as { value: number; name: string; campus: 'nantes' | 'paris' | null }[] | null
 	};
 
 	if (
@@ -131,18 +140,16 @@ export async function buildUserProfile(supabase: SupabaseClient<Database>, user:
 		canReadStats ||
 		canManageRoles
 	) {
-		//TODO: review
-		userProfile.projects.push({ id: 0, name: 'Association', debut: '2014-09-01', role: '' });
-
 		const projectsResult = (await supabase
 			.from('projects')
-			.select('id, name, debut')) as SupabaseQueryResult<ProjectRow[]>;
+			.select('id, name, campus')
+			.is('archived_at', null)) as SupabaseQueryResult<ProjectRow[]>;
 
 		if (!projectsResult.error) {
 			userProfile.allProjects = projectsResult.data.map((project) => ({
 				value: project.id,
 				name: project.name,
-				debut: project.debut
+				campus: project.campus
 			}));
 		}
 	}
