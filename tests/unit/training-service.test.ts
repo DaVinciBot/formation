@@ -53,8 +53,22 @@ function createThenableChain<T>(result: T): ThenableChain<T> {
 	return chain;
 }
 
+interface SchemaMock {
+	schema: Mock<(name: string) => unknown>;
+}
+
+/**
+ * Le domaine formation vit dans le schéma `formation` : le service appelle
+ * `supabase.schema('formation')` avant chaque `rpc()` / `from()`.
+ */
 function asTrainingClient(client: unknown): TrainingSupabaseClient {
-	return client as TrainingSupabaseClient;
+	const target = client as SchemaMock;
+	target.schema = vi.fn(() => target);
+	return target as unknown as TrainingSupabaseClient;
+}
+
+function schemaMockOf(client: unknown): SchemaMock['schema'] {
+	return (client as SchemaMock).schema;
 }
 
 describe('training service', () => {
@@ -75,6 +89,7 @@ describe('training service', () => {
 
 		expect(list).toEqual([{ training_id: 1, name: 'Svelte' }]);
 		expect(slots).toEqual([{ slot_id: 2 }]);
+		expect(schemaMockOf(supabase)).toHaveBeenCalledWith('formation');
 		expect(supabase.rpc).toHaveBeenNthCalledWith(1, 'training_list');
 		expect(supabase.rpc).toHaveBeenNthCalledWith(
 			2,

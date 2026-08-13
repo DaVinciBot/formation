@@ -5,17 +5,33 @@ import { describe, expect, it, vi } from 'vitest';
 import type { GlobalPermission } from '@davincibot/lib';
 import { buildUserProfile, hasPermission } from '../../src/lib/server/auth';
 
+type Campus = 'nantes' | 'paris' | null;
+
 interface ProfileFixture {
 	username: string | null;
 	avatar_url: string | null;
+	campus: Campus;
 	permissions: GlobalPermission[] | null;
-	member_of: { project: { id: number; name: string; debut: string | null } | null }[] | null;
+	profile_global_roles:
+		| {
+				role: string;
+				revoked_at: string | null;
+				global_roles: { permissions: GlobalPermission[] | null } | null;
+		  }[]
+		| null;
+	member_of:
+		| {
+				role: string | null;
+				revoked_at: string | null;
+				project: { id: number; name: string; campus: Campus } | null;
+		  }[]
+		| null;
 }
 
 interface ProjectFixture {
 	id: number;
 	name: string;
-	debut: string;
+	campus: Campus;
 }
 
 function createSupabaseForProfile({
@@ -37,11 +53,14 @@ function createSupabaseForProfile({
 		single: vi.fn(() => Promise.resolve({ data: profileData, error: profileError }))
 	};
 
+	// Les projets archivés sont exclus côté requête : le mock doit donc exposer
+	// `.is()` après `.select()`.
 	const projectsChain = {
-		select: vi.fn(() => Promise.resolve({ data: projectsData, error: projectsError }))
+		select: vi.fn(() => projectsChain),
+		is: vi.fn(() => Promise.resolve({ data: projectsData, error: projectsError }))
 	};
 
-	return {
+	const supabase = {
 		rpc: vi.fn((name: string) => {
 			if (name === 'has_permission') {
 				return Promise.resolve({ data: hasPermissionResult, error: null });
@@ -58,11 +77,13 @@ function createSupabaseForProfile({
 			throw new Error(`Unexpected table: ${table}`);
 		})
 	};
+
+	return { supabase, profilesChain, projectsChain };
 }
 
 describe('server auth helpers', () => {
 	it('hasPermission returns true/false based on rpc response', async () => {
-		const supabaseTrue = createSupabaseForProfile({ hasPermissionResult: true });
+		const { supabase: supabaseTrue } = createSupabaseForProfile({ hasPermissionResult: true });
 		const supabaseFalse = {
 			rpc: vi.fn(() => Promise.resolve({ data: null, error: new Error('rpc error') }))
 		};
@@ -79,7 +100,7 @@ describe('server auth helpers', () => {
 	});
 
 	it('buildUserProfile returns null profile when profile query fails', async () => {
-		const supabase = createSupabaseForProfile({
+		const { supabase } = createSupabaseForProfile({
 			profileData: null,
 			profileError: new Error('missing')
 		});
@@ -95,15 +116,31 @@ describe('server auth helpers', () => {
 		expect(result).toEqual({ userProfile: null, permissions: [] });
 	});
 
-	it('buildUserProfile builds profile with association and all projects when allowed', async () => {
-		const supabase = createSupabaseForProfile({
+	it('buildUserProfile merges role permissions and skips revoked memberships', async () => {
+		const { supabase, projectsChain } = createSupabaseForProfile({
 			profileData: {
 				username: 'Alice',
 				avatar_url: null,
+				campus: 'nantes',
 				permissions: ['members.profile.read.all'],
-				member_of: [{ project: { id: 7, name: 'Robot', debut: null } }]
+				profile_global_roles: [
+					{ role: 'tresorier', revoked_at: null, global_roles: { permissions: ['finance.read'] } },
+					{
+						role: 'ancien',
+						revoked_at: '2025-01-01',
+						global_roles: { permissions: ['iam.roles.manage'] }
+					}
+				],
+				member_of: [
+					{ role: 'membre', revoked_at: null, project: { id: 7, name: 'Robot', campus: 'nantes' } },
+					{
+						role: 'membre',
+						revoked_at: '2025-01-01',
+						project: { id: 8, name: 'Ancien projet', campus: 'nantes' }
+					}
+				]
 			},
-			projectsData: [{ id: 1, name: 'Project A', debut: '2025-01-01' }]
+			projectsData: [{ id: 1, name: 'Project A', campus: 'paris' }]
 		});
 
 		const result = await buildUserProfile(
@@ -114,17 +151,16 @@ describe('server auth helpers', () => {
 			} as User
 		);
 
-		expect(result.permissions).toEqual(['members.profile.read.all']);
+		expect(result.permissions).toEqual(['members.profile.read.all', 'finance.read']);
 		expect(result.userProfile).toMatchObject({
 			name: 'Alice',
 			email: 'alice@example.com',
-			projects: [
-				{ id: 7, name: 'Robot', debut: '0000-00-00' },
-				{ id: 0, name: 'Association', debut: '2014-09-01' }
-			]
+			campus: 'nantes',
+			projects: [{ id: 7, name: 'Robot', campus: 'nantes', role: 'membre' }]
 		});
 		expect(result.userProfile?.allProjects).toEqual([
-			{ value: 1, name: 'Project A', debut: '2025-01-01' }
+			{ value: 1, name: 'Project A', campus: 'paris' }
 		]);
+		expect(projectsChain.is).toHaveBeenCalledWith('archived_at', null);
 	});
 });
