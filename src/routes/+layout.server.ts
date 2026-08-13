@@ -3,7 +3,9 @@ import { buildLoginUrl } from '@davincibot/lib';
 import { redirect } from '@sveltejs/kit';
 import type { LayoutServerLoad } from './$types';
 
-export const load: LayoutServerLoad = async ({ locals, url }) => {
+export const load: LayoutServerLoad = async ({ depends, locals, url }) => {
+	depends('formation:session');
+
 	const { safeGetSession, supabase } = locals;
 	const { session, user } = await safeGetSession();
 

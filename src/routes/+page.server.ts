@@ -2,7 +2,9 @@ import { buildLoginUrl } from '@davincibot/lib';
 import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ locals, url }) => {
+export const load: PageServerLoad = async ({ depends, locals, url }) => {
+	depends('formation:home');
+
 	const { session, user } = await locals.safeGetSession();
 
 	if (!session || !user) {
