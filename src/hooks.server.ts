@@ -1,3 +1,4 @@
+import { resolve as resolveRoute } from '$app/paths';
 import { buildLoginUrl } from '@davincibot/lib';
 import {
 	SessionCache,
@@ -61,7 +62,7 @@ async function guardDevEnvironment(
 	}
 
 	// Health check du déploiement : public, ne divulgue rien.
-	if (event.url.pathname === '/health') {
+	if (event.url.pathname === '/health' || event.url.pathname === resolveRoute('/health')) {
 		return;
 	}
 
