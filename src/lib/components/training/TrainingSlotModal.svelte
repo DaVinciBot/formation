@@ -428,7 +428,8 @@
 									fullWidth={false}
 									onclick={() => {
 										if (slot) {
-											void goto(resolve(`/presence?slot=${String(slot.slot_id)}` as '/'));
+											// eslint-disable-next-line svelte/no-navigation-without-resolve
+											void goto(`${resolve('/presence')}?slot=${String(slot.slot_id)}`);
 										}
 									}}
 									size="xs"
@@ -488,7 +489,8 @@
 									fullWidth={false}
 									onclick={() => {
 										if (slot) {
-											void goto(resolve(`/presence?slot=${String(slot.slot_id)}` as '/'));
+											// eslint-disable-next-line svelte/no-navigation-without-resolve
+											void goto(`${resolve('/presence')}?slot=${String(slot.slot_id)}`);
 										}
 									}}
 									size="xs"
