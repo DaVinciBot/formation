@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { Topbar } from '@davincibot/components';
+	import { dev } from '$app/environment';
+	import { DevRbacPanel, Topbar } from '@davincibot/components';
 	import { loadUserdata } from '@davincibot/lib';
 	import type { Snippet } from 'svelte';
 	import type { LayoutData } from './$types';
@@ -32,4 +33,8 @@
 	<div class="pt-20">
 		{@render children()}
 	</div>
+
+	{#if dev}
+		<DevRbacPanel />
+	{/if}
 </div>
