@@ -170,6 +170,16 @@
 		}
 	}
 
+	/**
+	 * Deux boutons « Gérer » — un par largeur d'écran — mènent au même endroit.
+	 */
+	function openPresence() {
+		if (slot) {
+			// eslint-disable-next-line svelte/no-navigation-without-resolve
+			void goto(`${resolve('/presence')}?slot=${String(slot.slot_id)}`);
+		}
+	}
+
 	function openConfirmation(mode: AvailabilityMode['key']) {
 		confirmMode = mode;
 		confirmOpen = true;
@@ -426,12 +436,7 @@
 								<CtaButton
 									class="manage_button hidden items-center gap-2 whitespace-nowrap min-[430px]:inline-flex"
 									fullWidth={false}
-									onclick={() => {
-										if (slot) {
-											// eslint-disable-next-line svelte/no-navigation-without-resolve
-											void goto(`${resolve('/presence')}?slot=${String(slot.slot_id)}`);
-										}
-									}}
+									onclick={openPresence}
 									size="xs"
 									type="button"
 									variant="secondary"
@@ -487,12 +492,7 @@
 								<CtaButton
 									class="manage_button inline-flex items-center gap-2 whitespace-nowrap"
 									fullWidth={false}
-									onclick={() => {
-										if (slot) {
-											// eslint-disable-next-line svelte/no-navigation-without-resolve
-											void goto(`${resolve('/presence')}?slot=${String(slot.slot_id)}`);
-										}
-									}}
+									onclick={openPresence}
 									size="xs"
 									type="button"
 									variant="secondary"
