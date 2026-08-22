@@ -34,13 +34,13 @@ Objectif du site :
 ### 1.1 Vue principale
 
 - Calendrier des formations (vue commune à tous les rôles, fonctionnalités additionnelles selon le rôle connecté)
-    - Filtrage par :
-        - Catégorie
-        - Distanciel / Présentiel
-        - Disponibilité (complet / places restantes)
-    - Vue :
-        - Calendrier
-        - Liste chronologique (sur mobile ça peut être plus simple)
+  - Filtrage par :
+    - Catégorie
+    - Distanciel / Présentiel
+    - Disponibilité (complet / places restantes)
+  - Vue :
+    - Calendrier
+    - Liste chronologique (sur mobile ça peut être plus simple)
 
 ### 1.2 Détail d'une formation
 
@@ -56,12 +56,12 @@ Objectif du site :
 - Formation excusable ou non (je m'inspire du fab mais à dvb tout est excusable non ? est-ce qu'on met pour si un jour
   la politique change ?)
 - Bouton :
-    - **S'inscrire** (sur liste d'attente aussi si complète) Préciser si on a besoin d'un excuse de cours
-    - **Se désinscrire**
+  - **S'inscrire** (sur liste d'attente aussi si complète) Préciser si on a besoin d'un excuse de cours
+  - **Se désinscrire**
 - Badge :
-    - Complet
-    - Annulée
-    - Reportée
+  - Complet
+  - Annulée
+  - Reportée
 
 ### 1.3 Espace personnel
 
@@ -110,45 +110,45 @@ Objectif du site :
 - Formateur·ice
 - Lieu / lien
 - Places max
-    - Distanciel
-    - Présentiel
+  - Distanciel
+  - Présentiel
 - Visibilité :
-    - Publique
-    - Brouillon (avec heure de publication)
+  - Publique
+  - Brouillon (avec heure de publication)
 - Validation admin (si proposition 1)
 
 ### 2.3 Onglet : Gestion des inscriptions
 
 - Liste des inscrit·e·s
 - Statut :
-    - Confirmé·e
-    - Absent·e
-    - Désinscrit·e
+  - Confirmé·e
+  - Absent·e
+  - Désinscrit·e
 - Export CSV
 - Bouton :
-    - Envoyer un rappel
-    - Annuler la formation
+  - Envoyer un rappel
+  - Annuler la formation
 
 ### 2.4 Onglet : Statistiques
 
 - Par semaine / mois
-    - Nombre de formations
-    - Nombre de formé·e·s
-    - Nombre total de places proposées
-    - Durée totale de formation
-    - Nb de formations uniques
+  - Nombre de formations
+  - Nombre de formé·e·s
+  - Nombre total de places proposées
+  - Durée totale de formation
+  - Nb de formations uniques
 - Par catégorie (Logiciel, Code, Électronique, Robotique, Autres)
-    - Mêmes champs que précédemment
+  - Mêmes champs que précédemment
 - Par formateur·ice :
-    - Mêmes champs que précédemment
+  - Mêmes champs que précédemment
 - Par membre :
-    - Nombre de fm suivies
-    - Durée cumulées
+  - Nombre de fm suivies
+  - Durée cumulées
 - Par période paramétrable :
-    - Toutes les $x$ semaines / mois
-    - nb de fm par catégorie et total
-    - durée cumulées par catégorie et total
-    - ...
+  - Toutes les $x$ semaines / mois
+  - nb de fm par catégorie et total
+  - durée cumulées par catégorie et total
+  - ...
 
 ### 2.5 Parcours pas à pas (admin / respo)
 
@@ -179,10 +179,10 @@ Objectif du site :
 - Champs : catégorie, niveau, description, prérequis, durée, format, places
 - Soumise à validation admin
 - Suivi du statut :
-    - Brouillon
-    - En attente
-    - Acceptée
-    - Refusée (avec commentaire)
+  - Brouillon
+  - En attente
+  - Acceptée
+  - Refusée (avec commentaire)
 
 ### 3.3 Onglet : Mes formations
 
@@ -199,34 +199,34 @@ liste + filtre : à venir / passées / annulées
 **2) Inscriptions**
 
 - Liste des inscrit·e·s (avec infos utiles : pseudo discord, nom/prénom, contact)
-    - Clic pour plus de détails : Liste des formations déjà suivies du même "type" de formation
+  - Clic pour plus de détails : Liste des formations déjà suivies du même "type" de formation
 - Liste d'attente (si session complète)
 - Actions :
-    - Promouvoir quelqu'un de la liste d'attente à inscrit·e
-    - Retirer quelqu'un (avec motif optionnel)
-    - Clôturer les inscriptions
+  - Promouvoir quelqu'un de la liste d'attente à inscrit·e
+  - Retirer quelqu'un (avec motif optionnel)
+  - Clôturer les inscriptions
 
 **3) Présence**
 
 - Check-in par personne :
-    - Présent·e
-    - Absent·e
-    - Excusé·e (à gérer ici ou lors de l'inscription de la personne si elle est présente)
+  - Présent·e
+  - Absent·e
+  - Excusé·e (à gérer ici ou lors de l'inscription de la personne si elle est présente)
 - Boutons rapides :
-    - "Tout le monde présent"
-    - "Tout le monde absent" (avec confirmation)
+  - "Tout le monde présent"
+  - "Tout le monde absent" (avec confirmation)
 - Export :
-    - CSV liste présents / absents
+  - CSV liste présents / absents
 
 **4) Communication**
 
 - Envoyer un message aux : (bien préciser automatiquement l'auteur·ice du message)
-    - inscrit·e·s
-    - liste d'attente
+  - inscrit·e·s
+  - liste d'attente
 - Modèles rapides :
-    - rappel prérequis
-    - changement de salle / lien
-    - annulation / report
+  - rappel prérequis
+  - changement de salle / lien
+  - annulation / report
 
 ### 3.4 Parcours pas à pas (formateur·ice)
 
