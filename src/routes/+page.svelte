@@ -173,7 +173,7 @@
 </script>
 
 <div class="px-6 pt-4 pb-6">
-	<div class="h-[calc(100vh-8rem)]">
+	<div class="h-[calc(100vh-10rem)]">
 		<Calendar
 			{canManageTraining}
 			{currentUserId}

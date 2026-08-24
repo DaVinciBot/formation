@@ -1,12 +1,21 @@
 <script lang="ts">
 	import { dev } from '$app/environment';
+	import { resolve } from '$app/paths';
+	import { page } from '$app/state';
 	import { DevRbacPanel, Topbar } from '@davincibot/components';
-	import { loadUserdata } from '@davincibot/lib';
+	import { hasAnyPermission, loadUserdata } from '@davincibot/lib';
 	import type { Snippet } from 'svelte';
 	import type { LayoutData } from './$types';
 	import './layout.css';
 
 	let { data, children }: { data: LayoutData; children: Snippet } = $props();
+
+	const canSeeRequests = $derived(
+		hasAnyPermission(data.permissions, [
+			'training.request.manage.self',
+			'training.request.manage.all'
+		])
+	);
 
 	$effect(() => {
 		loadUserdata(data.userProfile);
@@ -30,9 +39,27 @@
 
 <div class="bg-dark-blue min-h-screen min-w-screen font-['Almarai'] text-white antialiased">
 	<Topbar loginRedirect="/formation" />
-	<div class="pt-20">
-		{@render children()}
-	</div>
+	<nav class="border-blue-gray/30 flex gap-4 border-b px-6 pt-20 pb-3 text-sm">
+		<a
+			class={page.url.pathname === resolve('/')
+				? 'text-dark-light-blue font-bold'
+				: 'text-dark-blue-gray'}
+			href={resolve('/')}
+		>
+			Calendrier
+		</a>
+		{#if canSeeRequests}
+			<a
+				class={page.url.pathname === resolve('/requests')
+					? 'text-dark-light-blue font-bold'
+					: 'text-dark-blue-gray'}
+				href={resolve('/requests')}
+			>
+				Demandes de formation
+			</a>
+		{/if}
+	</nav>
+	{@render children()}
 
 	{#if dev}
 		<DevRbacPanel />
