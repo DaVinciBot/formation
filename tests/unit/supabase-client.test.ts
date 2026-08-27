@@ -85,7 +85,7 @@ describe('supabase browser client', () => {
 		const { mod } = await loadModule({ browser: true, url: '', key: '', client: {} });
 
 		expect(() => mod.getSupabaseBrowserClient()).toThrow(
-			'Missing PUBLIC_SUPABASE_URL or PUBLIC_SUPABASE_PUBLISHABLE_KEY'
+			"Variables d'environnement manquantes : PUBLIC_SUPABASE_URL"
 		);
 	}, 30000);
 
