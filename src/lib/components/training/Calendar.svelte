@@ -415,7 +415,7 @@
 					}}
 					type="button"
 				>
-					<span>{weekdayLabel(index).substring(0, 2)}</span>
+					<span>{weekdayLabel(index).substring(0, 3)}</span>
 					<span>{formatParisDayShort(day.date)}</span>
 				</button>
 			{/each}
