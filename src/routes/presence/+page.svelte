@@ -8,7 +8,7 @@
 	import PresenceActionsCell from '$lib/components/training/PresenceActionsCell.svelte';
 	import {
 		Badge,
-		CTAButton,
+		CtaButton,
 		Spinner,
 		Table,
 		type DBInfo,
@@ -274,7 +274,7 @@
 				class="border-light-blue/20 bg-dark-blue/80 text-waiting flex flex-col items-center justify-center gap-3 rounded-[26px] border p-10"
 			>
 				<p class="text-center text-sm">{loadError}</p>
-				<CTAButton onclick={loadSlots} size="sm" type="button" variant="peps">Réessayer</CTAButton>
+				<CtaButton onclick={loadSlots} size="sm" type="button" variant="peps">Réessayer</CtaButton>
 			</div>
 		{:else if slots.length === 0}
 			<div
@@ -302,14 +302,14 @@
 						</div>
 						{#if selectedSlot()}
 							<div class="flex flex-wrap">
-								<CTAButton
+								<CtaButton
 									fullWidth={false}
 									onclick={() => selectedSlotId && loadRegistrations(selectedSlotId)}
 									size="sm"
 									variant="secondary"
 								>
 									<RefreshCw class="str size-5" strokeWidth={3} />
-								</CTAButton>
+								</CtaButton>
 							</div>
 						{/if}
 					</div>

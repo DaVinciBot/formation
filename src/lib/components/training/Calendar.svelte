@@ -23,7 +23,7 @@
 	import { calendarFilters } from '$lib/components/training/stores/trainingCalendarFilters';
 	import TrainingCard from '$lib/components/training/TrainingCard.svelte';
 	import TrainingSlotModal from '$lib/components/training/TrainingSlotModal.svelte';
-	import { CTAButton as CtaButton } from '@davincibot/components';
+	import { CtaButton } from '@davincibot/components';
 	import { formatParisDayShort, getParisDateUtc } from '@davincibot/lib';
 	import { CalendarSync } from '@lucide/svelte';
 	import { onMount, tick } from 'svelte';

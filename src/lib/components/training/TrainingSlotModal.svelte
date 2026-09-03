@@ -14,7 +14,7 @@
 	import { OverlayBackdrop } from '@davincibot/components';
 	import TrainingRegistrationPopup from '$lib/components/training/TrainingRegistrationPopup.svelte';
 	import { Badge } from '@davincibot/components';
-	import { CTAButton as CtaButton } from '@davincibot/components';
+	import { CtaButton } from '@davincibot/components';
 	import {
 		cancelRegistration,
 		getMyRegistrationForSlot,

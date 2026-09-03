@@ -8,7 +8,7 @@
 		type TrainingRequest,
 		type TrainingRequestStatus
 	} from '$lib/training-requests';
-	import { Badge, CTAButton, Spinner } from '@davincibot/components';
+	import { Badge, CtaButton, Spinner } from '@davincibot/components';
 	import { formatParisDate, getTrainingList, type TrainingListItem } from '@davincibot/lib';
 	import { getSupabaseBrowserClient } from '@davincibot/lib/supabase';
 	import { onMount } from 'svelte';
@@ -193,7 +193,7 @@
 
 			<form onsubmit={submit}>
 				<div class="mb-4 flex flex-wrap gap-2">
-					<CTAButton
+					<CtaButton
 						disabled={catalog.length === 0}
 						fullWidth={false}
 						onclick={() => (mode = 'catalog')}
@@ -201,15 +201,15 @@
 						variant={mode === 'catalog' ? 'primary' : 'secondary'}
 					>
 						Formation du catalogue
-					</CTAButton>
-					<CTAButton
+					</CtaButton>
+					<CtaButton
 						fullWidth={false}
 						onclick={() => (mode = 'subject')}
 						size="sm"
 						variant={mode === 'subject' ? 'primary' : 'secondary'}
 					>
 						Sujet libre
-					</CTAButton>
+					</CtaButton>
 				</div>
 
 				{#if mode === 'catalog'}
@@ -262,9 +262,9 @@
 					<p class="text-registered mb-3 text-sm">{formNotice}</p>
 				{/if}
 
-				<CTAButton disabled={submitting} fullWidth={false} size="sm" type="submit">
+				<CtaButton disabled={submitting} fullWidth={false} size="sm" type="submit">
 					{submitting ? 'Envoi…' : 'Envoyer la demande'}
-				</CTAButton>
+				</CtaButton>
 			</form>
 		</section>
 
@@ -294,7 +294,7 @@
 								<div class="flex items-center gap-3">
 									<Badge color={STATUS[request.status].color} text={STATUS[request.status].label} />
 									{#if request.status === 'pending'}
-										<CTAButton
+										<CtaButton
 											disabled={busyId === request.id}
 											fullWidth={false}
 											onclick={() => remove(request)}
@@ -302,7 +302,7 @@
 											variant="secondary"
 										>
 											Retirer
-										</CTAButton>
+										</CtaButton>
 									{/if}
 								</div>
 							</div>
@@ -322,14 +322,14 @@
 				<h2 class="text-xl font-bold">Demandes des membres</h2>
 				<div class="flex flex-wrap gap-2">
 					{#each FILTERS as filter (filter.value)}
-						<CTAButton
+						<CtaButton
 							fullWidth={false}
 							onclick={() => applyFilter(filter.value)}
 							size="xs"
 							variant={statusFilter === filter.value ? 'primary' : 'secondary'}
 						>
 							{filter.label}
-						</CTAButton>
+						</CtaButton>
 					{/each}
 				</div>
 			</div>
@@ -383,15 +383,15 @@
 
 							<div class="mt-4 flex flex-wrap gap-2">
 								{#if request.status === 'pending'}
-									<CTAButton
+									<CtaButton
 										disabled={busyId === request.id}
 										fullWidth={false}
 										onclick={() => resolve(request, 'done')}
 										size="xs"
 									>
 										Marquer accomplie
-									</CTAButton>
-									<CTAButton
+									</CtaButton>
+									<CtaButton
 										disabled={busyId === request.id}
 										fullWidth={false}
 										onclick={() => resolve(request, 'refused')}
@@ -399,9 +399,9 @@
 										variant="secondary"
 									>
 										Refuser
-									</CTAButton>
+									</CtaButton>
 								{:else}
-									<CTAButton
+									<CtaButton
 										disabled={busyId === request.id}
 										fullWidth={false}
 										onclick={() => resolve(request, 'pending')}
@@ -409,7 +409,7 @@
 										variant="secondary"
 									>
 										Rouvrir
-									</CTAButton>
+									</CtaButton>
 								{/if}
 							</div>
 						</li>

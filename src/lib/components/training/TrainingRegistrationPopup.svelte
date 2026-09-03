@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { OverlayBackdrop } from '@davincibot/components';
 	import { Checkbox } from '@davincibot/components';
-	import { CTAButton as CtaButton } from '@davincibot/components';
+	import { CtaButton } from '@davincibot/components';
 
 	interface Props {
 		open?: boolean;

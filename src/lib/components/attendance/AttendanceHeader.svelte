@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { CTAButton } from '@davincibot/components';
+	import { CtaButton } from '@davincibot/components';
 
 	const noop = () => undefined;
 
@@ -25,11 +25,11 @@
 			</p>
 		</div>
 		<div class="flex flex-wrap gap-3 sm:justify-end">
-			<CTAButton onclick={onRefresh} size="sm" type="button" variant="secondary">
+			<CtaButton onclick={onRefresh} size="sm" type="button" variant="secondary">
 				Actualiser
-			</CTAButton>
+			</CtaButton>
 			{#if currentUserId}
-				<CTAButton href="/" size="sm" variant="secondary">Retour au calendrier</CTAButton>
+				<CtaButton href="/" size="sm" variant="secondary">Retour au calendrier</CtaButton>
 			{/if}
 		</div>
 	</div>
