@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { dev } from '$app/environment';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import { DevRbacPanel, Topbar } from '@davincibot/components';
@@ -61,7 +60,5 @@
 	</nav>
 	{@render children()}
 
-	{#if dev}
-		<DevRbacPanel />
-	{/if}
+	<DevRbacPanel />
 </div>
