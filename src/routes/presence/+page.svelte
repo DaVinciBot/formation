@@ -13,6 +13,8 @@
 		Table,
 		type DBInfo,
 		type Filter,
+		type TableCell,
+		type TableColumn,
 		type TableRow
 	} from '@davincibot/components';
 	import {
@@ -29,7 +31,7 @@
 	import { getSupabaseBrowserClient } from '@davincibot/lib/supabase';
 	import { RefreshCw } from '@lucide/svelte';
 	import type { SupabaseClient } from '@supabase/supabase-js';
-	import { onMount } from 'svelte';
+	import { onMount, tick } from 'svelte';
 	import { SvelteSet } from 'svelte/reactivity';
 	import type { PageData } from './$types';
 
@@ -54,18 +56,37 @@
 		key: 'slot_id,member_id,date_hour,remote,status,present,to_excuse,member_username,member_avatar_url',
 		ordering: 'date_hour:asc'
 	};
-	let presenceFilters = $state<Filter[]>([
+	// Filtres cachés : la table n'affiche que la session choisie et, pour un formateur, que
+	// les inscrits et la liste d'attente.
+	const presenceFilters: Filter[] = $derived([
 		{
 			category: 'hidden',
 			value: 'slot_id',
-			options: [{ name: 'selected_slot', value: '', active: false }]
+			options: [
+				{
+					name: 'selected_slot',
+					value: selectedSlotId ? String(selectedSlotId) : '',
+					active: Boolean(selectedSlotId)
+				}
+			]
 		},
 		{
 			category: 'hidden',
 			value: 'status',
-			options: []
+			options: canManageTraining
+				? []
+				: [
+						{ name: 'registered', value: 'registered', active: true },
+						{ name: 'waitlisted', value: 'waitlisted', active: true }
+					]
 		}
 	]);
+	const presenceColumns: TableColumn[] = [
+		{ key: 'member_username', label: 'Membre', sortable: true },
+		{ key: 'remote', label: 'Format', sortable: true },
+		{ key: 'status', label: 'Statut', sortable: true },
+		{ key: 'present', label: 'Présence', csv: (row) => presenceLabel(row[3]) }
+	];
 
 	const slotRangeDays = 180;
 	const selectedSlotParam = $derived(() => {
@@ -109,44 +130,22 @@
 				},
 				{ value: reg.remote ? 'Distanciel' : 'Présentiel' },
 				{
-					component: Badge,
-					props: {
-						text: reg.status === 'registered' ? 'Inscrit·e' : 'En attente',
-						color: reg.status === 'registered' ? 'registered' : 'waiting'
-					}
+					value: reg.status === 'registered' ? 'Inscrit·e' : 'En attente',
+					data: reg.status,
+					cell: statusCell
 				},
-				{
-					component: PresenceActionsCell,
-					props: {
-						memberId: reg.member_id,
-						present: reg.present,
-						status: reg.status,
-						isSaving: isSaving(reg.member_id),
-						onChange: handlePresenceChange,
-						presenceButtonClass
-					}
-				}
+				{ value: reg, cell: presenceCell }
 			];
 		});
 	}
 
-	$effect(() => {
-		const slotValue = selectedSlotId ? String(selectedSlotId) : '';
-		presenceFilters = [
-			{
-				category: 'hidden',
-				value: 'slot_id',
-				options: [{ name: 'selected_slot', value: slotValue, active: Boolean(selectedSlotId) }]
-			},
-			{
-				category: 'hidden',
-				value: 'status',
-				options: canManageTraining
-					? []
-					: [{ name: 'registrations', value: 'registered","waitlisted', active: true }]
-			}
-		];
-	});
+	function presenceLabel(cell: TableCell | undefined) {
+		const reg = cell?.value as PresenceTableRegistration | undefined;
+		if (reg?.status !== 'registered') {
+			return '';
+		}
+		return reg.present === null ? 'NSP' : reg.present ? 'Présent' : 'Absent';
+	}
 
 	function formatDate(value: string) {
 		return formatParisDate(value);
@@ -207,7 +206,9 @@
 	async function handleSlotChange(slotId: number) {
 		selectedSlotId = slotId;
 		await loadRegistrations(slotId);
-		triggerTableRefresh(presenceTableTopic);
+		// La table vient d'être remontée : la page lue dans l'URL était celle de l'ancienne session.
+		await tick();
+		triggerTableRefresh(presenceTableTopic, { resetPage: true });
 	}
 
 	async function handlePresenceChange(memberId: string, present: boolean | null) {
@@ -262,6 +263,22 @@
 		void loadSlots();
 	});
 </script>
+
+{#snippet statusCell(cell: TableCell)}
+	<Badge color={cell.data === 'registered' ? 'registered' : 'waiting'} text={String(cell.value)} />
+{/snippet}
+
+{#snippet presenceCell(cell: TableCell)}
+	{@const reg = cell.value as PresenceTableRegistration}
+	<PresenceActionsCell
+		isSaving={isSaving(reg.member_id)}
+		memberId={reg.member_id}
+		onChange={handlePresenceChange}
+		{presenceButtonClass}
+		present={reg.present}
+		status={reg.status}
+	/>
+{/snippet}
 
 <section class="px-4 py-6 sm:px-6 sm:py-8">
 	<div class="mx-auto flex w-full max-w-6xl flex-col gap-6">
@@ -357,16 +374,13 @@
 								class="presence-table-container border-light-blue/15 bg-blue-gray/15 mt-6 hidden overflow-hidden rounded-2xl border min-[1040px]:block"
 							>
 								<Table
-									can_load={Boolean(selectedSlotId)}
+									columns={presenceColumns}
 									dbInfo={presenceDbInfo}
-									emptyMessage="Aucune inscription"
 									filters={presenceFilters}
-									headers={['Membre', 'Format', 'Statut', 'Présence']}
+									pageSize={10}
 									parseItems={parsePresenceItems}
 									refreshTopic={presenceTableTopic}
 									searchable="member_username"
-									showToolbar={false}
-									size={10}
 								/>
 							</div>
 						{/if}
@@ -378,21 +392,23 @@
 </section>
 
 <style>
-	:global(thead) {
-		background-color: color-mix(in oklab, var(--color-blue-gray) 15%, transparent) !important;
-		border-bottom: 1px solid color-mix(in oklab, var(--color-blue-gray) 50%, transparent) !important;
+	/* La table partagée garde ses couleurs d'admin : ici elle se fond dans la carte qui la contient
+	   et reprend les libellés espacés en capitales du reste de la page. */
+	.presence-table-container :global(section[aria-busy]) {
+		border: 0;
+		border-radius: 0;
+		background-color: transparent;
 	}
-	:global(thead th) {
+	.presence-table-container :global(thead) {
+		background-color: color-mix(in oklab, var(--color-blue-gray) 15%, transparent);
+		border-bottom: 1px solid color-mix(in oklab, var(--color-blue-gray) 50%, transparent);
+	}
+	.presence-table-container :global(thead th),
+	.presence-table-container :global(thead th button) {
 		letter-spacing: 0.32em;
 		font-size: 0.625rem;
 		font-weight: 400;
 		color: var(--color-dark-light-blue);
 		text-transform: uppercase;
-	}
-
-	:global(.presence-table-container li button) {
-		background-color: color-mix(in oklab, var(--color-blue-gray) 25%, transparent) !important;
-		border-color: color-mix(in oklab, var(--color-blue-gray) 40%, transparent) !important;
-		color: var(--color-dark-light-blue);
 	}
 </style>
