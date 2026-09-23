@@ -546,7 +546,7 @@
 							</div>
 							<!-- eslint-disable svelte/no-navigation-without-resolve -->
 							<a
-								class="text-light-blue hover:text-blue-peps mt-3 inline-flex cursor-pointer items-center gap-2 text-sm font-semibold transition"
+								class="text-light-blue mt-3 inline-flex cursor-pointer items-center gap-2 text-sm font-semibold transition hover:text-white"
 								href={slot?.video_conference_link ?? ''}
 								rel="noopener noreferrer"
 								target="_blank"
