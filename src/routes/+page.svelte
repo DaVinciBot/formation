@@ -22,7 +22,6 @@
 	let loading = $state(false);
 	let error: string | null = $state(null);
 	let currentDate = $state(new Date());
-	const WEEK_STORAGE_KEY = 'training_calendar_week_start';
 	let refreshTimeout: ReturnType<typeof setTimeout> | null = null;
 	let realtimeChannel: RealtimeChannel | null = null;
 
@@ -56,29 +55,6 @@
 		return isFull && canManageTraining ? 'complete' : 'free';
 	}
 
-	function readStoredWeekStart(): Date | null {
-		if (typeof localStorage === 'undefined') {
-			return null;
-		}
-		const raw = localStorage.getItem(WEEK_STORAGE_KEY);
-		if (!raw) {
-			return null;
-		}
-		const parsed = new Date(raw);
-		return Number.isNaN(parsed.getTime()) ? null : parsed;
-	}
-
-	function storeWeekStart(date: Date) {
-		if (typeof localStorage === 'undefined') {
-			return;
-		}
-		try {
-			localStorage.setItem(WEEK_STORAGE_KEY, date.toISOString());
-		} catch {
-			// ignore storage issues
-		}
-	}
-
 	function scheduleSilentRefresh() {
 		if (refreshTimeout) {
 			clearTimeout(refreshTimeout);
@@ -95,7 +71,6 @@
 			loading = true;
 			error = null;
 		}
-		storeWeekStart(weekStart);
 		try {
 			const client = getClient();
 			const rawSlots = await getTrainingSlots(client, weekStart, 7);
@@ -156,8 +131,7 @@
 	}
 
 	onMount(() => {
-		const savedWeek = readStoredWeekStart();
-		void loadWeek(savedWeek ?? new Date());
+		void loadWeek(new Date());
 		setupRealtime();
 	});
 
