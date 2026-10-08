@@ -81,7 +81,7 @@ async function guardDevEnvironment(
 	}
 
 	if (!session || !user) {
-		redirect(302, buildLoginUrl(event.url.href));
+		redirect(302, buildLoginUrl(event.url.href), { external: true });
 	}
 
 	const result = (await event.locals.supabase.rpc('has_permission', {

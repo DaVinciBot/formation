@@ -8,7 +8,7 @@ export const load: PageServerLoad = async ({ depends, locals, parent, url }) => 
 	const { session, user } = await locals.safeGetSession();
 
 	if (!session || !user) {
-		redirect(302, buildLoginUrl(url.href));
+		redirect(302, buildLoginUrl(url.href), { external: true });
 	}
 
 	const { permissions } = await parent();

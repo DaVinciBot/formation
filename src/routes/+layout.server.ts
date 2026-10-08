@@ -10,7 +10,7 @@ export const load: LayoutServerLoad = async ({ depends, locals, url }) => {
 	const { session, user } = await safeGetSession();
 
 	if (!user || !session) {
-		redirect(302, buildLoginUrl(url.href));
+		redirect(302, buildLoginUrl(url.href), { external: true });
 	}
 
 	const [canReadTraining, canManageTraining] = await Promise.all([
