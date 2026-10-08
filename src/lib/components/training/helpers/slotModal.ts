@@ -1,4 +1,4 @@
-import type { RegistrationSummary } from '@davincibot/lib';
+import type { RegistrationSummary } from '$lib/training-registrations';
 import { formatParisDate, formatParisTime, formatParisTimeRange } from '@davincibot/lib';
 
 export interface AvailabilityMode {

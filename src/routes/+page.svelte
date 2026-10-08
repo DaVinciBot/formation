@@ -2,11 +2,8 @@
 	import type { CalendarSlot } from '$lib/components/training/Calendar.svelte';
 	import Calendar from '$lib/components/training/Calendar.svelte';
 	import { getWeekStart } from '$lib/components/training/helpers/calendar';
-	import {
-		getTrainingSlots,
-		type RegistrationStatus,
-		type TrainingSlotListItem
-	} from '@davincibot/lib';
+	import { getTrainingSlots, type TrainingSlotListItem } from '@davincibot/lib';
+import { type RegistrationStatus } from '$lib/training-registrations';
 	import { getSupabaseBrowserClient } from '@davincibot/lib/supabase';
 	import type { RealtimeChannel, SupabaseClient } from '@supabase/supabase-js';
 	import { onDestroy, onMount } from 'svelte';

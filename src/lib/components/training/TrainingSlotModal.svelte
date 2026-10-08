@@ -15,18 +15,8 @@
 	import TrainingRegistrationPopup from '$lib/components/training/TrainingRegistrationPopup.svelte';
 	import { Badge } from '@davincibot/components';
 	import { CtaButton } from '@davincibot/components';
-	import {
-		cancelRegistration,
-		getMyRegistrationForSlot,
-		getSlotRegistrations,
-		getTrainerSlotRegistrations,
-		registerToSlot,
-		updateMyRegistrationExcuse,
-		type RegistrationListItem,
-		type RegistrationSummary,
-		type TrainingSlotListItem,
-		type TrainingSupabaseClient
-	} from '@davincibot/lib';
+	import { type TrainingSlotListItem, type TrainingSupabaseClient } from '@davincibot/lib';
+import { cancelRegistration, getMyRegistrationForSlot, getSlotRegistrations, getTrainerSlotRegistrations, registerToSlot, updateMyRegistrationExcuse, type RegistrationListItem, type RegistrationSummary } from '$lib/training-registrations';
 	import { getSupabaseBrowserClient } from '@davincibot/lib/supabase';
 	import {
 		Armchair,

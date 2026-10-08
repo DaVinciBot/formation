@@ -17,17 +17,8 @@
 		type TableColumn,
 		type TableRow
 	} from '@davincibot/components';
-	import {
-		formatParisDate,
-		formatParisTimeRange,
-		getSlotRegistrations,
-		getTrainerSlotRegistrations,
-		getTrainingSlots,
-		triggerTableRefresh,
-		updateTrainerPresence,
-		type RegistrationListItem,
-		type TrainingSlotListItem
-	} from '@davincibot/lib';
+	import { formatParisDate, formatParisTimeRange, getTrainingSlots, triggerTableRefresh, type TrainingSlotListItem } from '@davincibot/lib';
+import { getSlotRegistrations, getTrainerSlotRegistrations, updateTrainerPresence, type RegistrationListItem } from '$lib/training-registrations';
 	import { getSupabaseBrowserClient } from '@davincibot/lib/supabase';
 	import { RefreshCw } from '@lucide/svelte';
 	import type { SupabaseClient } from '@supabase/supabase-js';

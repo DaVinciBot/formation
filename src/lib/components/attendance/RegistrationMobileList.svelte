@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { RegistrationListItem } from '@davincibot/lib';
+	import type { RegistrationListItem } from '$lib/training-registrations';
 	import { CircleCheck, CircleX, Users } from '@lucide/svelte';
 
 	interface Props {
