@@ -139,14 +139,14 @@ language sql
 stable
 security definer
 set search_path = public
-as $$
+as $function$
   select exists (
     select 1
     from public.profiles
     where id = auth.uid()
       and p_permission = any (permissions)
   );
-$$;
+$function$;
 
 
 create or replace function public.training_list()
@@ -159,7 +159,7 @@ returns table (
 )
 language sql
 stable
-as $$
+as $function$
   select
     t.id as training_id,
     t.name,
@@ -168,21 +168,21 @@ as $$
     t.category
   from public.training t
   order by t.category, t.name;
-$$;
+$function$;
 
 create or replace function public.sync_training_slot_statuses()
 returns void
 language plpgsql
 security definer
 set search_path = public
-as $$
+as $function$
 begin
   update public.training_slot
   set status = 'done'::slot_status
   where status = 'pending'::slot_status
     and (start + (duration_hours || ' hours')::interval) <= clock_timestamp();
 end;
-$$;
+$function$;
 
 create or replace function public.training_slot_list(p_from timestamptz default now(), p_to timestamptz default null)
 returns table (
@@ -214,7 +214,7 @@ language plpgsql
 volatile
 security definer
 set search_path = public
-as $$
+as $function$
 begin
   perform public.sync_training_slot_statuses();
   return query
@@ -265,7 +265,7 @@ begin
     and (public.has_permission('view_trainings') or public.has_permission('edit_trainings'))
   order by ts.start;
 end;
-$$;
+$function$;
 
 create or replace function public.training_slot_detail(p_slot_id bigint)
 returns table (
@@ -297,7 +297,7 @@ language plpgsql
 volatile
 security definer
 set search_path = public
-as $$
+as $function$
 begin
   if coalesce(auth.role(), '') <> 'service_role' and not public.has_permission('view_trainings') and not public.has_permission('edit_trainings') then
     raise exception 'Not authorized';
@@ -349,7 +349,7 @@ begin
   where ts.id = p_slot_id
   limit 1;
 end;
-$$;
+$function$;
 
 create or replace function public.registration_list(p_slot_id bigint)
 returns table (
@@ -366,7 +366,7 @@ returns table (
 )
 language sql
 stable
-as $$
+as $function$
   select
     r.slot_id,
     r.member_id,
@@ -383,7 +383,7 @@ as $$
   where r.slot_id = p_slot_id
   order by r.date_hour;
 end;
-$$;
+$function$;
 
 create or replace function public.training_director_ids()
 returns table (
@@ -393,7 +393,7 @@ language plpgsql
 stable
 security definer
 set search_path = public
-as $$
+as $function$
 begin
   if coalesce(auth.role(), '') <> 'service_role' then
     raise exception 'Not authorized';
@@ -403,7 +403,7 @@ begin
   from public.profiles p
   where 'edit_trainings'::permission = any (p.permissions);
 end;
-$$;
+$function$;
 
 create or replace view public.trainer_registration_view
 with (security_invoker = true) as
@@ -432,7 +432,7 @@ returns void
 language plpgsql
 security definer
 set search_path = public
-as $$
+as $function$
 begin
   if not exists (
     select 1
@@ -449,14 +449,14 @@ begin
     and member_id = p_member_id
     and status in ('registered', 'waitlisted');
 end;
-$$;
+$function$;
 
 create or replace function public.registration_target_status(p_slot_id bigint, p_remote boolean)
 returns public.registration_status
 language plpgsql
 security definer
 set search_path = public
-as $$
+as $function$
 declare
   seat_capacity integer;
   registered_count integer;
@@ -483,7 +483,7 @@ begin
 
   return 'waitlisted';
 end;
-$$;
+$function$;
 
 create or replace function public.register_to_slot(
   p_slot_id bigint,
@@ -494,7 +494,7 @@ returns public.registration_status
 language plpgsql
 security definer
 set search_path = public
-as $$
+as $function$
 declare
   target_status public.registration_status;
   user_id uuid := auth.uid();
@@ -534,14 +534,14 @@ begin
 
   return target_status;
 end;
-$$;
+$function$;
 
 create or replace function public.cancel_my_registration(p_slot_id bigint)
 returns void
 language plpgsql
 security definer
 set search_path = public
-as $$
+as $function$
 declare
   user_id uuid := auth.uid();
 begin
@@ -559,14 +559,14 @@ begin
     and member_id = user_id
     and status in ('registered', 'waitlisted');
 end;
-$$;
+$function$;
 
 create or replace function public.registration_before_insert()
 returns trigger
 language plpgsql
 security definer
 set search_path = public
-as $$
+as $function$
 begin
   new.status := public.registration_target_status(new.slot_id, new.remote);
   if new.date_hour is null then
@@ -574,14 +574,14 @@ begin
   end if;
   return new;
 end;
-$$;
+$function$;
 
 create or replace function public.promote_waitlist(p_slot_id bigint, p_remote boolean)
 returns void
 language plpgsql
 security definer
 set search_path = public
-as $$
+as $function$
 declare
   seat_capacity integer;
   registered_count integer;
@@ -625,35 +625,35 @@ begin
   where slot_id = p_slot_id
     and member_id = candidate_member;
 end;
-$$;
+$function$;
 
 create or replace function public.registration_after_update()
 returns trigger
 language plpgsql
 security definer
 set search_path = public
-as $$
+as $function$
 begin
   if old.status = 'registered' and new.status in ('canceled_by_user', 'canceled_by_admin') then
     perform public.promote_waitlist(new.slot_id, new.remote);
   end if;
   return new;
 end;
-$$;
+$function$;
 
 create or replace function public.registration_after_delete()
 returns trigger
 language plpgsql
 security definer
 set search_path = public
-as $$
+as $function$
 begin
   if old.status = 'registered' then
     perform public.promote_waitlist(old.slot_id, old.remote);
   end if;
   return old;
 end;
-$$;
+$function$;
 
 create or replace function public.send_training_email(
   p_template text,
@@ -664,7 +664,7 @@ returns bigint
 language plpgsql
 security definer
 set search_path = public, vault, net
-as $$
+as $function$
 declare
   hook_secret text;
   function_url text;
@@ -735,28 +735,28 @@ begin
     and member_id = normalized_member_id;
   return request_id_value;
 end;
-$$;
+$function$;
 
 create or replace function public.registration_after_insert_email()
 returns trigger
 language plpgsql
 security definer
 set search_path = public
-as $$
+as $function$
 begin
   if new.status = 'registered' then
     perform public.send_training_email('registration_confirmed', new.slot_id, new.member_id);
   end if;
   return new;
 end;
-$$;
+$function$;
 
 create or replace function public.registration_after_update_email()
 returns trigger
 language plpgsql
 security definer
 set search_path = public
-as $$
+as $function$
 begin
   if new.status != 'registered' then
     return new;
@@ -771,28 +771,28 @@ begin
   end case;
   return new;
 end;
-$$;
+$function$;
 
 create or replace function public.training_slot_after_update_email()
 returns trigger
 language plpgsql
 security definer
 set search_path = public
-as $$
+as $function$
 begin
   if old.status is distinct from new.status and new.status = 'done' then
     perform public.send_training_email('training_director_summary', new.id, null);
   end if;
   return new;
 end;
-$$;
+$function$;
 
 create or replace function public.send_training_reminders()
 returns void
 language plpgsql
 security definer
 set search_path = public
-as $$
+as $function$
 declare
   slot_record record;
   registration_record record;
@@ -833,7 +833,7 @@ begin
     end loop;
   end loop;
 end;
-$$;
+$function$;
 
 create trigger registration_before_insert_trigger
 before insert on public.registration
@@ -865,7 +865,7 @@ after update on public.training_slot
 for each row
 execute function public.training_slot_after_update_email();
 
-do $$
+do $function$
 begin
   if exists (select 1 from cron.job where jobname = 'training-reminders') then
     perform cron.unschedule('training-reminders');
@@ -876,7 +876,7 @@ begin
     $cron$select public.send_training_reminders();$cron$
   );
 end;
-$$;
+$function$;
 
 alter table public.training enable row level security;
 alter table public.training_slot enable row level security;
@@ -997,4 +997,3 @@ using (
   bucket_id = 'training-images'
   and public.has_permission('edit_trainings')
 );
-
