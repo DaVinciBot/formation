@@ -1,7 +1,27 @@
 import { describe, expect, it, vi, type Mock } from 'vitest';
 
-import { createTraining, createTrainingSlot, getTrainingList, getTrainingSlots, updateTraining, updateTrainingSlot, type CreateTrainingPayload, type CreateTrainingSlotPayload, type TrainingSupabaseClient } from '@davincibot/lib';
-import { cancelRegistration, getMyRegistrationForSlot, getSlotRegistrations, getTrainerSlotRegistrations, getTrainingSlotDetail, registerToSlot, updateMyRegistrationExcuse, updateRegistration, updateTrainerPresence } from '$lib/training-registrations';
+import {
+	cancelRegistration,
+	getMyRegistrationForSlot,
+	getSlotRegistrations,
+	getTrainerSlotRegistrations,
+	getTrainingSlotDetail,
+	registerToSlot,
+	updateMyRegistrationExcuse,
+	updateRegistration,
+	updateTrainerPresence
+} from '$lib/training-registrations';
+import {
+	createTraining,
+	createTrainingSlot,
+	getTrainingList,
+	getTrainingSlots,
+	updateTraining,
+	updateTrainingSlot,
+	type CreateTrainingPayload,
+	type CreateTrainingSlotPayload,
+	type TrainingSupabaseClient
+} from '@davincibot/lib';
 
 interface ThenableChain<T> extends PromiseLike<T> {
 	select: Mock<() => ThenableChain<T>>;

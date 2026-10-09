@@ -16,7 +16,16 @@
 	import { Badge } from '@davincibot/components';
 	import { CtaButton } from '@davincibot/components';
 	import { type TrainingSlotListItem, type TrainingSupabaseClient } from '@davincibot/lib';
-import { cancelRegistration, getMyRegistrationForSlot, getSlotRegistrations, getTrainerSlotRegistrations, registerToSlot, updateMyRegistrationExcuse, type RegistrationListItem, type RegistrationSummary } from '$lib/training-registrations';
+	import {
+		cancelRegistration,
+		getMyRegistrationForSlot,
+		getSlotRegistrations,
+		getTrainerSlotRegistrations,
+		registerToSlot,
+		updateMyRegistrationExcuse,
+		type RegistrationListItem,
+		type RegistrationSummary
+	} from '$lib/training-registrations';
 	import { getSupabaseBrowserClient } from '@davincibot/lib/supabase';
 	import {
 		Armchair,
