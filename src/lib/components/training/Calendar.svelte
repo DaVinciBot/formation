@@ -19,10 +19,10 @@
 		groupSlotsByDay,
 		toDateKey,
 		weekdays
-	} from '$lib/components/training/helpers/calendar';
-	import { calendarFilters } from '$lib/components/training/stores/trainingCalendarFilters';
-	import TrainingCard from '$lib/components/training/TrainingCard.svelte';
-	import TrainingSlotModal from '$lib/components/training/TrainingSlotModal.svelte';
+	} from '#lib/components/training/helpers/calendar.js';
+	import { calendarFilters } from '#lib/components/training/stores/trainingCalendarFilters.js';
+	import TrainingCard from '#lib/components/training/TrainingCard.svelte';
+	import TrainingSlotModal from '#lib/components/training/TrainingSlotModal.svelte';
 	import { CtaButton } from '@davincibot/components';
 	import { formatParisDayShort, getParisDateUtc } from '@davincibot/lib';
 	import { CalendarSync } from '@lucide/svelte';

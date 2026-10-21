@@ -1,4 +1,4 @@
-import { buildUserProfile, hasPermission } from '$lib/server/auth';
+import { buildUserProfile, hasPermission } from '#lib/server/auth.js';
 import { buildLoginUrl } from '@davincibot/lib';
 import { redirect } from '@sveltejs/kit';
 import type { LayoutServerLoad } from './$types';

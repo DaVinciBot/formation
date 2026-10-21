@@ -7,7 +7,7 @@
 		setRequestStatus,
 		type TrainingRequest,
 		type TrainingRequestStatus
-	} from '$lib/training-requests';
+	} from '#lib/training-requests.js';
 	import { Badge, CtaButton, Spinner } from '@davincibot/components';
 	import { formatParisDate, getTrainingList, type TrainingListItem } from '@davincibot/lib';
 	import { getSupabaseBrowserClient } from '@davincibot/lib/supabase';

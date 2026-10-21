@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { RegistrationListItem } from '$lib/training-registrations';
+	import type { RegistrationListItem } from '#lib/training-registrations.js';
 	import { CircleCheck, CircleX, Users } from '@lucide/svelte';
 
 	interface Props {

@@ -9,7 +9,7 @@ import {
 	isInPersonSlot,
 	isOnlineSlot,
 	toDateKey
-} from '$lib/components/training/helpers/calendar';
+} from '#lib/components/training/helpers/calendar.js';
 
 describe('training calendar helpers', () => {
 	it('toDateKey returns paris date key', () => {

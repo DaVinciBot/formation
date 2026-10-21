@@ -6,7 +6,7 @@ import {
 	hasContent,
 	isRegistrationMode,
 	resolveRemaining
-} from '$lib/components/training/helpers/slotModal';
+} from '#lib/components/training/helpers/slotModal.js';
 
 describe('slot modal helpers', () => {
 	it('hasContent checks trimmed content', () => {

@@ -10,7 +10,7 @@ import {
 	updateMyRegistrationExcuse,
 	updateRegistration,
 	updateTrainerPresence
-} from '$lib/training-registrations';
+} from '#lib/training-registrations.js';
 import {
 	createTraining,
 	createTrainingSlot,

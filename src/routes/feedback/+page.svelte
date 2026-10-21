@@ -4,8 +4,8 @@
 		createFeedback,
 		getMyFeedback,
 		type TrainingFeedback
-	} from '$lib/training-feedback';
-	import { getTrainingSlotDetail } from '$lib/training-registrations';
+	} from '#lib/training-feedback.js';
+	import { getTrainingSlotDetail } from '#lib/training-registrations.js';
 	import { CtaButton, Spinner } from '@davincibot/components';
 	import { formatParisDate, type TrainingSlotListItem } from '@davincibot/lib';
 	import { getSupabaseBrowserClient } from '@davincibot/lib/supabase';

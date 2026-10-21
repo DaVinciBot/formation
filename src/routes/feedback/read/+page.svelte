@@ -4,7 +4,7 @@
 		getTrainerFeedback,
 		type TrainerFeedback,
 		type TrainingFeedback
-	} from '$lib/training-feedback';
+	} from '#lib/training-feedback.js';
 	import { Spinner } from '@davincibot/components';
 	import { formatParisDate } from '@davincibot/lib';
 	import { getSupabaseBrowserClient } from '@davincibot/lib/supabase';

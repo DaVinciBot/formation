@@ -10,9 +10,9 @@
 		isRegistrationMode,
 		type ActionButton,
 		type AvailabilityMode
-	} from '$lib/components/training/helpers/slotModal';
+	} from '#lib/components/training/helpers/slotModal.js';
 	import { OverlayBackdrop } from '@davincibot/components';
-	import TrainingRegistrationPopup from '$lib/components/training/TrainingRegistrationPopup.svelte';
+	import TrainingRegistrationPopup from '#lib/components/training/TrainingRegistrationPopup.svelte';
 	import { Badge } from '@davincibot/components';
 	import { CtaButton } from '@davincibot/components';
 	import { type TrainingSlotListItem, type TrainingSupabaseClient } from '@davincibot/lib';
@@ -25,7 +25,7 @@
 		updateMyRegistrationExcuse,
 		type RegistrationListItem,
 		type RegistrationSummary
-	} from '$lib/training-registrations';
+	} from '#lib/training-registrations.js';
 	import { getSupabaseBrowserClient } from '@davincibot/lib/supabase';
 	import {
 		Armchair,

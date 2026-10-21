@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import AttendanceHeader from '$lib/components/attendance/AttendanceHeader.svelte';
-	import AttendanceMainInfo from '$lib/components/attendance/AttendanceMainInfo.svelte';
-	import AttendanceStats from '$lib/components/attendance/AttendanceStats.svelte';
-	import RegistrationMobileList from '$lib/components/attendance/RegistrationMobileList.svelte';
-	import SlotList from '$lib/components/attendance/SlotList.svelte';
-	import PresenceActionsCell from '$lib/components/training/PresenceActionsCell.svelte';
+	import AttendanceHeader from '#lib/components/attendance/AttendanceHeader.svelte';
+	import AttendanceMainInfo from '#lib/components/attendance/AttendanceMainInfo.svelte';
+	import AttendanceStats from '#lib/components/attendance/AttendanceStats.svelte';
+	import RegistrationMobileList from '#lib/components/attendance/RegistrationMobileList.svelte';
+	import SlotList from '#lib/components/attendance/SlotList.svelte';
+	import PresenceActionsCell from '#lib/components/training/PresenceActionsCell.svelte';
 	import {
 		Badge,
 		CtaButton,
@@ -29,7 +29,7 @@
 		getTrainerSlotRegistrations,
 		updateTrainerPresence,
 		type RegistrationListItem
-	} from '$lib/training-registrations';
+	} from '#lib/training-registrations.js';
 	import { getSupabaseBrowserClient } from '@davincibot/lib/supabase';
 	import { RefreshCw } from '@lucide/svelte';
 	import type { SupabaseClient } from '@supabase/supabase-js';
