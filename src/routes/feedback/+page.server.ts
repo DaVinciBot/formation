@@ -1,0 +1,20 @@
+import { buildLoginUrl } from '@davincibot/lib';
+import { redirect } from '@sveltejs/kit';
+import type { PageServerLoad } from './$types';
+
+export const load: PageServerLoad = async ({ depends, locals, url }) => {
+	depends('formation:feedback');
+
+	const { session, user } = await locals.safeGetSession();
+
+	if (!session || !user) {
+		redirect(302, buildLoginUrl(url.href), { external: true });
+	}
+
+	const slotId = Number(url.searchParams.get('slot'));
+
+	return {
+		userId: user.id,
+		slotId: Number.isInteger(slotId) && slotId > 0 ? slotId : null
+	};
+};

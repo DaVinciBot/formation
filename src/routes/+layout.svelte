@@ -16,6 +16,10 @@
 		])
 	);
 
+	const canSeeFeedback = $derived(
+		data.isTrainer || hasAnyPermission(data.permissions, ['training.feedback.read'])
+	);
+
 	$effect(() => {
 		loadUserdata(data.userProfile);
 	});
@@ -55,6 +59,16 @@
 				href={resolve('/requests')}
 			>
 				Demandes de formation
+			</a>
+		{/if}
+		{#if canSeeFeedback}
+			<a
+				class={page.url.pathname === resolve('/feedback/read')
+					? 'text-dark-light-blue font-bold'
+					: 'text-dark-blue-gray'}
+				href={resolve('/feedback/read')}
+			>
+				Avis de formation
 			</a>
 		{/if}
 	</nav>

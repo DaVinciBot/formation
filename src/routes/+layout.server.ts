@@ -24,6 +24,14 @@ export const load: LayoutServerLoad = async ({ depends, locals, url }) => {
 
 	const { userProfile, permissions } = await buildUserProfile(supabase, user);
 
+	// Un formateur lit les avis de ses propres créneaux sans porter de permission :
+	// le lien du menu et la page de lecture en dépendent.
+	const { count: trainerSlotCount } = await supabase
+		.schema('formation')
+		.from('training_slot')
+		.select('id', { count: 'exact', head: true })
+		.eq('trainer_id', user.id);
+
 	locals.permissions = permissions;
 
 	return {
@@ -33,6 +41,7 @@ export const load: LayoutServerLoad = async ({ depends, locals, url }) => {
 		userProfile,
 		permissions,
 		canManageTraining,
-		canAccessTraining
+		canAccessTraining,
+		isTrainer: (trainerSlotCount ?? 0) > 0
 	};
 };
