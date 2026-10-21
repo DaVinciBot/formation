@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-// Ce module lit `browser` ($app/env) et `env` ($env/dynamic/public) au
+// Ce module lit `browser` ($app/env) et les variables de `$app/env/public` au
 // niveau du module. On pilote ces valeurs via un état mutable et un vi.mock de
 // fichier (qui prend le pas sur le stub global de tests/vitest-setup.ts), puis
 // on réimporte le module après vi.resetModules() pour chaque scénario.
@@ -20,11 +20,7 @@ vi.mock('$app/env', () => ({
 		return state.browser;
 	}
 }));
-vi.mock('$env/dynamic/public', () => ({
-	get env() {
-		return state.env;
-	}
-}));
+vi.mock('$app/env/public', async () => (await import('../envMock.js')).envModule(state.env));
 vi.mock('@supabase/supabase-js', () => ({
 	createClient: (...args: unknown[]): unknown => state.createClient(...args)
 }));
