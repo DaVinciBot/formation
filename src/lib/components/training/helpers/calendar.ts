@@ -14,21 +14,30 @@ export function toDateKey(date: Date) {
 	return getParisDateKey(date);
 }
 
+// Shifts by calendar days in Paris time and returns Paris midnight. Adding N * 24h in
+// milliseconds is wrong across DST changes (a day lasts 23h or 25h).
+export function addParisDays(date: Date, days: number) {
+	const parts = getParisDateParts(date);
+	if (!parts) {
+		return new Date(NaN);
+	}
+	const shiftedUtc = new Date(Date.UTC(parts.year, parts.month - 1, parts.day + days));
+	return (
+		getParisMidnightUtcFromParts({
+			year: shiftedUtc.getUTCFullYear(),
+			month: shiftedUtc.getUTCMonth() + 1,
+			day: shiftedUtc.getUTCDate()
+		}) ?? new Date(NaN)
+	);
+}
+
 export function getWeekStart(date: Date) {
 	const parts = getParisDateParts(date);
 	if (!parts) {
 		return new Date(NaN);
 	}
-	const baseUtc = Date.UTC(parts.year, parts.month - 1, parts.day);
-	const dayIndex = (new Date(baseUtc).getUTCDay() + 6) % 7;
-	const weekStartUtc = new Date(baseUtc - dayIndex * 24 * 60 * 60 * 1000);
-	return (
-		getParisMidnightUtcFromParts({
-			year: weekStartUtc.getUTCFullYear(),
-			month: weekStartUtc.getUTCMonth() + 1,
-			day: weekStartUtc.getUTCDate()
-		}) ?? new Date(NaN)
-	);
+	const dayIndex = (new Date(Date.UTC(parts.year, parts.month - 1, parts.day)).getUTCDay() + 6) % 7;
+	return addParisDays(date, -dayIndex);
 }
 
 export function getWeekNumber(date: Date) {
@@ -46,7 +55,7 @@ export function getWeekNumber(date: Date) {
 
 export function getCalendarDays(weekStart: Date) {
 	return Array.from({ length: 6 }, (_, index) => {
-		const date = new Date(weekStart.getTime() + index * 24 * 60 * 60 * 1000);
+		const date = addParisDays(weekStart, index);
 		const key = toDateKey(date);
 		return {
 			date,

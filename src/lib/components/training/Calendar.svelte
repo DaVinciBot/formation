@@ -12,6 +12,7 @@
 	import { Checkbox } from '@davincibot/components';
 	import { Spinner } from '@davincibot/components';
 	import {
+		addParisDays,
 		filterSlotsByFormat,
 		getCalendarDays,
 		getWeekNumber,
@@ -66,7 +67,6 @@
 	let hasSeenCalendarLoading = $state(false);
 
 	let viewDate = $derived(getParisDateUtc(new Date()) ?? new Date());
-	const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
 	$effect(() => {
 		viewDate = getParisDateUtc(initialDate) ?? new Date();
@@ -106,7 +106,7 @@
 		}
 
 		autoAdvanceToNextWeek = null;
-		setViewDate(new Date(getWeekStart(viewDate).getTime() + 7 * ONE_DAY_MS));
+		setViewDate(addParisDays(getWeekStart(viewDate), 7));
 	});
 
 	onMount(() => {
@@ -135,9 +135,7 @@
 	const weekLabel = $derived(() => `Semaine ${String(getWeekNumber(viewDate))}`);
 
 	const allSlotsByDay = $derived(() => groupSlotsByDay(slots));
-	const saturdayKey = $derived(() =>
-		toDateKey(new Date(weekStart().getTime() + 5 * 24 * 60 * 60 * 1000))
-	);
+	const saturdayKey = $derived(() => toDateKey(addParisDays(weekStart(), 5)));
 	const showSaturday = $derived(() => (allSlotsByDay().get(saturdayKey()) ?? []).length > 0);
 	const calendarDays = $derived(() => {
 		const days = getCalendarDays(weekStart());
@@ -183,12 +181,12 @@
 
 	function goPrev() {
 		autoAdvanceToNextWeek = null;
-		setViewDate(new Date(viewDate.getTime() - 7 * ONE_DAY_MS));
+		setViewDate(addParisDays(viewDate, -7));
 	}
 
 	function goNext() {
 		autoAdvanceToNextWeek = null;
-		setViewDate(new Date(viewDate.getTime() + 7 * ONE_DAY_MS));
+		setViewDate(addParisDays(viewDate, 7));
 	}
 
 	function goToday() {
