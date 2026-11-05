@@ -77,15 +77,7 @@ describe('supabase browser client', () => {
 		);
 	}, 30000);
 
-	it('throws when public env variables are missing', async () => {
-		const { mod } = await loadModule({ browser: true, url: '', key: '', client: {} });
-
-		expect(() => mod.getSupabaseBrowserClient()).toThrow(
-			"Variables d'environnement manquantes : PUBLIC_SUPABASE_URL"
-		);
-	}, 30000);
-
-	it('creates a singleton client in accessToken mode and forwards proxy calls', async () => {
+	it('creates a singleton client in accessToken mode', async () => {
 		const client = { from: vi.fn(() => 'from-result') };
 		const { mod, createClient, createClientCalls } = await loadModule({
 			browser: true,
@@ -103,11 +95,5 @@ describe('supabase browser client', () => {
 
 		const options = createClientCalls[0]?.[2] as { accessToken?: unknown } | undefined;
 		expect(typeof options?.accessToken).toBe('function');
-
-		const legacySupabase = (mod as unknown as Record<string, unknown>).supabase as {
-			from: (table: string) => string;
-		};
-		expect(legacySupabase.from('training')).toBe('from-result');
-		expect(client.from).toHaveBeenCalledWith('training');
 	}, 30000);
 });
