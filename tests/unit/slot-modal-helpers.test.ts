@@ -5,6 +5,7 @@ import {
 	buildAvailability,
 	hasContent,
 	isRegistrationMode,
+	remainingLabel,
 	resolveRemaining
 } from '#lib/components/training/helpers/slotModal.js';
 
@@ -32,8 +33,8 @@ describe('slot modal helpers', () => {
 		});
 
 		expect(availability).toEqual([
-			{ key: 'on-site', label: 'Présentiel', remaining: 0, isFull: true },
-			{ key: 'remote', label: 'Distanciel', remaining: 2, isFull: false }
+			{ key: 'on-site', label: 'Présentiel', remaining: 0, isFull: true, shared: false },
+			{ key: 'remote', label: 'Distanciel', remaining: 2, isFull: false, shared: false }
 		]);
 	});
 
@@ -83,8 +84,8 @@ describe('slot modal helpers', () => {
 			slot: { start: '2025-01-10T10:00:00.000Z', duration_hours: 2 },
 			registration: null,
 			availability: [
-				{ key: 'on-site', label: 'Présentiel', remaining: 3, isFull: false },
-				{ key: 'remote', label: 'Distanciel', remaining: 0, isFull: true }
+				{ key: 'on-site', label: 'Présentiel', remaining: 3, isFull: false, shared: false },
+				{ key: 'remote', label: 'Distanciel', remaining: 0, isFull: true, shared: false }
 			]
 		});
 
@@ -96,5 +97,37 @@ describe('slot modal helpers', () => {
 				variant: 'secondary'
 			}
 		]);
+	});
+});
+
+describe('places communes (formation#47)', () => {
+	it('annonce un reste commun aux deux modalités', () => {
+		const availability = buildAvailability({
+			start: '2026-11-20T14:00:00Z',
+			duration_hours: 2,
+			on_site_seats: 5,
+			remote_seats: 5,
+			on_site_remaining: 3,
+			remote_remaining: 3,
+			shared_seats: 5,
+			shared_remaining: 3
+		});
+		expect(availability.every((mode) => mode.shared)).toBe(true);
+		expect(availability.map(remainingLabel)).toEqual([
+			'3 places restantes, sur site ou à distance',
+			'3 places restantes, sur site ou à distance'
+		]);
+	});
+
+	it('garde le libellé habituel en places séparées', () => {
+		expect(
+			remainingLabel({
+				key: 'remote',
+				label: 'Distanciel',
+				remaining: 1,
+				isFull: false,
+				shared: false
+			})
+		).toBe('1 place restante');
 	});
 });
