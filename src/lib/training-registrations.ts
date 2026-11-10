@@ -1,3 +1,4 @@
+import type { SlotPriority } from '#lib/components/training/helpers/priority.js';
 import type { TrainingSlotListItem, TrainingSupabaseClient } from '@davincibot/lib';
 
 /** Le domaine formation vit dans le schéma `formation`, pas dans `public`. */
@@ -22,6 +23,8 @@ export interface RegistrationListItem {
 	feedback: string | null;
 	member_username: string | null;
 	member_avatar_url: string | null;
+	/** formation#52 — groupe prioritaire de la session auquel appartient l'inscrit. */
+	priority_group?: string | null;
 }
 
 export interface RegistrationSummary {
@@ -46,6 +49,28 @@ export async function getTrainingSlotDetail(
 	})) as RpcResult<TrainingSlotListItem[]>;
 	if (error) {
 		throw error;
+	}
+	return data?.[0] ?? null;
+}
+
+/**
+ * Groupes prioritaires de la session et situation de l'utilisateur courant
+ * (formation#52). Typage local : la RPC arrive avec la prochaine version de
+ * `@davincibot/database-types` (DaVinciBot/Supabased#37). Sur une base sans
+ * elle, la modale se passe simplement de ces informations.
+ */
+export async function getMySlotPriority(
+	supabase: TrainingSupabaseClient,
+	slotId: number
+): Promise<SlotPriority | null> {
+	const client = formation(supabase) as unknown as {
+		rpc: (name: 'my_training_priorities') => {
+			eq: (column: 'slot_id', value: number) => PromiseLike<RpcResult<SlotPriority[]>>;
+		};
+	};
+	const { data, error } = await client.rpc('my_training_priorities').eq('slot_id', slotId);
+	if (error) {
+		return null;
 	}
 	return data?.[0] ?? null;
 }

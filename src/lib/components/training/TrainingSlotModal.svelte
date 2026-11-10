@@ -12,6 +12,11 @@
 		type ActionButton,
 		type AvailabilityMode
 	} from '#lib/components/training/helpers/slotModal.js';
+	import {
+		priorityNotice,
+		waitlistLabel,
+		type SlotPriority
+	} from '#lib/components/training/helpers/priority.js';
 	import { OverlayBackdrop } from '@davincibot/components';
 	import TrainingRegistrationPopup from '#lib/components/training/TrainingRegistrationPopup.svelte';
 	import { Badge } from '@davincibot/components';
@@ -20,6 +25,7 @@
 	import {
 		cancelRegistration,
 		getMyRegistrationForSlot,
+		getMySlotPriority,
 		getSlotRegistrations,
 		getTrainerSlotRegistrations,
 		registerToSlot,
@@ -73,6 +79,9 @@
 	}: Props = $props();
 
 	let registration = $state<RegistrationSummary | null>(null);
+	// formation#52 — groupes prioritaires et position en liste d'attente.
+	let priority = $state<SlotPriority | null>(null);
+	const notice = $derived(priorityNotice(priority));
 	let registrationRequestId = 0;
 	let participants = $state<RegistrationListItem[]>([]);
 	let participantsLoading = $state(false);
@@ -129,11 +138,15 @@
 		}
 		const currentRequest = ++registrationRequestId;
 		try {
-			const data = await getMyRegistrationForSlot(getClient(), slot.slot_id, currentUserId);
+			const [data, slotPriority] = await Promise.all([
+				getMyRegistrationForSlot(getClient(), slot.slot_id, currentUserId),
+				getMySlotPriority(getClient(), slot.slot_id)
+			]);
 			if (currentRequest !== registrationRequestId) {
 				return;
 			}
 			registration = data;
+			priority = slotPriority;
 		} catch {
 			if (currentRequest !== registrationRequestId) {
 				return;
@@ -258,6 +271,7 @@
 	$effect(() => {
 		if (!open || !slot) {
 			registration = null;
+			priority = null;
 			participants = [];
 			participantsError = null;
 			participantsLoading = false;
@@ -404,7 +418,9 @@
 											</p>
 											{#if isRegistrationMode(registration, mode.key)}
 												<p class="m-0 font-semibold">
-													{isWaitlisted() ? "Sur liste d'attente" : 'Inscrit·e'}
+													{isWaitlisted()
+														? waitlistLabel(priority?.waitlist_position)
+														: 'Inscrit·e'}
 												</p>
 											{:else if mode.isFull}
 												<p class="text-waiting m-0 text-sm font-semibold">
@@ -419,6 +435,15 @@
 									</div>
 								{/each}
 							</div>
+						</div>
+					{/if}
+
+					{#if notice}
+						<div class="border-waiting/40 bg-waiting/10 rounded-2xl border p-4 text-sm">
+							<p class="text-light-blue m-0 font-semibold">
+								Session prioritaire : {notice.groups}
+							</p>
+							<p class="text-light-blue/80 m-0 mt-1">{notice.message}</p>
 						</div>
 					{/if}
 
@@ -479,7 +504,9 @@
 													{reg.member_username ?? 'Membre'}
 												</p>
 												<p class="text-light-blue/70 m-0 text-[0.7rem]/3">
-													{reg.remote ? 'Distanciel' : 'Présentiel'}
+													{reg.remote ? 'Distanciel' : 'Présentiel'}{reg.status === 'waitlisted'
+														? " · liste d'attente"
+														: ''}{reg.priority_group ? ` · ${reg.priority_group}` : ''}
 												</p>
 											</div>
 										</div>
