@@ -14,6 +14,13 @@
 	let { data }: { data: PageData } = $props();
 	const currentUserId: string = $derived(data.userId);
 	const canManageTraining = $derived(data.canManageTraining);
+	// formation#51 — le responsable externe inscrit des participants, pas lui-même.
+	const permissions = $derived(data.permissions as readonly string[]);
+	const canBulkRegister = $derived(permissions.includes('training.registration.create.bulk'));
+	const canSelfRegister = $derived(
+		permissions.includes('training.registration.manage.self') ||
+			permissions.includes('training.registration.manage.all')
+	);
 
 	let slots: CalendarSlot[] = $state([]);
 	let loading = $state(false);
@@ -146,7 +153,9 @@
 <div class="px-6 pt-4 pb-6">
 	<div class="h-[calc(100vh-10rem)]">
 		<Calendar
+			{canBulkRegister}
 			{canManageTraining}
+			{canSelfRegister}
 			{currentUserId}
 			errorMessage={error}
 			initialDate={currentDate}

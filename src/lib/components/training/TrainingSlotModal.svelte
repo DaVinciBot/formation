@@ -17,6 +17,7 @@
 		waitlistLabel,
 		type SlotPriority
 	} from '#lib/components/training/helpers/priority.js';
+	import ExternalParticipants from '#lib/components/training/ExternalParticipants.svelte';
 	import { OverlayBackdrop } from '@davincibot/components';
 	import TrainingRegistrationPopup from '#lib/components/training/TrainingRegistrationPopup.svelte';
 	import { Badge } from '@davincibot/components';
@@ -65,6 +66,10 @@
 		onRegistrationChange?: () => void;
 		canManageTraining?: boolean;
 		currentUserId?: string | null;
+		/** formation#51 — inscrire des participants externes par lot. */
+		canBulkRegister?: boolean;
+		/** S'inscrire soi-même ; faux pour un responsable externe. */
+		canSelfRegister?: boolean;
 	}
 
 	const noop = () => undefined;
@@ -75,6 +80,8 @@
 		onClose = noop,
 		onRegistrationChange,
 		canManageTraining = false,
+		canBulkRegister = false,
+		canSelfRegister = true,
 		currentUserId = null
 	}: Props = $props();
 
@@ -125,7 +132,10 @@
 	const availability = $derived(() => buildAvailability(slot));
 
 	const actionButtons = $derived((): ActionButton[] =>
-		buildActionButtons({ slot, registration, availability: availability() })
+		canSelfRegister ? buildActionButtons({ slot, registration, availability: availability() }) : []
+	);
+	const externalModes = $derived(
+		availability().map((mode) => ({ key: mode.key, label: mode.label }))
 	);
 
 	const actionCount = $derived(() =>
@@ -445,6 +455,19 @@
 							</p>
 							<p class="text-light-blue/80 m-0 mt-1">{notice.message}</p>
 						</div>
+					{/if}
+
+					{#if slot && (canBulkRegister || canViewParticipants())}
+						<ExternalParticipants
+							canManageAll={canManageTraining}
+							canRegister={canBulkRegister && slot.status === 'pending'}
+							{currentUserId}
+							modes={externalModes}
+							onChange={() => {
+								onRegistrationChange?.();
+							}}
+							slotId={slot.slot_id}
+						/>
 					{/if}
 
 					{#if canViewParticipants()}
