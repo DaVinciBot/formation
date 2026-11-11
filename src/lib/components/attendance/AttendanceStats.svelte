@@ -4,13 +4,16 @@
 		presentCount?: number;
 		absentCount?: number;
 		unknownCount?: number;
+		/** #49 — inscrits qui attendent un justificatif d'absence en cours. */
+		excuseCount?: number;
 	}
 
 	let {
 		registeredCount = 0,
 		presentCount = 0,
 		absentCount = 0,
-		unknownCount = 0
+		unknownCount = 0,
+		excuseCount = 0
 	}: Props = $props();
 </script>
 
@@ -32,3 +35,8 @@
 		<p class="text-light-blue mt-1 text-2xl/6 font-semibold">{unknownCount}</p>
 	</div>
 </div>
+{#if excuseCount > 0}
+	<p class="text-waiting mt-3 text-xs tracking-[0.2em] uppercase">
+		{excuseCount} excuse{excuseCount > 1 ? 's' : ''} de cours à fournir
+	</p>
+{/if}

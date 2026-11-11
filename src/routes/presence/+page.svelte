@@ -35,7 +35,7 @@
 		type RegistrationStatus
 	} from '#lib/training-registrations.js';
 	import { getSupabaseBrowserClient } from '@davincibot/lib/supabase';
-	import { RefreshCw } from '@lucide/svelte';
+	import { FileText, RefreshCw } from '@lucide/svelte';
 	import type { SupabaseClient } from '@supabase/supabase-js';
 	import { onMount, tick } from 'svelte';
 	import { SvelteSet } from 'svelte/reactivity';
@@ -85,13 +85,25 @@
 						{ name: 'registered', value: 'registered', active: true },
 						{ name: 'waitlisted', value: 'waitlisted', active: true }
 					]
+		},
+		{
+			// #49 — isoler d'un clic les membres qui ont besoin d'un justificatif.
+			category: 'Excuse de cours',
+			value: 'to_excuse',
+			options: [{ name: 'Excuse demandée', value: 'true' }]
 		}
 	]);
 	const presenceColumns: TableColumn[] = [
 		{ key: 'member_username', label: 'Membre', sortable: true },
 		{ key: 'remote', label: 'Format', sortable: true },
 		{ key: 'status', label: 'Statut', sortable: true },
-		{ key: 'present', label: 'Présence', csv: (row) => presenceLabel(row[3]) }
+		{
+			key: 'to_excuse',
+			label: 'Excuse',
+			sortable: true,
+			csv: (row) => (row[3]?.value === true ? 'Excuse demandée' : '')
+		},
+		{ key: 'present', label: 'Présence', csv: (row) => presenceLabel(row[4]) }
 	];
 
 	const slotRangeDays = 180;
@@ -124,7 +136,13 @@
 	);
 	type PresenceTableRegistration = Pick<
 		RegistrationListItem,
-		'member_id' | 'remote' | 'status' | 'present' | 'member_username' | 'member_avatar_url'
+		| 'member_id'
+		| 'remote'
+		| 'status'
+		| 'present'
+		| 'to_excuse'
+		| 'member_username'
+		| 'member_avatar_url'
 	>;
 
 	function parsePresenceItems(data: unknown[]): TableRow[] {
@@ -140,6 +158,7 @@
 					data: reg.status,
 					cell: statusCell
 				},
+				{ value: reg.to_excuse === true, cell: excuseCell },
 				{ value: reg, cell: presenceCell }
 			];
 		});
@@ -273,6 +292,19 @@
 	<Badge color={REGISTRATION_STATUS_BADGES[status].color} text={String(cell.value)} />
 {/snippet}
 
+{#snippet excuseCell(cell: TableCell)}
+	{#if cell.value === true}
+		<!-- #49 — ce membre attend un justificatif pour excuser son absence en cours. -->
+		<span
+			class="text-waiting inline-flex items-center gap-1 text-[0.7rem] tracking-[0.15em] uppercase"
+			title="Ce membre a demandé une excuse de cours pour cette session"
+		>
+			<FileText class="size-3.5" />
+			À excuser
+		</span>
+	{/if}
+{/snippet}
+
 {#snippet presenceCell(cell: TableCell)}
 	{@const reg = cell.value as PresenceTableRegistration}
 	<PresenceActionsCell
@@ -357,6 +389,9 @@
 					{:else}
 						<AttendanceStats
 							absentCount={absentCount()}
+							excuseCount={registrations.filter(
+								(item) => item.status === 'registered' && item.to_excuse === true
+							).length}
 							presentCount={presentCount()}
 							registeredCount={registeredCount()}
 							unknownCount={unknownCount()}
