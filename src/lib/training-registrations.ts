@@ -18,7 +18,7 @@ export interface RegistrationListItem {
 	remote: boolean;
 	status: RegistrationStatus;
 	present: boolean | null;
-	to_excuse: boolean | null;
+	to_excuse: boolean;
 	feedback: string | null;
 	member_username: string | null;
 	member_avatar_url: string | null;
@@ -27,13 +27,13 @@ export interface RegistrationListItem {
 export interface RegistrationSummary {
 	remote: boolean;
 	status: RegistrationStatus;
-	to_excuse: boolean | null;
+	to_excuse: boolean;
 }
 
 interface UpdateRegistrationPayload {
 	status?: RegistrationStatus;
 	present?: boolean | null;
-	to_excuse?: boolean | null;
+	to_excuse?: boolean;
 	feedback?: string | null;
 }
 
@@ -97,7 +97,7 @@ export async function getMyRegistrationForSlot(
 		.select('remote,status,to_excuse')
 		.eq('slot_id', slotId)
 		.eq('member_id', userId)
-		.maybeSingle()) as RpcResult<{ remote: boolean; status: string; to_excuse: boolean | null }>;
+		.maybeSingle()) as RpcResult<{ remote: boolean; status: string; to_excuse: boolean }>;
 	if (error) {
 		throw error;
 	}

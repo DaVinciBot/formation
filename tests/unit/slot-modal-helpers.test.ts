@@ -39,10 +39,10 @@ describe('slot modal helpers', () => {
 
 	it('isRegistrationMode matches registration remote flag', () => {
 		expect(
-			isRegistrationMode({ remote: true, status: 'registered', to_excuse: null }, 'remote')
+			isRegistrationMode({ remote: true, status: 'registered', to_excuse: false }, 'remote')
 		).toBe(true);
 		expect(
-			isRegistrationMode({ remote: false, status: 'registered', to_excuse: null }, 'remote')
+			isRegistrationMode({ remote: false, status: 'registered', to_excuse: false }, 'remote')
 		).toBe(false);
 		expect(isRegistrationMode(null, 'on-site')).toBe(false);
 	});
@@ -64,7 +64,7 @@ describe('slot modal helpers', () => {
 	it('buildActionButtons returns cancel action for registered user', () => {
 		const actions = buildActionButtons({
 			slot: { start: '2025-01-10T10:00:00.000Z', duration_hours: 2 },
-			registration: { remote: true, status: 'waitlisted', to_excuse: null },
+			registration: { remote: true, status: 'waitlisted', to_excuse: false },
 			availability: []
 		});
 
