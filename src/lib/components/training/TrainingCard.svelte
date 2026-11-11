@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { formatParisTimeRange } from '@davincibot/lib';
 	import type { TrainingSlotListItem } from '@davincibot/lib';
-	import { Clock, Hourglass, MapPin, UserRound } from '@lucide/svelte';
+	import { Clock, MapPin, UserRound } from '@lucide/svelte';
 	import type { TrainingCardStatus } from '@davincibot/database-types';
 
 	type TrainingSlotView = Omit<TrainingSlotListItem, 'start'> & {
@@ -25,21 +25,14 @@
 	}
 </script>
 
-<!-- eslint-disable @typescript-eslint/no-confusing-void-expression -- {@render} est vu comme une expression void imbriquée par la règle ; les snippets sont pourtant la bonne forme ici -->
-
 {#if variant === 'compact'}
 	<article
-		class={`training-card--${status} border-light-blue/30 hover:border-light-blue/60 w-full cursor-pointer rounded-lg border border-l-8 border-l-(--card-color) bg-[rgba(1,1,50,0.96)] px-2 py-1 transition hover:brightness-125 ${className}`.trim()}
+		class={`training-card--${status} border-light-blue/30 w-full cursor-pointer rounded-lg border border-l-8 border-l-(--card-color) bg-[rgba(1,1,50,0.96)] px-2 py-1 ${className}`.trim()}
 	>
 		<div class="flex min-h-14 items-center justify-between gap-3">
-			<div class="min-w-0 flex-1 shrink grow-2 basis-auto">
-				<h3 class="line-clamp-2 text-[0.95rem] font-semibold">
-					{slot.name}
-				</h3>
-				{#if status === 'complete'}
-					{@render waitlistBadge()}
-				{/if}
-			</div>
+			<h3 class="line-clamp-2 min-w-0 flex-1 shrink grow-2 basis-auto text-[0.95rem] font-semibold">
+				{slot.name}
+			</h3>
 			<div class="flex shrink-2 grow basis-auto flex-col items-end text-right">
 				<span class="text-dark-light-blue text-[0.8rem] whitespace-nowrap">
 					{formatTimeRange(slot.start, slot.duration_hours)}
@@ -60,16 +53,13 @@
 	</article>
 {:else}
 	<article
-		class={`training-card--${status} shadow-[0_10px_24px_rgba(0,0,0,0.35)]} border-light-blue/30 hover:border-light-blue/60 w-full cursor-pointer rounded-[8px] border-1 border-l-8 border-l-[var(--card-color)] bg-[rgba(1,1,50,0.96)] px-[12px] py-[8px] transition hover:brightness-125 ${className}`.trim()}
+		class={`training-card--${status} shadow-[0_10px_24px_rgba(0,0,0,0.35)]} border-light-blue/30 w-full cursor-pointer rounded-[8px] border-1 border-l-8 border-l-[var(--card-color)] bg-[rgba(1,1,50,0.96)] px-[12px] py-[8px] ${className}`.trim()}
 	>
 		<h3
 			class={`training-card__title m-0 mb-1 overflow-hidden text-start text-[1.0rem] font-bold text-ellipsis`.trim()}
 		>
 			{slot.name}
 		</h3>
-		{#if status === 'complete'}
-			{@render waitlistBadge()}
-		{/if}
 		<div class="flex flex-col gap-1 text-left font-semibold">
 			<div class="flex flex-wrap items-center gap-x-2">
 				<span class="text-dark-light-blue text-[0.85rem]"><Clock class="size-4" /></span>
@@ -98,20 +88,9 @@
 	</article>
 {/if}
 
-<!-- #46 — une session pleine n'est pas fermée : sa liste d'attente est ouverte, et le
-     dire invite à cliquer plutôt que de dissuader comme le faisait le rouge. -->
-{#snippet waitlistBadge()}
-	<span
-		class="text-dark-light-blue mt-0.5 inline-flex items-center gap-1 text-[0.7rem] font-semibold tracking-wide"
-	>
-		<Hourglass class="size-3" />
-		Complet · liste d'attente ouverte
-	</span>
-{/snippet}
-
 <style>
 	.training-card--complete {
-		--card-color: var(--color-dark-light-blue);
+		--card-color: var(--color-complete);
 	}
 
 	.training-card--free {

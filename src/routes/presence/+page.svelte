@@ -25,14 +25,10 @@
 		type TrainingSlotListItem
 	} from '@davincibot/lib';
 	import {
-		attendanceWindowStart,
 		getSlotRegistrations,
 		getTrainerSlotRegistrations,
-		pickAttendanceSlot,
-		REGISTRATION_STATUS_BADGES,
 		updateTrainerPresence,
-		type RegistrationListItem,
-		type RegistrationStatus
+		type RegistrationListItem
 	} from '#lib/training-registrations.js';
 	import { getSupabaseBrowserClient } from '@davincibot/lib/supabase';
 	import { RefreshCw } from '@lucide/svelte';
@@ -136,7 +132,7 @@
 				},
 				{ value: reg.remote ? 'Distanciel' : 'Présentiel' },
 				{
-					value: REGISTRATION_STATUS_BADGES[reg.status].label,
+					value: reg.status === 'registered' ? 'Inscrit·e' : 'En attente',
 					data: reg.status,
 					cell: statusCell
 				},
@@ -159,6 +155,15 @@
 
 	function formatTimeRange(startValue: string, durationHours: number) {
 		return formatParisTimeRange(startValue, durationHours);
+	}
+
+	function pickDefaultSlot(list: TrainingSlotListItem[]) {
+		if (list.length === 0) {
+			return null;
+		}
+		const now = Date.now();
+		const upcoming = list.find((slot) => new Date(slot.start).getTime() >= now);
+		return upcoming ?? list[list.length - 1];
 	}
 
 	function presenceButtonClass(value: boolean | null, current: boolean | null) {
@@ -233,14 +238,7 @@
 		loadError = null;
 		try {
 			const supabaseClient = getSupabaseBrowserClient() as SupabaseClient;
-			// #48 — une session qui a commencé reste à l'appel : charger à partir de
-			// maintenant la retirait de l'écran dès sa première minute.
-			const now = new Date();
-			const rawSlots = await getTrainingSlots(
-				supabaseClient,
-				attendanceWindowStart(now),
-				slotRangeDays
-			);
+			const rawSlots = await getTrainingSlots(supabaseClient, new Date(), slotRangeDays);
 			slots = rawSlots
 				.filter((slot) => canManageTraining || slot.trainer_id === currentUserId)
 				.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
@@ -249,7 +247,7 @@
 			const selectedFromParam = slotParam
 				? (slots.find((slot) => slot.slot_id === slotParam) ?? null)
 				: null;
-			const initialSlot = selectedFromParam ?? pickAttendanceSlot(slots, now);
+			const initialSlot = selectedFromParam ?? pickDefaultSlot(slots);
 			selectedSlotId = initialSlot?.slot_id ?? null;
 			if (selectedSlotId) {
 				await loadRegistrations(selectedSlotId);
@@ -269,8 +267,7 @@
 </script>
 
 {#snippet statusCell(cell: TableCell)}
-	{@const status = cell.data as RegistrationStatus}
-	<Badge color={REGISTRATION_STATUS_BADGES[status].color} text={String(cell.value)} />
+	<Badge color={cell.data === 'registered' ? 'registered' : 'waiting'} text={String(cell.value)} />
 {/snippet}
 
 {#snippet presenceCell(cell: TableCell)}

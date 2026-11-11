@@ -1,8 +1,5 @@
 <script lang="ts">
-	import {
-		REGISTRATION_STATUS_BADGES,
-		type RegistrationListItem
-	} from '#lib/training-registrations.js';
+	import type { RegistrationListItem } from '#lib/training-registrations.js';
 	import { CircleCheck, CircleX, Users } from '@lucide/svelte';
 
 	interface Props {
@@ -40,14 +37,12 @@
 				</div>
 				<span
 					class={`inline-flex rounded-full border px-2.5 py-1 text-[0.6rem] tracking-[0.25em] uppercase ${
-						REGISTRATION_STATUS_BADGES[reg.status].color === 'registered'
+						reg.status === 'registered'
 							? 'border-registered/40 text-registered'
-							: REGISTRATION_STATUS_BADGES[reg.status].color === 'waiting'
-								? 'border-waiting/40 text-waiting'
-								: 'border-light-blue/20 text-light-blue/60'
+							: 'border-waiting/40 text-waiting'
 					}`}
 				>
-					{REGISTRATION_STATUS_BADGES[reg.status].label}
+					{reg.status === 'registered' ? 'Inscrit·e' : 'En attente'}
 				</span>
 			</div>
 			<div class="text-light-blue/70 mt-3 flex items-center justify-between text-xs">
