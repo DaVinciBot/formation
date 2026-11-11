@@ -36,9 +36,6 @@
 				<h3 class="line-clamp-2 text-[0.95rem] font-semibold">
 					{slot.name}
 				</h3>
-				{#if status === 'complete'}
-					{@render waitlistBadge()}
-				{/if}
 			</div>
 			<div class="flex shrink-2 grow basis-auto flex-col items-end text-right">
 				<span class="text-dark-light-blue text-[0.8rem] whitespace-nowrap">
@@ -67,9 +64,6 @@
 		>
 			{slot.name}
 		</h3>
-		{#if status === 'complete'}
-			{@render waitlistBadge()}
-		{/if}
 		<div class="flex flex-col gap-1 text-left font-semibold">
 			<div class="flex flex-wrap items-center gap-x-2">
 				<span class="text-dark-light-blue text-[0.85rem]"><Clock class="size-4" /></span>
@@ -97,17 +91,6 @@
 		</div>
 	</article>
 {/if}
-
-<!-- #46 — une session pleine n'est pas fermée : sa liste d'attente est ouverte, et le
-     dire invite à cliquer plutôt que de dissuader comme le faisait le rouge. -->
-{#snippet waitlistBadge()}
-	<span
-		class="text-dark-light-blue mt-0.5 inline-flex items-center gap-1 text-[0.7rem] font-semibold tracking-wide"
-	>
-		<Hourglass class="size-3" />
-		Complet · liste d'attente ouverte
-	</span>
-{/snippet}
 
 <style>
 	.training-card--complete {
