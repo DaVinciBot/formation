@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { formatParisTimeRange } from '@davincibot/lib';
 	import type { TrainingSlotListItem } from '@davincibot/lib';
-	import { Clock, Hourglass, MapPin, UserRound } from '@lucide/svelte';
+	import { Clock, MapPin, UserRound } from '@lucide/svelte';
 	import type { TrainingCardStatus } from '@davincibot/database-types';
 
 	type TrainingSlotView = Omit<TrainingSlotListItem, 'start'> & {
@@ -25,18 +25,14 @@
 	}
 </script>
 
-<!-- eslint-disable @typescript-eslint/no-confusing-void-expression -- {@render} est vu comme une expression void imbriquée par la règle ; les snippets sont pourtant la bonne forme ici -->
-
 {#if variant === 'compact'}
 	<article
 		class={`training-card--${status} border-light-blue/30 hover:border-light-blue/60 w-full cursor-pointer rounded-lg border border-l-8 border-l-(--card-color) bg-[rgba(1,1,50,0.96)] px-2 py-1 transition hover:brightness-125 ${className}`.trim()}
 	>
 		<div class="flex min-h-14 items-center justify-between gap-3">
-			<div class="min-w-0 flex-1 shrink grow-2 basis-auto">
-				<h3 class="line-clamp-2 text-[0.95rem] font-semibold">
-					{slot.name}
-				</h3>
-			</div>
+			<h3 class="line-clamp-2 text-[0.95rem] font-semibold">
+				{slot.name}
+			</h3>
 			<div class="flex shrink-2 grow basis-auto flex-col items-end text-right">
 				<span class="text-dark-light-blue text-[0.8rem] whitespace-nowrap">
 					{formatTimeRange(slot.start, slot.duration_hours)}
@@ -94,7 +90,7 @@
 
 <style>
 	.training-card--complete {
-		--card-color: var(--color-dark-light-blue);
+		--card-color: var(--color-complete);
 	}
 
 	.training-card--free {
