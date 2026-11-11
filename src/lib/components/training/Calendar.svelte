@@ -589,8 +589,10 @@
 		<div class="border-registered text-registered rounded-2xl border px-2 py-0">Inscrit·e</div>
 		<div class="border-waiting text-waiting rounded-2xl border px-2 py-0">Sur liste d'attente</div>
 		<div class="border-primary-500 text-primary-500 rounded-2xl border px-2 py-0">Ma formation</div>
+		<div class="border-dark-light-blue text-dark-light-blue rounded-2xl border px-2 py-0">
+			Complète · liste d'attente ouverte
+		</div>
 		{#if canManageTraining}
-			<div class="border-complete text-complete rounded-2xl border px-2 py-0">Complète</div>
 			<div
 				class="border-dark-blue-gray text-dark-blue-gray rounded-2xl border px-2 py-0 opacity-55"
 			>
