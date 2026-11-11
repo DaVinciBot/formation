@@ -37,6 +37,8 @@
 		onWeekChange?: (weekStart: Date) => void;
 		onRegistrationChange?: () => void;
 		canManageTraining?: boolean;
+		canBulkRegister?: boolean;
+		canSelfRegister?: boolean;
 		currentUserId?: string | null;
 		isLoading?: boolean;
 		errorMessage?: string | null;
@@ -51,6 +53,8 @@
 		onWeekChange,
 		onRegistrationChange,
 		canManageTraining = false,
+		canBulkRegister = false,
+		canSelfRegister = true,
 		currentUserId = null,
 		isLoading = false,
 		errorMessage = null,
@@ -602,7 +606,9 @@
 
 <TrainingSlotModal
 	slot={selectedSlot}
+	{canBulkRegister}
 	{canManageTraining}
+	{canSelfRegister}
 	{currentUserId}
 	onClose={handleModalClose}
 	{onRegistrationChange}
