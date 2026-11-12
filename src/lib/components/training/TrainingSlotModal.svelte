@@ -4,6 +4,7 @@
 	import {
 		buildActionButtons,
 		buildAvailability,
+		remainingLabel,
 		formatDate,
 		formatTimeRange,
 		hasContent,
@@ -411,8 +412,7 @@
 												</p>
 											{:else}
 												<p class="text-light-blue m-0 text-sm font-semibold">
-													{mode.remaining}
-													{mode.remaining > 1 ? 'places restantes' : 'place restante'}
+													{remainingLabel(mode)}
 												</p>
 											{/if}
 										</div>

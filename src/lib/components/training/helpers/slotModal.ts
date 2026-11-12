@@ -6,6 +6,8 @@ export interface AvailabilityMode {
 	label: string;
 	remaining: number;
 	isFull: boolean;
+	/** formation#47 — le reste est commun aux deux modalités. */
+	shared: boolean;
 }
 
 export interface ActionButton {
@@ -22,6 +24,9 @@ export interface SlotLike {
 	on_site_remaining?: number | null;
 	remote_seats?: number | null;
 	remote_remaining?: number | null;
+	/** formation#47 — places communes aux deux modalités, et leur reste. */
+	shared_seats?: number | null;
+	shared_remaining?: number | null;
 	cardStatus?: string | null;
 }
 
@@ -59,6 +64,8 @@ export function buildAvailability(slot: SlotLike | null): AvailabilityMode[] {
 		return [];
 	}
 	const modes: AvailabilityMode[] = [];
+	// En places communes, la base rapporte le reste commun sur les deux modalités.
+	const shared = slot.shared_seats !== null && slot.shared_seats !== undefined;
 
 	const onSiteRemaining = resolveRemaining(slot.on_site_seats, slot.on_site_remaining);
 	if (onSiteRemaining !== null) {
@@ -66,7 +73,8 @@ export function buildAvailability(slot: SlotLike | null): AvailabilityMode[] {
 			key: 'on-site',
 			label: 'Présentiel',
 			remaining: onSiteRemaining,
-			isFull: onSiteRemaining <= 0
+			isFull: onSiteRemaining <= 0,
+			shared
 		});
 	}
 
@@ -76,11 +84,21 @@ export function buildAvailability(slot: SlotLike | null): AvailabilityMode[] {
 			key: 'remote',
 			label: 'Distanciel',
 			remaining: remoteRemaining,
-			isFull: remoteRemaining <= 0
+			isFull: remoteRemaining <= 0,
+			shared
 		});
 	}
 
 	return modes;
+}
+
+/**
+ * Libellé du reste disponible : « 3 places restantes », ou, en places communes,
+ * « 3 places restantes, sur site ou à distance » (formation#47).
+ */
+export function remainingLabel(mode: AvailabilityMode): string {
+	const base = `${String(mode.remaining)} ${mode.remaining > 1 ? 'places restantes' : 'place restante'}`;
+	return mode.shared ? `${base}, sur site ou à distance` : base;
 }
 
 export function isRegistrationMode(
