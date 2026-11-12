@@ -158,7 +158,7 @@
 					data: reg.status,
 					cell: statusCell
 				},
-				{ value: reg.to_excuse === true, cell: excuseCell },
+				{ value: reg.to_excuse, cell: excuseCell },
 				{ value: reg, cell: presenceCell }
 			];
 		});
@@ -390,7 +390,7 @@
 						<AttendanceStats
 							absentCount={absentCount()}
 							excuseCount={registrations.filter(
-								(item) => item.status === 'registered' && item.to_excuse === true
+								(item) => item.status === 'registered' && item.to_excuse
 							).length}
 							presentCount={presentCount()}
 							registeredCount={registeredCount()}
